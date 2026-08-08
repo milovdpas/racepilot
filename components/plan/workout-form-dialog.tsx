@@ -254,7 +254,7 @@ export function WorkoutFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="grid max-h-[90dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? t("workoutForm.editTitle") : t("workoutForm.addTitle")}
@@ -264,7 +264,9 @@ export function WorkoutFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-1">
+        {/* Scrolls on its own so the footer stays put; see the same shape in
+            complete-workout-dialog.tsx. */}
+        <div className="grid min-h-0 gap-4 overflow-y-auto py-1">
           {/* Mode: plan a future workout vs. log one you've done */}
           <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
             {(["plan", "log"] as const).map((m) => (

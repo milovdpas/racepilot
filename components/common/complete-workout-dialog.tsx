@@ -115,14 +115,19 @@ export function CompleteWorkoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="grid max-h-[90dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{workout?.title || t("completeWorkout.title")}</DialogTitle>
           <DialogDescription>{t("completeWorkout.desc")}</DialogDescription>
         </DialogHeader>
 
-        {workout ? (
-          <div className="grid gap-4 py-1">
+        {/* Only this middle row scrolls. The header keeps the workout's name
+            in view and, more to the point, the footer keeps "Log & complete"
+            reachable: with a scanned splits list the form is taller than a
+            phone, and a footer that scrolls away turns saving into a hunt. */}
+        <div className="grid min-h-0 gap-4 overflow-y-auto py-1">
+          {workout ? (
+            <>
             <p className="text-xs text-muted-foreground">
               {t("completeWorkout.planned", {
                 distance: fmt.distance(workout.plannedDistanceKm),
@@ -195,9 +200,10 @@ export function CompleteWorkoutDialog({
               <TimeField value={startTime} onChange={setStartTime} />
             </div>
 
-            <ScannedSplits splits={splits} onClear={() => setSplits([])} />
-          </div>
-        ) : null}
+              <ScannedSplits splits={splits} onClear={() => setSplits([])} />
+            </>
+          ) : null}
+        </div>
 
         <DialogFooter className="gap-2 sm:justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
