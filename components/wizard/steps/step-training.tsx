@@ -7,6 +7,15 @@ import { PreviousPlansPicker } from "@/components/wizard/previous-plans-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SportIcon } from "@/components/common/sport-icon";
+import { SPORTS, type Sport } from "@/lib/sport";
 import { useFormat } from "@/hooks/use-format";
 import { Label } from "@/components/ui/label";
 import type { Draft, LatestRun } from "@/lib/plan/request";
@@ -28,6 +37,10 @@ export function StepTraining({
 }) {
   const { t } = useTranslation();
   const fmt = useFormat();
+  // Only a multi-sport plan needs to say which sport each session was: for a
+  // single-sport plan every row inherits the plan's, and a picker on each line
+  // would be three taps of noise per row.
+  const perRowSport = draft.raceType === "multisport";
 
   /** Patch one run in the list, leaving the others alone. */
   const updateRun = (i: number, patch: Partial<LatestRun>) =>
@@ -56,6 +69,36 @@ export function StepTraining({
             // Index keys are fine here: rows have no identity beyond position
             // and are only ever appended or removed.
             <div key={i} className="flex items-center gap-2">
+              {perRowSport ? (
+                <Select
+                  value={r.sport ?? draft.sport}
+                  onValueChange={(v) => updateRun(i, { sport: v as Sport })}
+                >
+                  <SelectTrigger
+                    className="w-28 shrink-0"
+                    aria-label={t("wizard.runSport")}
+                  >
+                    <SelectValue>
+                      {(value) => (
+                        <span className="flex items-center gap-1.5">
+                          <SportIcon sport={value as Sport} />
+                          {t(`sport.${value as Sport}`)}
+                        </span>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SPORTS.map((sp) => (
+                      <SelectItem key={sp} value={sp}>
+                        <span className="flex items-center gap-1.5">
+                          <SportIcon sport={sp} />
+                          {t(`sport.${sp}`)}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
               <Input
                 type="number"
                 inputMode="decimal"
@@ -96,7 +139,16 @@ export function StepTraining({
           onClick={() =>
             set("latestRuns", [
               ...draft.latestRuns,
-              { distanceKm: "", time: "", date: "" },
+              {
+                // Stamped for a multi-sport plan, where draft.sport is not a
+                // meaningful default; inherited otherwise.
+                ...(perRowSport
+                  ? { sport: draft.legs[0]?.sport ?? draft.sport }
+                  : {}),
+                distanceKm: "",
+                time: "",
+                date: "",
+              },
             ])
           }
         >

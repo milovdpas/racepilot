@@ -1,13 +1,13 @@
 "use client";
 
-import { Gauge, Maximize2, Mountain, Route, Timer } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { NoPlanState } from "@/components/common/no-plan-state";
-import { StatCard } from "@/components/common/stat-card";
 import { LongRunProgressChart } from "@/components/stats/longrun-progress-chart";
 import { SplitPaceChart } from "@/components/stats/split-pace-chart";
 import { SportBreakdown } from "@/components/stats/sport-breakdown";
+import { StatGrid } from "@/components/stats/stat-grid";
 import { WeeklyHistoryChart } from "@/components/stats/weekly-history-chart";
 import { WeeklyTrendChart } from "@/components/stats/weekly-trend-chart";
 import {
@@ -21,6 +21,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { useActivePlan } from "@/hooks/use-active-plan";
 import { useFormat } from "@/hooks/use-format";
+import { isMultiSport } from "@/lib/plan/workout";
+import { DEFAULT_SPORT } from "@/lib/sport";
 import { useStats } from "@/hooks/use-stats";
 import { formatDayLabel } from "@/lib/date";
 import { latestSplitRun, statsBySport, weeklyHistory } from "@/lib/plan/stats";
@@ -47,40 +49,21 @@ export function StatsView() {
   // Most recent run that has scanned splits (null until one is scanned).
   const splitRun = latestSplitRun(plan);
   const bySport = statsBySport(plan);
+  const mixed = isMultiSport(plan);
+  // A single-sport plan's totals belong to that sport, so the pace card has to
+  // speak its language: km/h for a cycling plan, not min/km.
+  const planSport = plan.sport ?? DEFAULT_SPORT;
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          label={t("stats.totalDistance")}
-          value={fmt.distanceNumber(overall.totalKm)}
-          unit={fmt.distanceUnit}
-          sub={t("stats.ofPlanned", {
-            distance: fmt.distance(overall.plannedTotalKm),
-          })}
-          icon={<Route className="size-4" />}
-        />
-        <StatCard
-          label={t("stats.longestRun")}
-          value={fmt.distanceNumber(overall.longestRunKm)}
-          unit={fmt.distanceUnit}
-          icon={<Mountain className="size-4" />}
-        />
-        <StatCard
-          label={t("stats.avgPace")}
-          value={fmt.paceValue(overall.averagePace)}
-          unit={fmt.paceUnit}
-          icon={<Gauge className="size-4" />}
-        />
-        <StatCard
-          label={t("stats.runsCompleted")}
-          value={overall.completedCount}
-          sub={t("stats.pctOfPlan", { pct: overall.completionPct })}
-          icon={<Timer className="size-4" />}
-        />
-      </div>
-
-      <SportBreakdown stats={bySport} />
+      {/* A single-sport plan gets one grid over everything; a mixed plan gets
+          the same grid per sport, then the totals that can honestly be summed.
+          Neither ever adds a swim to a bike ride. */}
+      {mixed ? (
+        <SportBreakdown bySport={bySport} overall={overall} />
+      ) : (
+        <StatGrid stats={overall} sport={planSport} />
+      )}
 
       <Card className="p-4">
         <div className="mb-3 flex items-center justify-between">

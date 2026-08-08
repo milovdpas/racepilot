@@ -36,52 +36,6 @@ export function durationOf(w: Workout): number {
   return secs != null && km > 0 ? (secs * km) / 60 : 0;
 }
 
-export interface SportStats {
-  sport: Sport;
-  totalKm: number;
-  totalTimeMin: number;
-  completedCount: number;
-}
-
-/**
- * Per-sport totals for the sports this plan actually contains.
- *
- * **Time is the only honest cross-sport total.** Adding 40 km of cycling to
- * 10 km of running gives 50 of nothing: the two cost wildly different effort per
- * kilometer. Distance stays per-sport, and `totalTimeMin` is what can be summed
- * across them. A load score (TSS and friends) would be the better answer still,
- * but it needs per-sport thresholds this app deliberately doesn't collect.
- */
-export function statsBySport(plan: TrainingPlan): SportStats[] {
-  const bySport = new Map<Sport, SportStats>();
-
-  for (const w of allWorkouts(plan)) {
-    const sport = workoutSport(w, plan);
-    const entry = bySport.get(sport) ?? {
-      sport,
-      totalKm: 0,
-      totalTimeMin: 0,
-      completedCount: 0,
-    };
-    const ran = distanceRun(w);
-    if (ran > 0) {
-      entry.totalKm += ran;
-      entry.totalTimeMin += durationOf(w);
-    }
-    if (w.completed) entry.completedCount += 1;
-    bySport.set(sport, entry);
-  }
-
-  return [...bySport.values()]
-    .map((e) => ({
-      ...e,
-      totalKm: round1(e.totalKm),
-      totalTimeMin: Math.round(e.totalTimeMin),
-    }))
-    // Stable order, so the cards don't reshuffle as sessions are logged.
-    .sort((a, b) => SPORTS.indexOf(a.sport) - SPORTS.indexOf(b.sport));
-}
-
 export interface OverallStats {
   totalKm: number;
   /** Across every sport. The only total that means anything when they mix. */
@@ -95,7 +49,18 @@ export interface OverallStats {
 }
 
 export function overallStats(plan: TrainingPlan): OverallStats {
-  const workouts = allWorkouts(plan);
+  return statsForWorkouts(allWorkouts(plan));
+}
+
+/**
+ * The same figures over any subset of workouts.
+ *
+ * Split out so a per-sport section can show exactly what a single-sport plan
+ * shows, rather than a reduced summary: a triathlete wants their cycling
+ * distance, longest ride and average speed, not a total that mixes three
+ * sports together.
+ */
+export function statsForWorkouts(workouts: Workout[]): OverallStats {
   let totalKm = 0;
   let longestRunKm = 0;
   let completedCount = 0;
@@ -128,6 +93,30 @@ export function overallStats(plan: TrainingPlan): OverallStats {
         : Math.round((completedCount / workouts.length) * 100),
     plannedTotalKm: round1(plannedTotalKm),
   };
+}
+
+/** Every overall figure, for one sport. */
+export type SportStats = OverallStats & { sport: Sport };
+
+/**
+ * The full stat set, per sport, for the sports this plan contains.
+ *
+ * Deliberately NOT a cross-sport summary. Distance cannot be summed across
+ * sports (40 km on a bike and 10 km running is not 50 km of anything) and a
+ * pace averaged over a swim, a ride and a run blends three different units, so
+ * each sport is reported in its own terms instead.
+ */
+export function statsBySport(plan: TrainingPlan): SportStats[] {
+  const bySport = new Map<Sport, Workout[]>();
+  for (const w of allWorkouts(plan)) {
+    const sport = workoutSport(w, plan);
+    bySport.set(sport, [...(bySport.get(sport) ?? []), w]);
+  }
+  // Canonical order, so sections don't reshuffle as sessions are logged.
+  return SPORTS.filter((sp) => bySport.has(sp)).map((sport) => ({
+    sport,
+    ...statsForWorkouts(bySport.get(sport)!),
+  }));
 }
 
 /**

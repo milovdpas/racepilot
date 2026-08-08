@@ -1,56 +1,63 @@
 "use client";
 
+import { CheckCheck, Timer } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SportIcon } from "@/components/common/sport-icon";
-import { Card } from "@/components/ui/card";
-import { useFormat } from "@/hooks/use-format";
-import type { SportStats } from "@/lib/plan/stats";
+import { StatCard } from "@/components/common/stat-card";
+import { StatGrid } from "@/components/stats/stat-grid";
+import { useDuration } from "@/hooks/use-duration";
+import type { OverallStats, SportStats } from "@/lib/plan/stats";
 
 /**
- * Per-sport totals, shown only when a plan actually mixes sports.
+ * A multi-sport plan's figures: one full section per sport, then the totals
+ * that survive being added across them.
  *
- * Distance is deliberately kept per sport rather than summed: 40 km on a bike
- * and 10 km running are not 50 km of anything. Time is the one figure that
- * survives being added up, so it gets the headline.
+ * This used to be a single summary row per sport, which told a triathlete less
+ * than a runner gets on the same page. Now each sport shows exactly what a
+ * single-sport plan shows, in its own units — and the overall section carries
+ * only the two figures that can honestly be summed, because distance and pace
+ * cannot be.
  */
-export function SportBreakdown({ stats }: { stats: SportStats[] }) {
+export function SportBreakdown({
+  bySport,
+  overall,
+}: {
+  bySport: SportStats[];
+  overall: OverallStats;
+}) {
   const { t } = useTranslation();
-  const fmt = useFormat();
+  const duration = useDuration();
 
-  if (stats.length < 2) return null;
-
-  /** "1h 20m", or "45m" when it's under the hour. */
-  const hours = (minutes: number) => {
-    const h = Math.floor(minutes / 60);
-    const m = Math.round(minutes % 60);
-    return h > 0 ? t("stats.hours", { h, m }) : `${m}m`;
-  };
+  if (bySport.length < 2) return null;
 
   return (
-    <Card className="gap-0 p-4">
-      <h3 className="text-sm font-semibold">{t("stats.bySport")}</h3>
-      <p className="mb-3 text-xs text-muted-foreground">
-        {t("stats.bySportSub")}
-      </p>
-      <ul className="space-y-2">
-        {stats.map((s) => (
-          <li
-            key={s.sport}
-            className="flex items-center gap-3 rounded-xl border p-3"
-          >
+    <div className="space-y-5">
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">{t("stats.overall")}</h3>
+        <p className="text-xs text-muted-foreground">{t("stats.overallSub")}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard
+            label={t("stats.totalTime")}
+            value={duration(overall.totalTimeMin)}
+            icon={<Timer className="size-4" />}
+          />
+          <StatCard
+            label={t("stats.runsCompleted")}
+            value={overall.completedCount}
+            sub={t("stats.pctOfPlan", { pct: overall.completionPct })}
+            icon={<CheckCheck className="size-4" />}
+          />
+        </div>
+      </section>
+      {bySport.map((s) => (
+        <section key={s.sport} className="space-y-2">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
             <SportIcon sport={s.sport} className="size-4 text-primary" />
-            <span className="flex-1 text-sm font-medium">
-              {t(`sport.${s.sport}Plural`)}
-            </span>
-            <span className="text-sm tabular-nums">
-              {fmt.distance(s.totalKm)}
-            </span>
-            <span className="w-16 text-right text-sm tabular-nums text-muted-foreground">
-              {hours(s.totalTimeMin)}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Card>
+            {t(`sport.${s.sport}Plural`)}
+          </h3>
+          <StatGrid stats={s} sport={s.sport} />
+        </section>
+      ))}
+    </div>
   );
 }

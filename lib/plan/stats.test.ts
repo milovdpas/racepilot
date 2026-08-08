@@ -124,6 +124,7 @@ describe("statsBySport", () => {
           id: "r1",
           actualDistanceKm: 10,
           durationMin: 50,
+          actualPace: "5:00",
           completed: true,
         }),
         b1: makeWorkout({
@@ -131,6 +132,9 @@ describe("statsBySport", () => {
           sport: "bike",
           actualDistanceKm: 40,
           durationMin: 80,
+          // Stored per km like every sport: 2:00 is 30 km/h. The log dialog
+          // always writes this alongside the duration.
+          actualPace: "2:00",
           completed: true,
         }),
       },
@@ -147,6 +151,22 @@ describe("statsBySport", () => {
 
   it("reports time, which IS comparable across sports", () => {
     expect(statsBySport(mixed()).map((s) => s.totalTimeMin)).toEqual([50, 80]);
+  });
+
+  it("gives each sport the FULL stat set, not a summary", () => {
+    // A triathlete should see what a runner sees, three times over — longest
+    // session and average pace included, in that sport's own terms.
+    const bike = statsBySport(mixed()).find((s) => s.sport === "bike")!;
+    expect(bike.longestRunKm).toBe(40);
+    expect(bike.completedCount).toBe(1);
+    expect(bike.completionPct).toBe(100);
+    expect(bike.averagePace).toBe("2:00"); // 40 km in 80 min
+    expect(bike.plannedTotalKm).toBeGreaterThan(0);
+  });
+
+  it("counts each sport's sessions separately", () => {
+    const stats = statsBySport(mixed());
+    expect(stats.map((s) => s.totalCount)).toEqual([1, 1]);
   });
 
   it("puts a plain running plan in a single bucket", () => {
