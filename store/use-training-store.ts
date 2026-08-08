@@ -418,7 +418,13 @@ export const useTrainingStore = create<TrainingState>()(
       //      absent on a plan means running, which every plan written before
       //      multi-sport was. Stamping "run" everywhere would rewrite every
       //      user's data to say what the default already says.
-      version: 14,
+      // v15: additive — RaceType gains "multisport", plus PlanMeta.legs and
+      //      Workout.raceLegIndex. Only a multi-sport plan carries any of
+      //      them and none could exist before this, so there is nothing to
+      //      backfill. Bumped anyway: the convention is that a shape change
+      //      moves the version, so "which version introduced this field?" is
+      //      answerable from this list alone.
+      version: 15,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         plans: state.plans,
