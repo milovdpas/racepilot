@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppCookieSync } from "@/components/common/app-cookie-sync";
+import { MovedNotice } from "@/components/common/moved-notice";
 import { OnboardingRedirect } from "@/components/common/onboarding-redirect";
 import { RegionDetect } from "@/components/common/region-detect";
 import { SyncInitializer } from "@/components/common/sync-initializer";
@@ -78,6 +79,7 @@ export default function RootLayout({
           <I18nProvider>
             <ServiceWorker />
             <SyncInitializer />
+            <MovedNotice />
             <OnboardingRedirect />
             <AppCookieSync />
             <RegionDetect />

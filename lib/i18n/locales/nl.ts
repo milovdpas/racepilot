@@ -290,6 +290,16 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       "Upload bij het vastleggen van een loop je Strava-screenshot met tussentijden; het tempo van elke kilometer wordt er automatisch uit gelezen. Het draait op je apparaat, dus de afbeelding wordt nooit geüpload.",
     enableSplits: "Scannen inschakelen",
   },
+  moved: {
+    title: "RacePilot is verhuisd 🏃",
+    body: "Deze versie wordt niet meer bijgewerkt. De app staat nu op {{url}}. Dezelfde app, dezelfde functies, en alles wat nieuw is verschijnt daar het eerst.",
+    dataTitle: "Neem je training mee",
+    dataBody:
+      "Je plannen staan in deze browser en horen bij dit adres, dus ze gaan niet vanzelf mee. Exporteer ze hier en gebruik daarna Instellingen → Gegevens → Bestand importeren op de nieuwe site.",
+    export: "Exporteer mijn plannen",
+    stay: "Niet nu",
+    go: "Ga naar de nieuwe site",
+  },
   nextPlan: {
     title: "Wedstrijd volbracht! 🏁",
     body: "Goed gedaan met {{name}}. Wil je je volgende wedstrijd plannen en de training van dit blok meenemen als context?",
@@ -560,7 +570,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
 Wat de velden in de bijgevoegde plan-aanvraag betekenen:
 - race.name: hoe het plan moet heten. race.raceName: de naam van de wedstrijd.
 - race.distanceKm: de wedstrijdafstand in kilometers.
-- race.type "multisport": een triatlon of duatlon. race.legs[] geeft de onderdelen IN WEDSTRIJDVOLGORDE, elk met { sport, distanceKm, transitionMin } — transitionMin is de tijd NA dat onderdeel (T1, T2), dus het laatste heeft er geen. Negeer race.sport hierbij; de legs noemen de sporten.
+- race.type "multisport": een triatlon of duatlon. race.legs[] geeft de onderdelen IN WEDSTRIJDVOLGORDE, elk met { sport, distanceKm, transitionMin }. transitionMin is de tijd NA dat onderdeel (T1, T2), dus het laatste heeft er geen. Negeer race.sport hierbij; de legs noemen de sporten.
   - Bouw een week die ze allemaal traint, en plan elke week minstens één BRICK (een fietstraining met direct daarna een looptraining, als twee trainingen op dezelfde datum, fiets eerst). Zet "sport" op elke training.
   - Wedstrijddag is één training PER ONDERDEEL, allemaal op race.date, elk met "sport" en met "raceLegIndex" 0, 1, 2... in wedstrijdvolgorde. Geef GEEN enkele gecombineerde wedstrijdtraining: de app ziet de wedstrijd pas als afgerond wanneer elk onderdeel dat is.
   - Maak geen trainingen voor de wissels. Die horen bij de wedstrijdklok, niet bij de training, en een wisseltraining zou elk afstandstotaal vervuilen.

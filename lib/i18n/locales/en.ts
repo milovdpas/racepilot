@@ -289,6 +289,16 @@ JSON (paste below, or attach the exported .json file):
       "Upload your Strava splits screenshot when logging a run and the pace for every kilometer is read from it automatically. It runs on your device, so the image is never uploaded.",
     enableSplits: "Enable scanning",
   },
+  moved: {
+    title: "RacePilot has moved 🏃",
+    body: "This version is no longer updated. The app now lives at {{url}}. Same app, same features, and everything new lands there first.",
+    dataTitle: "Take your training with you",
+    dataBody:
+      "Your plans are stored by this browser, for this address only, so they don't follow you automatically. Export them here, then use Settings → Data → Import file on the new site.",
+    export: "Export my plans",
+    stay: "Not now",
+    go: "Go to the new site",
+  },
   nextPlan: {
     title: "Race done! 🏁",
     body: "Nice work on {{name}}. Want to plan your next race and take this block's training along as context?",
@@ -547,7 +557,7 @@ JSON (paste below, or attach the exported .json file):
 What the attached plan-request fields mean:
 - race.name: what to call the plan. race.raceName: the race's name.
 - race.distanceKm: the race distance in kilometers.
-- race.type "multisport": a triathlon or duathlon. race.legs[] gives the legs IN RACE ORDER, each with { sport, distanceKm, transitionMin } — transitionMin is the time spent AFTER that leg (T1, T2), so the last leg has none. Ignore race.sport for these; the legs name the sports.
+- race.type "multisport": a triathlon or duathlon. race.legs[] gives the legs IN RACE ORDER, each with { sport, distanceKm, transitionMin }. transitionMin is the time spent AFTER that leg (T1, T2), so the last leg has none. Ignore race.sport for these; the legs name the sports.
   - Build a week that trains all of them, and schedule at least one BRICK each week (a bike session followed immediately by a run, as two workouts on the same date, bike first). Set "sport" on every workout.
   - Race day is one workout PER LEG, all on race.date, each with "sport" set and "raceLegIndex" 0, 1, 2... in race order. Do NOT emit a single combined race workout: the app tracks the race as finished only when every leg is.
   - Do not create workouts for transitions. They are part of the race clock, not training, and a transition workout would corrupt every distance total.

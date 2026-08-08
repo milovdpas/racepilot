@@ -85,7 +85,41 @@ labelable control. The sport picker's child is a `<div>` of buttons, and
 `htmlFor` pointing at a div associates nothing — silently. `Field` decides by
 element type, treating host elements as wrappers and components as controls.
 
-## 4. Won't fix (recorded so it isn't re-litigated)
+## 4. Scheduled deletion: the "we have moved" notice (December 2026)
+
+The only code in the repo written to be thrown away. It exists to walk people
+off the retired Vercel deployment and onto `racepilot.milovanderpas.nl`, and it
+stops being useful the moment that deployment is gone.
+
+**Delete when the Vercel project is retired** (planned December 2026, kept alive
+until then because people are still using it). Not before: it is the only thing
+telling those users their data is somewhere they are about to lose access to.
+
+Everything to remove, so this can be done in one pass:
+
+- `lib/legacy-host.ts` and `lib/legacy-host.test.ts` — delete both.
+- `components/common/moved-notice.tsx` — delete.
+- `app/layout.tsx` — drop the `<MovedNotice />` mount and its import.
+- `components/common/whats-new-gate.tsx` — the `ready` predicate ends
+  `&& !isLegacyHost()`, which stops announcements stacking over the notice.
+  Drop that clause; it is the only other caller.
+- `lib/i18n/locales/en.ts` and `nl.ts` — the whole `moved:` section, from both.
+  `Dict` will flag it if only one side is removed.
+- `README.md` — the paragraph under deployment about the retired host.
+
+Nothing persisted is involved, so **no store version bump**: dismissal is
+component state deliberately, so that the nag survives a reload. Removal is
+pure subtraction with no migration.
+
+One thing worth preserving if the situation ever recurs: the host check is an
+allowlist of the old project's hostnames, *not* "any host that isn't the
+canonical one". The app is self-hostable, and the exclusion form would show
+every self-hoster a popup urging them to abandon their own install for a domain
+they do not control. It is an easy inversion to reach for, and it is wrong.
+
+---
+
+## 5. Won't fix (recorded so it isn't re-litigated)
 
 **`lib/google-drive.ts` and `lib/server/drive.ts` export the same four names**
 (`findFile`/`downloadFile`/`createFile`/`updateFile`) with different signatures.

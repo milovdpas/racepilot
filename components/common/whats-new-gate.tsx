@@ -9,6 +9,7 @@ import { InstallInstructions } from "@/components/common/install-instructions";
 import { OnboardingStep } from "@/components/common/onboarding-step";
 import { SplitsExample } from "@/components/common/splits-example";
 import { useInstallApp } from "@/hooks/use-install-app";
+import { isLegacyHost } from "@/lib/legacy-host";
 import type { AthleteType } from "@/lib/types";
 import { useTrainingStore } from "@/store/use-training-store";
 
@@ -48,8 +49,10 @@ function useWhatsNewSteps(): Step[] {
   const [picked, setPicked] = useState<AthleteType[]>([]);
 
   // Nothing is announced to someone who hasn't finished the welcome flow —
-  // they're seeing all of it there already.
-  const ready = hydrated && onboardingSeen === true;
+  // they're seeing all of it there already. Nor on the retired deployment,
+  // where the only message worth showing is "the app has moved" and stacking
+  // anything on top of it would bury the way out.
+  const ready = hydrated && onboardingSeen === true && !isLegacyHost();
 
   return [
     {

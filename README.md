@@ -1,5 +1,7 @@
 # 🏃 RacePilot
 
+**→ [racepilot.milovanderpas.nl](https://racepilot.milovanderpas.nl/)** — free, no account, nothing to install.
+
 A clean, mobile-first web app for planning and tracking endurance training: marathon, ultra, backyard ultra, trail, cycling, swimming and triathlon. Each sport reads in its own units, so a ride shows km/h and a swim shows min/100m, while everything is stored the same way underneath.
 
 No login required. Everything lives in your browser's **localStorage**, in kilometers and °C whatever you choose to see. Optional Google Drive sync uses a thin Next.js backend (server-side OAuth) — there's no database. Runs as a Docker container behind nginx; see [`Dockerfile`](Dockerfile).
@@ -128,6 +130,19 @@ Two things that are easy to get wrong:
 **Vercel** also works with no configuration: import the repo and it supplies its
 own origin. The only (optional) setup is the Google Drive sync env below — leave
 it unset and the app runs localStorage-only.
+
+One deployment gets special treatment: the original Vercel project the app was
+hosted on before the move. It shows a "this has moved" dialog with an export
+button ([`components/common/moved-notice.tsx`](components/common/moved-notice.tsx)),
+pointing people at [racepilot.milovanderpas.nl](https://racepilot.milovanderpas.nl/)
+and letting them take their plans along, since `localStorage` is scoped per
+origin and nothing follows them across on its own.
+
+**Self-hosting is unaffected.** That host is a hardcoded allowlist in
+[`lib/legacy-host.ts`](lib/legacy-host.ts), not "anything that isn't the official
+domain", so your own instance never shows it. Both the source and destination are
+constants there rather than being derived from `NEXT_PUBLIC_SITE_URL`, which holds
+each deployment's *own* origin.
 
 ---
 
