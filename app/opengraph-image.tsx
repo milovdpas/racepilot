@@ -3,7 +3,18 @@ import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
 // The social preview card. Next reuses this for Twitter too, so there is no
 // separate twitter-image.
-export const size = { width: 1200, height: 630 };
+/**
+ * Rendered at 2x the nominal 1200x630. The shape is what Twitter, LinkedIn and
+ * Slack expect, but WhatsApp crops to a square — and at 1200x630 that crop had
+ * only 630x630 pixels to work with, which a phone then upscaled to roughly 960
+ * device px. That upscale is what made the preview look blurry; it was never
+ * about how the image is produced. At 2400x1260 the square crop gets 1260x1260
+ * and lands comfortably above any phone's bubble.
+ */
+const SCALE = 2;
+const px = (n: number) => n * SCALE;
+
+export const size = { width: 1200 * SCALE, height: 630 * SCALE };
 export const contentType = "image/png";
 export const alt = `${SITE_NAME}: ${SITE_TAGLINE}`;
 
@@ -35,7 +46,7 @@ export default function OpengraphImage() {
           height: "100%",
           background: "#0a0a0a",
           color: "#fafafa",
-          padding: 60,
+          padding: px(60),
         }}
       >
         {/* The safe zone: narrower than the square crop, so nothing essential
@@ -45,23 +56,23 @@ export default function OpengraphImage() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            width: 600,
+            width: px(600),
             textAlign: "center",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: px(18) }}>
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 68,
-                height: 68,
-                borderRadius: 19,
+                width: px(68),
+                height: px(68),
+                borderRadius: px(19),
                 background: "#f1472c",
               }}
             >
-              <svg width="48" height="48" viewBox="0 0 64 64">
+              <svg width={px(48)} height={px(48)} viewBox="0 0 64 64">
                 <g
                   fill="none"
                   stroke="#fff"
@@ -78,7 +89,7 @@ export default function OpengraphImage() {
                 <circle cx="41" cy="15" r="6" fill="#fff" />
               </svg>
             </div>
-            <div style={{ fontSize: 44, fontWeight: 600 }}>{SITE_NAME}</div>
+            <div style={{ fontSize: px(44), fontWeight: 600 }}>{SITE_NAME}</div>
           </div>
 
           {/* Two rows rather than a <br>: Satori counts the break as a second
@@ -89,8 +100,8 @@ export default function OpengraphImage() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              marginTop: 44,
-              fontSize: 56,
+              marginTop: px(44),
+              fontSize: px(56),
               fontWeight: 600,
               lineHeight: 1.15,
             }}
@@ -99,10 +110,10 @@ export default function OpengraphImage() {
             <div>Track every kilometer.</div>
           </div>
 
-          <div style={{ marginTop: 28, fontSize: 26, color: "#a1a1aa" }}>
+          <div style={{ marginTop: px(28), fontSize: px(26), color: "#a1a1aa" }}>
             Marathon · Ultra · Trail · Triathlon
           </div>
-          <div style={{ marginTop: 8, fontSize: 26, color: "#a1a1aa" }}>
+          <div style={{ marginTop: px(8), fontSize: px(26), color: "#a1a1aa" }}>
             Free, no account.
           </div>
         </div>
