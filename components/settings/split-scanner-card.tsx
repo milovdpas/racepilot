@@ -52,6 +52,8 @@ export function SplitScannerCard() {
               <li>{t("splitScanner.tip1")}</li>
               <li>{t("splitScanner.tip2")}</li>
               <li>{t("splitScanner.tip3")}</li>
+              <li>{t("splitScanner.tip4")}</li>
+              <li>{t("splitScanner.tip5")}</li>
             </ul>
           </DialogContent>
         </Dialog>

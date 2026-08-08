@@ -7,6 +7,7 @@ import { AppearanceCard } from "@/components/settings/appearance-card";
 import { AthleteCard } from "@/components/settings/athlete-card";
 import { CloudSyncCard } from "@/components/settings/cloud-sync-card";
 import { DataCard } from "@/components/settings/data-card";
+import { DebugPanel } from "@/components/settings/debug-panel";
 import { ExamplePlansCard } from "@/components/settings/example-plans-card";
 import { FeaturesCard } from "@/components/settings/features-card";
 import { InstallAppCard } from "@/components/settings/install-app-card";
@@ -63,6 +64,8 @@ export function SettingsView() {
       <InstallAppCard />
 
       <SupportCard />
+
+      <DebugPanel />
     </div>
   );
 }

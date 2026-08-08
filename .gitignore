@@ -44,6 +44,7 @@ next-env.d.ts
 client_secret*
 WhatsApp*
 split-screenshots/
+pace-screenshots/
 *.traineddata
 
 # Raw plan exports. These carry the exporter's home coordinates in every

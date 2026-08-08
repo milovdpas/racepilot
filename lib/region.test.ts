@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { countryName, detectCountry, unitsForCountry } from "./region";
+import {
+  countryName,
+  countrySource,
+  detectCountry,
+  unitsForCountry,
+} from "./region";
 
 function stubNavigator(languages: string[], timeZone?: string) {
   vi.stubGlobal("navigator", { languages, language: languages[0] });
@@ -40,30 +45,65 @@ describe("unitsForCountry", () => {
 });
 
 describe("detectCountry", () => {
-  it("reads the region subtag from the locale", () => {
-    stubNavigator(["nl-NL", "en-US"]);
+  it("prefers the timezone over the locale's region", () => {
+    // The bug that prompted the order: a Dutch athlete whose phone runs in
+    // "English (United States)" is not American, and was being shown miles.
+    stubNavigator(["en-US", "en"], "Europe/Amsterdam");
+    expect(detectCountry()).toBe("NL");
+    expect(countrySource()).toBe("timezone");
+  });
+
+  it("agrees with the locale when they agree", () => {
+    stubNavigator(["nl-NL"], "Europe/Amsterdam");
     expect(detectCountry()).toBe("NL");
   });
 
+  it("reads the timezone across continents", () => {
+    const at = (tz: string) => {
+      stubNavigator(["en"], tz);
+      return detectCountry();
+    };
+    expect(at("America/Denver")).toBe("US");
+    expect(at("America/Indiana/Indianapolis")).toBe("US");
+    expect(at("Pacific/Honolulu")).toBe("US");
+    expect(at("America/Toronto")).toBe("CA");
+    expect(at("Europe/London")).toBe("GB");
+    expect(at("Australia/Sydney")).toBe("AU");
+    expect(at("Asia/Kolkata")).toBe("IN");
+    expect(at("Africa/Nairobi")).toBe("KE");
+    expect(at("America/Sao_Paulo")).toBe("BR");
+    expect(at("Asia/Tokyo")).toBe("JP");
+  });
+
+  it("still knows the old spelling of a renamed zone", () => {
+    // Devices report whatever tzdata their OS shipped with.
+    stubNavigator(["en"], "Europe/Kiev");
+    expect(detectCountry()).toBe("UA");
+    stubNavigator(["en"], "Asia/Calcutta");
+    expect(detectCountry()).toBe("IN");
+  });
+
+  it("falls back to the locale for a zone it does not know", () => {
+    stubNavigator(["nl-NL"], "Antarctica/Troll");
+    expect(detectCountry()).toBe("NL");
+    expect(countrySource()).toBe("locale");
+  });
+
   it("finds the region even when it isn't the second part", () => {
-    stubNavigator(["zh-Hant-TW"]);
+    stubNavigator(["zh-Hant-TW"], "Antarctica/Troll");
     expect(detectCountry()).toBe("TW");
   });
 
   it("skips a language with no region and takes the next one", () => {
-    stubNavigator(["en", "en-GB"]);
+    stubNavigator(["en", "en-GB"], "Antarctica/Troll");
     expect(detectCountry()).toBe("GB");
-  });
-
-  it("falls back to the timezone when no locale carries a region", () => {
-    stubNavigator(["en"], "America/Denver");
-    expect(detectCountry()).toBe("US");
   });
 
   it("returns undefined rather than guessing", () => {
     // Undefined is a good answer: it means metric, right for most of the world.
     stubNavigator(["en"], "Antarctica/Troll");
     expect(detectCountry()).toBeUndefined();
+    expect(countrySource()).toBe("none");
   });
 
   it("is safe on the server, where there is no navigator", () => {

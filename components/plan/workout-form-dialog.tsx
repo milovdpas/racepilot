@@ -23,7 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { SplitScanField } from "@/components/common/split-scan-field";
+import {
+  type ScannedFields,
+  ScannedSplits,
+  ScreenshotScanField,
+} from "@/components/common/screenshot-scan-field";
 import { TimeField } from "@/components/common/time-field";
 import { formatClock, num, resolveLoggedRun } from "@/lib/pace";
 import {
@@ -158,6 +162,17 @@ export function WorkoutFormDialog({
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
+
+  // A scan fills only what it actually read, so a screenshot missing one value
+  // never clears what the user already typed there.
+  const applyScan = (s: ScannedFields) =>
+    setForm((f) => ({
+      ...f,
+      ...(s.distance != null ? { actualDistanceKm: s.distance } : {}),
+      ...(s.pace != null ? { actualPace: s.pace } : {}),
+      ...(s.duration != null ? { durationMin: s.duration } : {}),
+      ...(s.startTime != null ? { startTime: s.startTime } : {}),
+    }));
 
   // Log mode: distance + (duration OR pace) computes & locks the third field.
   // The same call drives what is displayed and what is saved.
@@ -389,6 +404,12 @@ export function WorkoutFormDialog({
                   onChange={(e) => set("date", e.target.value)}
                 />
               </Field>
+              <ScreenshotScanField
+                splits={splits}
+                onSplits={setSplits}
+                onScanned={applyScan}
+                sport={form.sport}
+              />
               <Field label={t("workoutForm.distance", { unit: fmt.distanceUnit })}>
                 <Input
                   type="number"
@@ -430,7 +451,7 @@ export function WorkoutFormDialog({
                   onChange={(v) => set("startTime", v)}
                 />
               </Field>
-              <SplitScanField splits={splits} onChange={setSplits} />
+              <ScannedSplits splits={splits} onClear={() => setSplits([])} />
               <Field label={t("workoutForm.notes")}>
                 <Textarea
                   className="resize-y"

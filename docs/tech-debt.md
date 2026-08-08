@@ -28,32 +28,43 @@ If a UI regression ever does slip through twice in the same place, that's the
 signal to add jsdom + Testing Library for that one component — not before.
 
 **Also uncovered:** `findPaceColumn` / `parseSplitsFromWords` in
-`lib/split-scanner.ts`. Their inputs are OCR word-boxes, so a meaningful test
-needs a fixture captured from a real screenshot. The two helpers that encode
-the fiddly repair rules — `parsePartialKm` and `resolveElevations` — take plain
-values and are now covered.
+`lib/scanner/split-scanner.ts`. Their inputs are OCR word-boxes, so a
+meaningful test needs a fixture captured from a real screenshot. The two
+helpers that encode the fiddly repair rules — `parsePartialKm` and
+`resolveElevations` — take plain values and are covered.
+
+`lib/scanner/summary-scanner.ts` shows what the fixture approach would buy:
+`parseSummary` takes word boxes directly, and its test builds a to-scale model
+of a real Strava layout by hand. That was cheap to write because the summary
+grid is a dozen words. The splits table is not, which is why the same trick
+hasn't been applied to it yet.
 
 ---
 
-## 2. `lib/split-scanner.ts` is a 493-line grab bag
+## 2. `lib/scanner/split-scanner.ts` is still a grab bag
 
-**Status:** surface trimmed, split not attempted. Still the largest
-hand-written file.
+**Status:** surface trimmed, and the *plumbing* has since been lifted out;
+the parsing is still one module.
 
-It does canvas preprocessing, column detection, split parsing and elevation
-resolution in one module.
+`lib/scanner/ocr.ts` now owns canvas preprocessing, the tesseract worker and
+the shared word/geometry helpers, because the summary scanner needed the same
+image and the same worker. What is left in split-scanner.ts is column
+detection, split parsing and elevation resolution: the tuned part, moved
+nothing. That extraction was verified the same way as the last one, by running
+the 15 real screenshots through the scan UI before and after: **137 splits,
+unchanged**.
 
-**Done since:** nine exports down to four — `scanSplits` / `ScanResult`, plus
+**Earlier:** nine exports down to four — `scanSplitsFrom` / `ScanResult`, plus
 `parsePartialKm` / `resolveElevations` kept public deliberately because they're
-tested. Verified behaviour-preserving by running 15 real Strava screenshots
-through the scan UI before and after the change: 137 splits, byte-identical.
+tested. Verified the same way: 137 splits, byte-identical.
 
-**Why the split itself was skipped:** it works, every part is about one
+**Why the remaining split is still skipped:** it works, every part is about one
 screenshot, and it was tuned against real Strava output over many iterations.
 Splitting it risks re-introducing OCR bugs that were expensive to find, for no
 user-visible gain. Do it alongside item 1's word-box fixtures, so the behaviour
 is pinned before it moves. The screenshots to generate those fixtures from live
-outside the repo (gitignored `split-screenshots/`).
+outside the repo (gitignored `split-screenshots/`, and `pace-screenshots/` for
+the summary side).
 
 ---
 

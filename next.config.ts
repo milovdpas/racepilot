@@ -1,6 +1,16 @@
+import { readFileSync } from "node:fs";
 import type { NextConfig } from "next";
 
+/**
+ * Read at build time and inlined into the client bundle, so the hidden debug
+ * panel can say which build a phone is actually running. Importing
+ * package.json instead would bundle the whole dependency list with it.
+ */
+const { version } = JSON.parse(readFileSync("./package.json", "utf8"));
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_APP_VERSION: version },
+
   /**
    * Emit a self-contained server bundle in `.next/standalone`, so the runtime
    * image can drop `node_modules` entirely. Required by the Dockerfile; on

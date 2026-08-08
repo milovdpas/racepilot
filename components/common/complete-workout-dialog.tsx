@@ -19,7 +19,11 @@ import { workoutSport } from "@/lib/plan/workout";
 import { formatClock, resolveLoggedRun } from "@/lib/pace";
 import type { Workout, WorkoutSplit } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { SplitScanField } from "@/components/common/split-scan-field";
+import {
+  type ScannedFields,
+  ScannedSplits,
+  ScreenshotScanField,
+} from "@/components/common/screenshot-scan-field";
 import { TimeField } from "@/components/common/time-field";
 import { attachWeather } from "@/lib/weather/sync";
 import { useTrainingStore } from "@/store/use-training-store";
@@ -81,6 +85,15 @@ export function CompleteWorkoutDialog({
   const durationComputed = resolved.computed === "duration";
   const { paceFieldValue, durationFieldValue } = resolved;
 
+  // A scan fills only what it actually read: a screenshot showing distance but
+  // no start time must not wipe a start time the user already typed.
+  const applyScan = (f: ScannedFields) => {
+    if (f.distance != null) setDistance(f.distance);
+    if (f.pace != null) setPace(f.pace);
+    if (f.duration != null) setDuration(f.duration);
+    if (f.startTime != null) setStartTime(f.startTime);
+  };
+
   const handleConfirm = () => {
     if (!workout) return;
     const { actualDistanceKm, durationMin, actualPace } = resolved;
@@ -116,6 +129,13 @@ export function CompleteWorkoutDialog({
                 pace: fmt.pace(workout.plannedPace, sport),
               })}
             </p>
+
+            <ScreenshotScanField
+              splits={splits}
+              onSplits={setSplits}
+              onScanned={applyScan}
+              sport={sport}
+            />
 
             <div className="grid gap-1.5">
               <Label className="text-xs text-muted-foreground">
@@ -175,7 +195,7 @@ export function CompleteWorkoutDialog({
               <TimeField value={startTime} onChange={setStartTime} />
             </div>
 
-            <SplitScanField splits={splits} onChange={setSplits} />
+            <ScannedSplits splits={splits} onClear={() => setSplits([])} />
           </div>
         ) : null}
 
