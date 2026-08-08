@@ -37,7 +37,10 @@ export function DataCard({
   const handleExport = () => {
     const json = exportData();
     if (!json) return;
-    downloadJSON(`marathon-plans-${format(new Date(), "yyyy-MM-dd")}.json`, json);
+    // Both this name and the old marathon-plans-* are gitignored: a raw export
+    // carries the exporter's home coordinates in every weather snapshot, and
+    // this repo is public.
+    downloadJSON(`racepilot-plans-${format(new Date(), "yyyy-MM-dd")}.json`, json);
   };
 
   const runImport = (json: string) => {

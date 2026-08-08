@@ -17,12 +17,15 @@ import { downloadJSON } from "@/lib/plan/storage";
  */
 export function StepAi({
   requestJson,
+  filename,
   onComplete,
   error,
   onClearError,
 }: {
   /** Built lazily — the draft can change right up until the button is hit. */
   requestJson: () => string;
+  /** Named after the race, so two exports don't collide in Downloads. */
+  filename: string;
   onComplete: (json: string) => void;
   error: string | null;
   onClearError: () => void;
@@ -51,7 +54,9 @@ export function StepAi({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => downloadJSON("marathon-plan-request.json", requestJson())}
+          onClick={() =>
+            downloadJSON(filename, requestJson())
+          }
         >
           <Download className="size-4" /> {t("wizard.exportRequest")}
         </Button>

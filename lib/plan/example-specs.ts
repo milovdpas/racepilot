@@ -2,10 +2,17 @@
 // user who actually opens one of these ever downloads the builder.
 
 import { BACKYARD_LOOP_KM, backyardDistanceKm } from "@/lib/plan/backyard";
+import {
+  multisportDistanceKm,
+  presetByKey,
+} from "@/lib/plan/multisport";
 import { buildExamplePlan, type ExampleSpec } from "@/lib/plan/example-builder";
 import type { TrainingPlan } from "@/lib/types";
 
 const BACKYARD_YARDS = 20;
+
+/** The demo races an Olympic-distance triathlon: 1.5 / 40 / 10 km. */
+const OLYMPIC_LEGS = presetByKey("olympic")!.legs;
 
 const TRAIL: ExampleSpec = {
   id: "example-trail",
@@ -178,7 +185,9 @@ const TRIATHLON: ExampleSpec = {
   id: "example-triathlon",
   name: "Olympic triathlon — example",
   raceName: "Olympic triathlon",
-  raceDistanceKm: 51.5,
+  raceType: "multisport",
+  legs: OLYMPIC_LEGS,
+  raceDistanceKm: multisportDistanceKm(OLYMPIC_LEGS),
   // The average over all 51.5 km. A triathlon has no single goal pace, so the
   // dashboard shows the label instead — this is only here because PlanMeta
   // requires it, and a composite is at least not an impossible run pace.

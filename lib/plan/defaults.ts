@@ -4,7 +4,7 @@
 // The demo plan itself is no longer generated from rules — it's a real
 // exported block loaded by `lib/example-plan.ts`.
 
-import type { TrainingPrefs } from "@/lib/types";
+import type { PlanMeta, TrainingPrefs } from "@/lib/types";
 
 /** Schema version stamped into exported plans. */
 export const PLAN_VERSION = 1;
@@ -30,3 +30,23 @@ export const DEFAULT_TRAINING_PREFS: TrainingPrefs = {
   planningMode: "exact",
   targetDistanceKm: 30,
 };
+
+
+/**
+ * A race name derived from the race itself, for when none was given.
+ *
+ * Everything used to fall back to "Marathon", so a triathlon whose author left
+ * the field blank — a hand-made plan, or an AI plan that omitted it — showed
+ * "Marathon" as the headline on the dashboard.
+ */
+export function raceNameFor(
+  meta: Pick<PlanMeta, "raceType" | "sport" | "legs">,
+): string {
+  if (meta.raceType === "backyard") return "Backyard ultra";
+  if (meta.raceType === "multisport") {
+    return meta.legs?.some((l) => l.sport === "swim") ? "Triathlon" : "Duathlon";
+  }
+  if (meta.sport === "bike") return "Cycling race";
+  if (meta.sport === "swim") return "Open water swim";
+  return DEFAULT_PLAN_META.raceName;
+}

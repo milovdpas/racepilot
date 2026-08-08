@@ -5,6 +5,7 @@
 import { todayISO } from "@/lib/date";
 import { distanceRun, effectivePace, overallStats, weeklyMileage } from "@/lib/plan/stats";
 import type { TrainingPlan, Workout, WorkoutSplit } from "@/lib/types";
+import { raceLegWorkouts } from "@/lib/plan/multisport";
 import { isLogged } from "@/lib/plan/workout";
 
 /** A plan is done once its race day has passed. */
@@ -24,10 +25,17 @@ export function canBeContext(plan: TrainingPlan): boolean {
 }
 
 /**
- * The race itself: the workout on race day. Nothing flags it explicitly, so
- * fall back to the longest one if a rest/shakeout shares the date.
+ * The race itself: the workout on race day. Nothing flags a single-sport race
+ * explicitly, so fall back to the longest one if a shakeout shares the date.
+ *
+ * For a multi-sport race this returns the FIRST leg, not the longest — but the
+ * only question anyone asks is "is the race done?", and that is
+ * `isRaceComplete`, not this.
  */
 export function raceWorkout(plan: TrainingPlan): Workout | null {
+  const legs = raceLegWorkouts(plan);
+  if (legs.length > 0) return legs[0];
+
   const onRaceDay = Object.values(plan.workouts).filter(
     (w) => w.date === plan.raceDate,
   );
@@ -35,6 +43,21 @@ export function raceWorkout(plan: TrainingPlan): Workout | null {
   return onRaceDay.reduce((best, w) =>
     w.plannedDistanceKm > best.plannedDistanceKm ? w : best,
   );
+}
+
+/**
+ * Has the race actually been raced?
+ *
+ * **Every leg must be done**, which is the whole point of asking it this way.
+ * The old check was `raceWorkout(plan)?.completed`, and `raceWorkout` returned
+ * the longest workout on race day — the 40 km bike leg of a triathlon. A
+ * triathlete who logged their bike was told the race was finished while the run
+ * was still ahead of them.
+ */
+export function isRaceComplete(plan: TrainingPlan): boolean {
+  const legs = raceLegWorkouts(plan);
+  if (legs.length > 0) return legs.every((l) => l.completed);
+  return raceWorkout(plan)?.completed ?? false;
 }
 
 export interface PlanContextRun {

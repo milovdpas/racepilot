@@ -33,10 +33,10 @@ export const nl: Dict = {
     swimPlural: "Zwemmen",
   },
   workoutType: {
-    easy: "Rustige duurloop",
+    easy: "Rustig",
     tempo: "Tempo",
     interval: "Interval",
-    long: "Lange duurloop",
+    long: "Lang",
     recovery: "Herstel",
   },
   phase: {
@@ -74,8 +74,8 @@ export const nl: Dict = {
     flexible: "Flexibel",
   },
   completeWorkout: {
-    title: "Loop vastleggen",
-    desc: "We hebben je geplande doel ingevuld - pas het aan naar wat je werkelijk liep.",
+    title: "Training vastleggen",
+    desc: "We hebben je geplande doel ingevuld - pas het aan naar wat je werkelijk deed.",
     confirm: "Vastleggen & voltooien",
     planned: "Gepland: {{distance}} · {{pace}}",
   },
@@ -86,17 +86,17 @@ export const nl: Dict = {
     week: "Week {{n}}",
     thisWeek: "deze week",
     weekMeta: "{{range}} · {{distance}} · {{done}}/{{total}} gedaan",
-    restWeek: "Rustweek - geen geplande trainingen.",
+    restWeek: "Rustweek - niets gepland.",
     pickDay: "Kies een dag",
     finishedTitle: "Plan afgerond 🏁",
     finishedBody:
-      "{{race}} zit erop: {{runs}} lopen, {{distance}} vastgelegd. Begin je volgende plan en neem deze training mee als context.",
+      "{{race}} zit erop: {{runs}} trainingen, {{distance}} vastgelegd. Begin je volgende plan en neem deze training mee als context.",
     createNext: "Volgend plan maken",
   },
   workoutForm: {
     editTitle: "Training bewerken",
     addTitle: "Training toevoegen",
-    editDesc: "Pas geplande doelen aan of leg vast wat je echt liep.",
+    editDesc: "Pas geplande doelen aan of leg vast wat je echt deed.",
     addDesc: "Voeg een eigen training toe aan je plan.",
     modePlan: "Inplannen",
     modeLog: "Loggen",
@@ -161,23 +161,27 @@ export const nl: Dict = {
     subtitle: "Je training, in cijfers.",
     totalDistance: "Totale afstand",
     ofPlanned: "van {{distance}} gepland",
-    longestRun: "Langste loop",
+    longestRun: "Langste training",
     avgPace: "Gem. tempo",
-    runsCompleted: "Voltooide lopen",
+    avgSpeed: "Gem. snelheid",
+    runsCompleted: "Voltooide trainingen",
     pctOfPlan: "{{pct}}% van plan",
-    weeklyMileage: "Wekelijkse kilometers",
-    historyTitle: "Kilometergeschiedenis",
+    weeklyMileage: "Weekvolume",
+    historyTitle: "Volumegeschiedenis",
     historySub:
-      "Elke vastgelegde loop per kalenderweek - inclusief lopen van vóór dit plan en uit je andere plannen.",
+      "Elke vastgelegde training per kalenderweek - inclusief trainingen van vóór dit plan en uit je andere plannen.",
     splitPaces: "Tempo per kilometer",
     splitPacesSub:
       "{{title}} · {{date}} - snelste {{fastest}}, langzaamste {{slowest}}.",
+    overall: "Totaal",
+    overallSub:
+      "De enige totalen die kloppen als je sporten optelt - afstand en tempo blijven hieronder per sport.",
     bySport: "Per sport",
     bySportSub: "Afstand is per sport; tijd is het enige totaal dat iets zegt als ze door elkaar lopen.",
     totalTime: "Totale tijd",
     hours: "{{h}}u {{m}}m",
-    longRunProgression: "Opbouw lange duurloop",
-    longRunHint: "Opbouw naar je piek, daarna afbouwen richting wedstrijddag.",
+    longRunProgression: "Langste training per week",
+    longRunHint: "Je langste training per week, opbouwend naar je piek en daarna afbouwend richting wedstrijddag.",
     planned: "Gepland",
     actual: "Werkelijk",
   },
@@ -279,7 +283,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     notNow: "Niet nu",
     weatherTitle: "Weer tonen?",
     weatherBody:
-      "Zie de voorspelling in je kalender en leg de omstandigheden van elke loop vast. Gebruikt de locatie van je apparaat.",
+      "Zie de voorspelling in je kalender en leg de omstandigheden van elke training vast. Gebruikt de locatie van je apparaat.",
     enableWeather: "Weer inschakelen",
     splitsTitle: "Tussentijden scannen?",
     splitsBody:
@@ -297,7 +301,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       "Weer is niet geconfigureerd voor deze omgeving. Voeg een OpenWeather-sleutel toe om het in te schakelen.",
     enable: "Weer tonen",
     enableBody:
-      "Gebruik je locatie om de weersomstandigheden van elke loop die je vastlegt op te slaan. De kalenderweergave schakel je in via de legenda van de kalender.",
+      "Gebruik je locatie om de weersomstandigheden van elke training die je vastlegt op te slaan. De kalenderweergave schakel je in via de legenda van de kalender.",
     locationDenied:
       "Locatietoegang geweigerd - sta het toe in je browser om weer te gebruiken.",
     locationUnavailable: "Kon je locatie niet ophalen. Probeer opnieuw.",
@@ -482,11 +486,28 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     // Stap 3
     sportQ: "Voor welke sport is dit plan?",
     raceTypeQ: "Wat voor wedstrijd is het?",
-    raceTypeStandard: "Gewone wedstrijd",
-    raceTypeStandardDesc: "Een vaste afstand die je één keer loopt, zoals een 10K of marathon.",
-    raceTypeBackyard: "Backyard ultra",
-    raceTypeBackyardDesc:
-      "Een ronde die je elk heel uur herhaalt, tot er één loper over is.",
+    raceType: {
+      standard: "Gewone wedstrijd",
+      standardDesc:
+        "Eén vaste afstand die je in één keer aflegt, zoals een 10K of gran fondo.",
+      backyard: "Backyard ultra",
+      backyardDesc:
+        "Een ronde die je elk heel uur herhaalt, tot er één atleet over is.",
+      multisport: "Meerdere sporten",
+      multisportDesc: "Meerdere sporten achter elkaar, zoals een triatlon of duatlon.",
+    },
+    raceFormat: "Wedstrijdvorm",
+    preset: {
+      sprint: "Sprint",
+      olympic: "Olympisch",
+      half: "70.3",
+      full: "140.6",
+      duathlon: "Duatlon",
+    },
+    legDistance: "Afstand {{sport}} ({{unit}})",
+    legTransition: "Wissel {{n}} (minuten)",
+    transitionShort: "T{{n}}",
+    legsTotal: "{{distance}} totaal, plus {{transition}} min wisseltijd.",
     loopKm: "Rondeafstand ({{unit}})",
     targetYards: "Doel in yards",
     backyardDerived: "{{hours}} yards = {{hours}} uur · {{distance}} totaal",
@@ -495,13 +516,14 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       "Voeg eerdere training toe zodat de AI ziet hoe je echt vooruit bent gegaan. Scheelt het handmatig invoeren van recente lopen.",
     planFinished: "afgerond",
     planInProgress: "loopt nog",
-    planRuns: "{{runs}} lopen · {{distance}} vastgelegd",
+    planRuns: "{{runs}} trainingen · {{distance}} vastgelegd",
     showAllPlans: "Toon alle {{count}} plannen",
     showLess: "Toon minder",
-    latestRuns: "Je laatste lopen",
+    latestRuns: "Je recente trainingen",
     latestRunsHint:
-      "Optioneel - geeft de AI een idee van je huidige conditie. Voeg een paar recente lopen toe.",
-    addRun: "Loop toevoegen",
+      "Optioneel - geeft de AI een idee van je huidige conditie. Voeg een paar recente trainingen toe.",
+    addRun: "Training toevoegen",
+    runSport: "Sport",
     runDistance: "Afstand ({{unit}})",
     runTimePlaceholder: "Totale tijd (bijv. 50:43)",
     daysPerWeek: "Trainingsdagen per week",
@@ -538,6 +560,10 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
 Wat de velden in de bijgevoegde plan-aanvraag betekenen:
 - race.name: hoe het plan moet heten. race.raceName: de naam van de wedstrijd.
 - race.distanceKm: de wedstrijdafstand in kilometers.
+- race.type "multisport": een triatlon of duatlon. race.legs[] geeft de onderdelen IN WEDSTRIJDVOLGORDE, elk met { sport, distanceKm, transitionMin } — transitionMin is de tijd NA dat onderdeel (T1, T2), dus het laatste heeft er geen. Negeer race.sport hierbij; de legs noemen de sporten.
+  - Bouw een week die ze allemaal traint, en plan elke week minstens één BRICK (een fietstraining met direct daarna een looptraining, als twee trainingen op dezelfde datum, fiets eerst). Zet "sport" op elke training.
+  - Wedstrijddag is één training PER ONDERDEEL, allemaal op race.date, elk met "sport" en met "raceLegIndex" 0, 1, 2... in wedstrijdvolgorde. Geef GEEN enkele gecombineerde wedstrijdtraining: de app ziet de wedstrijd pas als afgerond wanneer elk onderdeel dat is.
+  - Maak geen trainingen voor de wissels. Die horen bij de wedstrijdklok, niet bij de training, en een wisseltraining zou elk afstandstotaal vervuilen.
 - race.sport: "run", "bike" of "swim". Schrijf trainingen voor DIE sport: een intervaltraining op de fiets is interval op de fiets, geen looptraining. Zet "sport" alleen op een training als die afwijkt van race.sport (bijv. een fietstraining in een loopplan); laat het anders weg, dan erft hij.
 - BELANGRIJK: "plannedPace" is ALTIJD minuten en seconden per KILOMETER, voor elke sport, want zo slaat de app het op. Een rit van 30 km/u is dus "2:00" en 1:45/100m zwemmen is "17:30". Geef in dat veld geen km/u of per-100m. In de TITEL van de training mag dat uiteraard wel.
 - athlete: waar ik ben en welke eenheden ik lees. ELK getal in dit verzoek is metrisch (km, min/km), ongeacht athlete.units - dat is het wire-formaat. Als athlete.units "imperial" is, schrijf dan de TITELS en NOTITIES van de trainingen in mijlen en min/mijl (1 mi = 1,609344 km), maar geef "plannedDistanceKm" en "plannedPace" nog steeds in kilometers en min/km in de JSON. Gebruik athlete.country voor seizoenen en typisch weer.
@@ -553,7 +579,7 @@ Als race.type "backyard" is, gaat het om een BACKYARD ULTRA en geldt de gebruike
 - "goalPace" moet een rustig, herhaalbaar rondetempo zijn dat elk uur genoeg rust overhoudt (een ronde in ongeveer 40-50 minuten is gebruikelijk), NIET een wedstrijdtempo. "goalLabel" moet iets als "24 yards" zijn.
 - Bouw af richting de wedstrijdweek, maar de piektrainingen zijn duur en herhaalde rondes in plaats van één lange afstand.
 - offDays[]: periodes waarin ik niet volledig kan trainen - { start, end, title, note }. De "note" zegt hoe beperkt (bijv. geen training / zeer beperkt / verminderd).
-- latestRuns[]: mijn recente lopen - { distanceKm, durationMin (TOTALE tijd van de loop, in minuten), pace (min/km, afgeleid uit afstand + totale tijd), date }. Gebruik deze om mijn conditie te schatten. Als dit leeg is, vraag me dan naar mijn conditie.
+- latestRuns[]: mijn recente trainingen - { sport, distanceKm, durationMin (TOTALE tijd, in minuten), pace (min/km voor elke sport, afgeleid uit afstand + totale tijd), date }. Gebruik deze om mijn conditie per sport te schatten; 40 km betekent iets heel anders op de fiets dan lopend. Als dit leeg is, vraag me dan naar mijn conditie.
 - previousPlans[]: mijn eerdere trainingsblokken, als ALLEEN-LEZEN historie. Elk blok heeft { name, raceName, raceDistanceKm, raceDate, startDate, goalPace, goalLabel, weeks, summary, weeklyMileage[], completedRuns[] }.
   - summary: { completionPct (hoeveel van dat plan ik echt heb gedaan), completedRuns, totalKm, plannedTotalKm, longestRunKm, averagePace, peakWeekKm }.
   - weeklyMileage[]: { week, plannedKm, actualKm } - gepland versus werkelijk per week, zodat je ziet hoe trouw ik was en hoe de omvang opliep.

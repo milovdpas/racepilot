@@ -46,6 +46,8 @@ export interface ExampleSpec {
   goalPace: string;
   goalLabel: string;
   raceType?: TrainingPlan["raceType"];
+  /** Multisport only: the legs, in race order. */
+  legs?: TrainingPlan["legs"];
   loopKm?: number;
   targetYards?: number;
   /** Total length of the block, in weeks. */
@@ -164,6 +166,9 @@ export function buildExamplePlan(
           id,
           date,
           ...(leg.sport ? { sport: leg.sport } : {}),
+          // Marks it as part of the race and orders it, so `isRaceComplete`
+          // waits for every leg rather than the longest one.
+          ...(spec.raceSessions.length > 1 ? { raceLegIndex: legIndex } : {}),
           type: leg.type,
           title: leg.title,
           weekNumber,
@@ -198,6 +203,7 @@ export function buildExamplePlan(
     goalLabel: spec.goalLabel,
     ...(spec.sport ? { sport: spec.sport } : {}),
     ...(spec.raceType ? { raceType: spec.raceType } : {}),
+    ...(spec.legs ? { legs: spec.legs } : {}),
     ...(spec.loopKm ? { loopKm: spec.loopKm } : {}),
     ...(spec.targetYards ? { targetYards: spec.targetYards } : {}),
     weeks,

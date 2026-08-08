@@ -15,8 +15,13 @@ import { toISO } from "@/lib/date";
 import { canBeContext } from "@/lib/plan/context";
 import { useFormat } from "@/hooks/use-format";
 import { capabilitiesFor, soleSport } from "@/lib/athlete";
+import { presetByKey } from "@/lib/plan/multisport";
 import { DEFAULT_SPORT } from "@/lib/sport";
-import { type Draft, buildPlanRequest } from "@/lib/plan/request";
+import {
+  type Draft,
+  buildPlanRequest,
+  planRequestFilename,
+} from "@/lib/plan/request";
 import { toast } from "@/store/use-toast-store";
 import { useTrainingStore } from "@/store/use-training-store";
 
@@ -47,7 +52,9 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
     const from = fromPlanId ? plans[fromPlanId] : undefined;
     return {
       name: "",
-      raceName: "Marathon",
+      // Empty, not "Marathon": the placeholder guides, and a pre-filled
+      // running name is wrong for six of the seven race types.
+      raceName: "",
       // The plan's sport, and the default for every workout in it.
       sport: from?.sport ?? soleSport(caps) ?? DEFAULT_SPORT,
       raceDistanceKm: 42.2,
@@ -55,6 +62,7 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
       startDate: toISO(new Date()),
       raceType: "standard",
       loopKm: BACKYARD_LOOP_KM,
+      legs: presetByKey("olympic")!.legs,
       targetYards: 24, // 24 yards = 24 hours = 100 miles, the classic benchmark
       goalType: "finish",
       goalValue: "",
@@ -119,6 +127,7 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
       ) : null}
       {step === 4 ? (
         <StepAi
+          filename={planRequestFilename(draft)}
           // Built lazily so it always reflects the latest draft.
           requestJson={() =>
             JSON.stringify(

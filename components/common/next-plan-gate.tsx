@@ -15,7 +15,7 @@ import {
 import { useWhatsNewPending } from "@/components/common/whats-new-gate";
 import { useActivePlan } from "@/hooks/use-active-plan";
 import { todayISO } from "@/lib/date";
-import { raceWorkout } from "@/lib/plan/context";
+import { isRaceComplete } from "@/lib/plan/context";
 import { useTrainingStore } from "@/store/use-training-store";
 
 /**
@@ -42,7 +42,8 @@ export function NextPlanGate() {
   if (seen?.includes(plan.id)) return null;
   // Race day must have arrived and the race itself must be logged.
   if (todayISO() < plan.raceDate) return null;
-  if (!raceWorkout(plan)?.completed) return null;
+  // Every leg, not just the longest one — see isRaceComplete.
+  if (!isRaceComplete(plan)) return null;
 
   // Recording the id on both paths means it never asks twice, even if the race
   // is un-completed and completed again.

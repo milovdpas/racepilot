@@ -62,6 +62,16 @@ export interface Workout {
   weather?: WeatherSnapshot;
   /** Per-kilometer splits (from the screenshot scanner). Running only. */
   splits?: WorkoutSplit[];
+  /**
+   * Which leg of the race this is, 0-based, for a multi-sport race day.
+   *
+   * Race day is three workouts rather than one workout carrying legs: every
+   * consumer in the app already understands a workout, and none of them would
+   * know how to sum legs. This index is what orders them and marks them as part
+   * of the race — the plan has a single `raceDate`, so no separate group id is
+   * needed to say which race they belong to.
+   */
+  raceLegIndex?: number;
   completed: boolean;
   isCustom?: boolean;
   /** When true, the workout may be done any day within [windowStart, windowEnd]. */
@@ -157,7 +167,21 @@ export type CalendarViewMode = "month" | "week" | "day" | "agenda";
  * runner is left. There is no finish time and no fixed distance: the goal is a
  * number of "yards" (loops, one per hour).
  */
-export type RaceType = "standard" | "backyard";
+export type RaceType = "standard" | "backyard" | "multisport";
+
+/**
+ * One leg of a multi-sport race, in the order it is raced.
+ *
+ * `transitionMin` is the time spent AFTER this leg (T1 after the swim, T2 after
+ * the bike), so the last leg leaves it unset. Transitions are part of the clock
+ * in a triathlon and racers plan for them, but they are not a workout: nothing
+ * is trained, and counting them as one would corrupt every distance total.
+ */
+export interface RaceLeg {
+  sport: Sport;
+  distanceKm: number;
+  transitionMin?: number;
+}
 
 /** Editable per-plan metadata (race + goal), independent of the schedule. */
 export interface PlanMeta {
@@ -180,6 +204,12 @@ export interface PlanMeta {
   loopKm?: number;
   /** Backyard only: the goal, in yards (= loops = hours). */
   targetYards?: number;
+  /**
+   * Multisport only: the legs, in race order. `raceDistanceKm` is their sum,
+   * kept in step by `multisportDistanceKm` so everything that only understands
+   * "race distance" still works.
+   */
+  legs?: RaceLeg[];
 }
 
 /** How the user wants to train — collected in the wizard, editable in settings. */

@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SportIcon } from "@/components/common/sport-icon";
+import { LegEditor } from "@/components/wizard/steps/leg-editor";
 import { useFormat } from "@/hooks/use-format";
 import { SPORTS } from "@/lib/sport";
 import { type AthleteCapabilities, capabilitiesFor } from "@/lib/athlete";
@@ -41,13 +42,19 @@ export function StepRace({ draft, set }: { draft: Draft; set: SetDraft }) {
   const athleteTypes = useTrainingStore((s) => s.preferences.athleteTypes);
   const caps = capabilitiesFor(athleteTypes);
   const isBackyard = draft.raceType === "backyard";
+  const isMultisport = draft.raceType === "multisport";
 
   // A road runner has no use for the backyard format, and until they say
   // otherwise every user has been shown a card they will never click.
-  const raceTypes =
-    caps.ultraFormats && draft.sport === "run"
-      ? (["standard", "backyard"] as const)
-      : (["standard"] as const);
+  // Backyard is a running format; multisport is only offered to someone who
+  // races more than one sport.
+  const raceTypes = [
+    "standard" as const,
+    ...(caps.ultraFormats && draft.sport === "run"
+      ? (["backyard"] as const)
+      : []),
+    ...(caps.multiSport ? (["multisport"] as const) : []),
+  ];
   const presets = presetsFor(caps);
   // Only the sports this athlete says they do, in canonical order.
   const offeredSports = SPORTS.filter((sp) => caps.sports.has(sp));
@@ -69,10 +76,38 @@ export function StepRace({ draft, set }: { draft: Draft; set: SetDraft }) {
         />
       </Field>
 
+      {/* Race format decides what the distance and goal fields mean. With only
+          one format left there is nothing to choose, so the picker goes. */}
+      <div className={cn(raceTypes.length < 2 && "hidden")}>
+        <Label className="text-xs text-muted-foreground">
+          {t("wizard.raceTypeQ")}
+        </Label>
+        <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
+          {raceTypes.map((rt) => (
+            <button
+              key={rt}
+              type="button"
+              onClick={() => set("raceType", rt)}
+              className={cn(
+                "rounded-lg border p-3 text-left transition-colors",
+                draft.raceType === rt
+                  ? "border-primary bg-primary/5"
+                  : "hover:bg-accent",
+              )}
+            >
+              <p className="text-sm font-medium">{t(`wizard.raceType.${rt}`)}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t(`wizard.raceType.${rt}Desc`)}
+              </p>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Which sport the race is. Also the default for every workout in the
           plan, so a cycling plan needn't stamp each session. Hidden when the
           athlete only does one sport: nothing to choose. */}
-      <div className={cn(offeredSports.length < 2 && "hidden")}>
+      <div className={cn((offeredSports.length < 2 || isMultisport) && "hidden")}>
         <Label className="text-xs text-muted-foreground">
           {t("wizard.sportQ")}
         </Label>
@@ -97,41 +132,9 @@ export function StepRace({ draft, set }: { draft: Draft; set: SetDraft }) {
         </div>
       </div>
 
-      {/* Race format decides what the distance and goal fields mean. With only
-          one format left there is nothing to choose, so the picker goes. */}
-      <div className={cn(raceTypes.length < 2 && "hidden")}>
-        <Label className="text-xs text-muted-foreground">
-          {t("wizard.raceTypeQ")}
-        </Label>
-        <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
-          {raceTypes.map((rt) => (
-            <button
-              key={rt}
-              type="button"
-              onClick={() => set("raceType", rt)}
-              className={cn(
-                "rounded-lg border p-3 text-left transition-colors",
-                draft.raceType === rt
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-accent",
-              )}
-            >
-              <p className="text-sm font-medium">
-                {rt === "standard"
-                  ? t("wizard.raceTypeStandard")
-                  : t("wizard.raceTypeBackyard")}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {rt === "standard"
-                  ? t("wizard.raceTypeStandardDesc")
-                  : t("wizard.raceTypeBackyardDesc")}
-              </p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {isBackyard ? (
+      {isMultisport ? (
+        <LegEditor legs={draft.legs} onChange={(legs) => set("legs", legs)} />
+      ) : isBackyard ? (
         <div>
           <div className="grid grid-cols-2 gap-3">
             <Field label={t("wizard.loopKm", { unit: fmt.distanceUnit })}>
@@ -144,7 +147,7 @@ export function StepRace({ draft, set }: { draft: Draft; set: SetDraft }) {
                   set(
                     "loopKm",
                     fmt.toStoredDistance(Number(e.target.value)) ||
-                      BACKYARD_LOOP_KM,
+                    BACKYARD_LOOP_KM,
                   )
                 }
               />
@@ -234,7 +237,12 @@ export function StepRace({ draft, set }: { draft: Draft; set: SetDraft }) {
           {t("wizard.goalQ")}
         </Label>
         <div className="mt-1.5 flex flex-wrap gap-2">
-          {(["finish", "time", "pace"] as const).map((g) => (
+          {/* A triathlon has no single pace: three sports, three units. A
+              target finish time still means something, so that stays. */}
+          {(isMultisport
+            ? (["finish", "time"] as const)
+            : (["finish", "time", "pace"] as const)
+          ).map((g) => (
             <button
               key={g}
               type="button"
@@ -259,8 +267,8 @@ export function StepRace({ draft, set }: { draft: Draft; set: SetDraft }) {
               draft.goalType === "time"
                 ? t("wizard.goalTimePlaceholder")
                 : t("wizard.goalPacePlaceholder", {
-                    unit: fmt.speedUnitFor(draft.sport),
-                  })
+                  unit: fmt.speedUnitFor(draft.sport),
+                })
             }
             // A finish TIME is unit-free; only a pace needs converting.
             value={

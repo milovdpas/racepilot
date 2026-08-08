@@ -1,6 +1,6 @@
 # RacePilot — the multi-sport conversion
 
-**Status: in progress.** This document tracks a conversion that spans several
+**Status: complete.** This document records a conversion that spans several
 releases: turning a running-only "Marathon Tracker" into **RacePilot**, an
 endurance planner that covers marathon, ultra, backyard ultra, trail, cycling,
 swimming and triathlon.
@@ -41,10 +41,10 @@ constraint on every future slice rather than a marketing line.
 | 1 | Rebrand + `/app/*` routing + full-page onboarding + athlete types + example-plan catalogue + SEO | **done** | see git log |
 | 2 | Units & country (km/mi), Settings toggle, AI context | **done** | see git log |
 | 3 | Multi-sport workouts (`Workout.sport`), cycling / swimming / trail | **done** | see git log |
-| 4 | Triathlon (multi-leg races, bricks, transitions) | not started | — |
+| 4 | Triathlon (multi-leg races, bricks, transitions) | **done** | see git log |
 | 5 | ~~Remaining example plans~~ | **done** (shipped with 3) | see git log |
 
-Slices 1, 2 and 3 are shipped. Slice 4 (triathlon) is next, and is the last thing standing between the app and the seven race types on the landing page.
+**All five slices are shipped.** The conversion is complete: every race type on the landing page works end to end. Anything further belongs in `roadmap.md`, not here.
 
 ### Slice 1 — rebrand, routing, onboarding
 
@@ -96,15 +96,26 @@ time is the only figure that survives being added across them.
 Cycling and swimming example plans landed with it, so the Settings catalogue no
 longer promises sports it can't show.
 
-### Slice 4 — triathlon
+### Slice 4 — triathlon (done)
 
-Most of a triathlon plan already works: sessions name their own sport, bricks
-are two workouts on one day, and the demo ships today. What is left is the
-*race* itself. `RaceType` gains `"multisport"`, `PlanMeta.legs[]` carries per-leg
-distances and transition times, and race day's three workouts become formally
-linked by a `raceGroupId`. That linkage is what fixes `raceWorkout()`, which
-currently returns the longest workout on race day — the bike leg — while its
-only caller is asking "is the race finished?".
+`RaceType` gains `"multisport"` and `PlanMeta.legs[]` carries each leg's sport,
+distance and the transition *after* it (so the last leg has none). Race day is
+one workout per leg, marked with `Workout.raceLegIndex`.
+
+That index is what fixed the real bug: `raceWorkout()` returned the longest
+workout on race day — the 40 km bike leg of a triathlon — and its only caller
+asked `raceWorkout(plan)?.completed`. A triathlete who logged their bike was
+told the race was finished with the run still ahead of them. The question is now
+asked directly, by `isRaceComplete()`, which requires *every* leg.
+
+Transitions are deliberately **not** workouts. They are part of the race clock,
+nothing is trained in them, and counting them as workouts would corrupt every
+distance total. They live on the leg.
+
+The wizard grew a multi-sport path with the standard distances as presets
+(sprint, Olympic, 70.3, 140.6, duathlon), because nobody remembers that a 70.3
+is 1.9 / 90 / 21.1 km — and the fields stay editable, since local races rarely
+match a brand exactly.
 
 ---
 
@@ -218,11 +229,14 @@ record why not.
   touch icon when the user adds it. Only the in-app mark and the browser tab
   favicon can change — and the favicon is invisible in `display: standalone`.
   Do not attempt a dynamic manifest.
-- **The triathlon demo's race day is three workouts on one date**, not one
-  workout with legs. Every consumer already understands a workout and none of
-  them would know how to sum legs. Slice 4 links them formally and adds
-  transitions; until then `raceWorkout()` still picks the longest leg (the
-  bike), which is the bug that slice fixes.
+- **Race day is three workouts on one date**, not one workout with legs. Every
+  consumer already understands a workout and none of them would know how to sum
+  legs; `raceLegIndex` orders them and marks them as the race. There is no
+  separate group id because a plan has exactly one `raceDate` — add one if
+  multi-race plans ever exist.
+- **A multi-sport race has no goal pace**, only a goal time. Three sports means
+  three units, so the wizard offers finish/time and the dashboard shows the goal
+  label alone.
 - **The long-run chart draws a planned 0 but not a future 0.** A week with no
   long run planned is real information (cutback, taper, race week), so the
   dashed line drops to the axis. The orange "actual" line reports 0 only once a

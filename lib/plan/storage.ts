@@ -1,5 +1,9 @@
 import { newId } from "@/lib/id";
-import { DEFAULT_PLAN_META, PLAN_VERSION } from "@/lib/plan/defaults";
+import {
+  DEFAULT_PLAN_META,
+  PLAN_VERSION,
+  raceNameFor,
+} from "@/lib/plan/defaults";
 import { toSport } from "@/lib/sport";
 import {
   WORKOUT_TYPES,
@@ -161,7 +165,16 @@ function normalizePlan(
     // Explicit fields win, recovering any missing meta from fallback/defaults.
     id: raw.id ?? fallbackMeta?.id ?? newId(),
     name: raw.name ?? fallbackMeta?.name ?? DEFAULT_PLAN_META.name,
-    raceName: raw.raceName ?? fallbackMeta?.raceName ?? DEFAULT_PLAN_META.raceName,
+    // Derived from the race, not a flat "Marathon": an AI plan that omits the
+    // field would otherwise headline a triathlon as a marathon.
+    raceName:
+      raw.raceName ??
+      fallbackMeta?.raceName ??
+      raceNameFor({
+        raceType: raw.raceType,
+        sport: raw.sport,
+        legs: raw.legs,
+      }),
     raceDistanceKm:
       typeof raw.raceDistanceKm === "number"
         ? raw.raceDistanceKm

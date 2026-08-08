@@ -30,11 +30,13 @@ export const en = {
     bikePlural: "Cycling",
     swimPlural: "Swimming",
   },
+  // Intensity only, with no sport in it: the badge already shows a sport icon,
+  // and "Easy Run" on a swim was simply wrong.
   workoutType: {
-    easy: "Easy Run",
+    easy: "Easy",
     tempo: "Tempo",
     interval: "Interval",
-    long: "Long Run",
+    long: "Long",
     recovery: "Recovery",
   },
   phase: {
@@ -72,8 +74,8 @@ export const en = {
     flexible: "Flexible",
   },
   completeWorkout: {
-    title: "Log this run",
-    desc: "We pre-filled your planned target - adjust it to what you actually ran.",
+    title: "Log this session",
+    desc: "We pre-filled your planned target - adjust it to what you actually did.",
     confirm: "Log & complete",
     planned: "Planned: {{distance}} · {{pace}}",
   },
@@ -84,17 +86,17 @@ export const en = {
     week: "Week {{n}}",
     thisWeek: "this week",
     weekMeta: "{{range}} · {{distance}} · {{done}}/{{total}} done",
-    restWeek: "Rest week - no scheduled runs.",
+    restWeek: "Rest week - nothing scheduled.",
     pickDay: "Pick a day",
     finishedTitle: "Plan complete 🏁",
     finishedBody:
-      "{{race}} is behind you: {{runs}} runs, {{distance}} logged. Start your next plan and bring this training along as context.",
+      "{{race}} is behind you: {{runs}} sessions, {{distance}} logged. Start your next plan and bring this training along as context.",
     createNext: "Create next plan",
   },
   workoutForm: {
     editTitle: "Edit workout",
     addTitle: "Add workout",
-    editDesc: "Update planned targets or log what you actually ran.",
+    editDesc: "Update planned targets or log what you actually did.",
     addDesc: "Add a custom workout to your plan.",
     modePlan: "Plan",
     modeLog: "Log",
@@ -159,23 +161,27 @@ export const en = {
     subtitle: "Your training, by the numbers.",
     totalDistance: "Total distance",
     ofPlanned: "of {{distance}} planned",
-    longestRun: "Longest run",
+    longestRun: "Longest session",
     avgPace: "Avg pace",
-    runsCompleted: "Runs completed",
+    avgSpeed: "Avg speed",
+    runsCompleted: "Sessions completed",
     pctOfPlan: "{{pct}}% of plan",
-    weeklyMileage: "Weekly mileage",
-    historyTitle: "Mileage history",
+    weeklyMileage: "Weekly volume",
+    historyTitle: "Volume history",
     historySub:
-      "Every logged run by calendar week - including runs from before this plan and from your other plans.",
+      "Every logged session by calendar week - including sessions from before this plan and from your other plans.",
     splitPaces: "Split paces",
     splitPacesSub:
       "{{title}} · {{date}} - fastest {{fastest}}, slowest {{slowest}}.",
+    overall: "Overall",
+    overallSub:
+      "The only totals that survive being added across sports - distance and pace stay per sport below.",
     bySport: "By sport",
     bySportSub: "Distance is per sport; time is the only total that means anything when they mix.",
     totalTime: "Total time",
     hours: "{{h}}h {{m}}m",
-    longRunProgression: "Long-run progression",
-    longRunHint: "Building toward your peak, then tapering for race day.",
+    longRunProgression: "Longest session per week",
+    longRunHint: "Your longest session each week, building to a peak then tapering for race day.",
     planned: "Planned",
     actual: "Actual",
   },
@@ -276,7 +282,7 @@ JSON (paste below, or attach the exported .json file):
     notNow: "Not now",
     weatherTitle: "Show weather?",
     weatherBody:
-      "See the forecast in your calendar and capture the conditions for each run. Uses your device location.",
+      "See the forecast in your calendar and capture the conditions for each session. Uses your device location.",
     enableWeather: "Enable weather",
     splitsTitle: "Scan your splits?",
     splitsBody:
@@ -294,7 +300,7 @@ JSON (paste below, or attach the exported .json file):
       "Weather isn't configured for this deployment. Add an OpenWeather key to enable it.",
     enable: "Show weather",
     enableBody:
-      "Use your location to record the weather conditions of each run you log. Toggle the calendar display from the calendar's legend.",
+      "Use your location to record the weather conditions of each session you log. Toggle the calendar display from the calendar's legend.",
     locationDenied:
       "Location access was denied - allow it in your browser to use weather.",
     locationUnavailable: "Couldn't get your location. Try again.",
@@ -468,11 +474,27 @@ JSON (paste below, or attach the exported .json file):
     // Step 3
     sportQ: "Which sport is this plan for?",
     raceTypeQ: "What kind of race is it?",
-    raceTypeStandard: "Standard race",
-    raceTypeStandardDesc: "A set distance you run once, like a 10K or marathon.",
-    raceTypeBackyard: "Backyard ultra",
-    raceTypeBackyardDesc:
-      "A loop repeated every hour, on the hour, until one runner is left.",
+    raceType: {
+      standard: "Standard race",
+      standardDesc: "A set distance you cover once, like a 10K or a gran fondo.",
+      backyard: "Backyard ultra",
+      backyardDesc:
+        "A loop repeated every hour, on the hour, until one athlete is left.",
+      multisport: "Multi-sport",
+      multisportDesc: "Several sports back to back, like a triathlon or duathlon.",
+    },
+    raceFormat: "Race format",
+    preset: {
+      sprint: "Sprint",
+      olympic: "Olympic",
+      half: "70.3",
+      full: "140.6",
+      duathlon: "Duathlon",
+    },
+    legDistance: "{{sport}} distance ({{unit}})",
+    legTransition: "Transition {{n}} (minutes)",
+    transitionShort: "T{{n}}",
+    legsTotal: "{{distance}} total, plus {{transition}} min in transition.",
     loopKm: "Loop distance ({{unit}})",
     targetYards: "Target yards",
     backyardDerived: "{{hours}} yards = {{hours}} hours · {{distance}} total",
@@ -481,13 +503,14 @@ JSON (paste below, or attach the exported .json file):
       "Attach earlier training so the AI can see how you actually progressed. Saves entering recent runs by hand.",
     planFinished: "finished",
     planInProgress: "in progress",
-    planRuns: "{{runs}} runs · {{distance}} logged",
+    planRuns: "{{runs}} sessions · {{distance}} logged",
     showAllPlans: "Show all {{count}} plans",
     showLess: "Show less",
-    latestRuns: "Your latest runs",
+    latestRuns: "Your recent sessions",
     latestRunsHint:
-      "Optional - gives the AI a sense of your current fitness. Add a few recent runs.",
-    addRun: "Add run",
+      "Optional - gives the AI a sense of your current fitness. Add a few recent sessions.",
+    addRun: "Add session",
+    runSport: "Sport",
     runDistance: "Distance ({{unit}})",
     runTimePlaceholder: "Total time (e.g. 50:43)",
     daysPerWeek: "Training days per week",
@@ -524,6 +547,10 @@ JSON (paste below, or attach the exported .json file):
 What the attached plan-request fields mean:
 - race.name: what to call the plan. race.raceName: the race's name.
 - race.distanceKm: the race distance in kilometers.
+- race.type "multisport": a triathlon or duathlon. race.legs[] gives the legs IN RACE ORDER, each with { sport, distanceKm, transitionMin } — transitionMin is the time spent AFTER that leg (T1, T2), so the last leg has none. Ignore race.sport for these; the legs name the sports.
+  - Build a week that trains all of them, and schedule at least one BRICK each week (a bike session followed immediately by a run, as two workouts on the same date, bike first). Set "sport" on every workout.
+  - Race day is one workout PER LEG, all on race.date, each with "sport" set and "raceLegIndex" 0, 1, 2... in race order. Do NOT emit a single combined race workout: the app tracks the race as finished only when every leg is.
+  - Do not create workouts for transitions. They are part of the race clock, not training, and a transition workout would corrupt every distance total.
 - race.sport: "run", "bike" or "swim". Write sessions for THAT sport: an interval session on a bike is intervals on a bike, not a run. Set "sport" on a workout only when it differs from race.sport (e.g. a cross-training ride in a running plan); leave it off otherwise and it inherits.
 - IMPORTANT: "plannedPace" is ALWAYS minutes and seconds per KILOMETER, for every sport, because that is how the app stores it. So a 30 km/h ride is "2:00" and a 1:45/100m swim is "17:30". Do not emit km/h or per-100m in that field. You may of course write km/h or per-100m inside the workout TITLE, where it reads naturally.
 - athlete: where I am and which units I read. EVERY number in this request is metric (km, min/km) regardless of athlete.units - that is the wire format. If athlete.units is "imperial", write the plan's workout TITLES and NOTES in miles and min/mile (1 mi = 1.609344 km), but still emit "plannedDistanceKm" and "plannedPace" as kilometers and min/km in the JSON. Use athlete.country for seasons and typical weather.
@@ -539,7 +566,7 @@ If race.type is "backyard", this is a BACKYARD ULTRA and the usual fixed-distanc
 - "goalPace" should be an easy, repeatable loop pace that still banks useful rest each hour (finishing a loop in roughly 40-50 minutes is typical), NOT a race pace. "goalLabel" should read like "24 yards".
 - Taper into race week, but the peak sessions are duration and repeated loops rather than one long distance.
 - offDays[]: periods I can't fully train - { start, end, title, note }. The "note" says how limited it is (e.g. no training / very limited / reduced).
-- latestRuns[]: my recent runs - { distanceKm, durationMin (TOTAL time for the run, in minutes), pace (min/km, derived from distance + total time), date }. Use these to estimate my current fitness. If this is empty, ask me about my fitness.
+- latestRuns[]: my recent sessions - { sport, distanceKm, durationMin (TOTAL time, in minutes), pace (min/km for every sport, derived from distance + total time), date }. Use these to estimate my current fitness in EACH sport; 40 km means something very different on a bike than on foot. If this is empty, ask me about my fitness.
 - previousPlans[]: my earlier training blocks, as READ-ONLY history. Each has { name, raceName, raceDistanceKm, raceDate, startDate, goalPace, goalLabel, weeks, summary, weeklyMileage[], completedRuns[] }.
   - summary: { completionPct (how much of that plan I actually did), completedRuns, totalKm, plannedTotalKm, longestRunKm, averagePace, peakWeekKm }.
   - weeklyMileage[]: { week, plannedKm, actualKm } - planned vs actual per week, so you can see adherence and how volume ramped.
