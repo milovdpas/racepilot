@@ -3,15 +3,22 @@
 // Doubles as a smoke test: every page must render real content with no console
 // errors, and the Dutch shot must actually be in Dutch.
 //
-// Needs a dev server on :3000 and system Chrome. playwright-core is installed
-// on demand rather than committed as a dependency (same convention as the
-// browser smoke recipe in docs/architecture.md):
+// Needs the app running and system Chrome. Prefer a production server: `next
+// dev` paints its own overlay and renders slower, which shows up as half-loaded
+// charts. playwright-core is installed on demand rather than committed as a
+// dependency (same convention as the browser smoke recipe in
+// docs/architecture.md):
 //
-//   npm run dev
-//   npm i -D playwright-core && node scripts/screenshots.mjs && npm uninstall playwright-core
+//   npm run build && npx next start -p 3130
+//   npm i -D playwright-core
+//   SCREENSHOT_BASE=http://localhost:3130 node scripts/screenshots.mjs
+//   npm uninstall playwright-core
+//
+// The port is configurable because :3000 is usually already taken by whichever
+// dev server you were using when you decided the screenshots looked stale.
 import { chromium } from "playwright-core";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.SCREENSHOT_BASE ?? "http://localhost:3000";
 // The app moved under /app; "/" is the marketing page.
 const APP = `${BASE}/app`;
 const OUT = "docs/screenshots";
@@ -26,6 +33,9 @@ async function app({ dark = false, locale = "en" } = {}) {
     viewport: VIEWPORT,
     deviceScaleFactor: 2,
     colorScheme: dark ? "dark" : "light",
+    // Pinned: `detectCountry()` reads the browser locale, so on a US machine
+    // every shot would silently come out in miles.
+    locale: "en-GB",
   });
   const page = await ctx.newPage();
   // The dev overlay renders a floating badge that would land in every shot.
@@ -73,6 +83,9 @@ async function app({ dark = false, locale = "en" } = {}) {
           // Otherwise the athlete-type and install prompts photobomb every shot.
           athleteTypes: [],
           installPromptSeen: true,
+          // Explicit, so the shots don't depend on who ran the script.
+          country: "NL",
+          units: "metric",
         },
       };
       localStorage.setItem("marathon-training-v1", JSON.stringify(raw));
@@ -81,6 +94,16 @@ async function app({ dark = false, locale = "en" } = {}) {
     [dark ? "dark" : "light", locale],
   );
   return { ctx, page, errors };
+}
+
+/** A shot of a page outside the app chrome (the landing page, the welcome flow). */
+async function shotAbsolute(page, url, name, { minChars = 300 } = {}) {
+  await page.goto(url, { waitUntil: "networkidle" });
+  await page.waitForTimeout(1200);
+  const chars = await page.evaluate(() => document.body.innerText.length);
+  if (chars < minChars) problems.push(`${name}: body has only ${chars} chars`);
+  await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
+  console.log(`  ${name.padEnd(20)} ${chars} chars`);
 }
 
 async function shot(page, path, name) {
@@ -132,6 +155,35 @@ async function shot(page, path, name) {
   console.log(`  wizard-step3         ${stepText.length} chars`);
 
   if (errors.length) problems.push(`light console: ${errors.slice(0, 3).join(" | ")}`);
+  await ctx.close();
+}
+
+// --- the pages outside the app chrome ---
+{
+  // A fresh context: the landing page redirects anyone who already has plans,
+  // and the welcome flow only exists before onboarding is done.
+  const ctx = await browser.newContext({
+    viewport: VIEWPORT,
+    deviceScaleFactor: 2,
+    locale: "en-GB",
+  });
+  const page = await ctx.newPage();
+  await shotAbsolute(page, BASE, "landing");
+
+  // The athlete-profile step rather than the first: it shows the picker that
+  // drives personalisation, and fills a phone screen (the privacy step is a
+  // short list, so a full-height shot of it is mostly empty).
+  await page.goto(`${BASE}/welcome`, { waitUntil: "networkidle" });
+  for (let i = 0; i < 2; i++) {
+    await page.getByRole("button", { name: /^continue$/i }).click();
+    await page.waitForTimeout(300);
+  }
+  const welcomeText = await page.locator("main").innerText();
+  if (!/road runner|trail runner/i.test(welcomeText)) {
+    problems.push("welcome: not on the athlete-profile step");
+  }
+  await page.screenshot({ path: `${OUT}/welcome.png`, fullPage: true });
+  console.log(`  welcome              ${welcomeText.length} chars`);
   await ctx.close();
 }
 

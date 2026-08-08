@@ -1,16 +1,20 @@
 # 🏃 RacePilot
 
-A clean, mobile-first web app for planning and tracking endurance training. It covers marathon, ultra, backyard ultra and trail races today, with cycling, swimming and triathlon on the way (see [`docs/racepilot.md`](docs/racepilot.md)).
+A clean, mobile-first web app for planning and tracking endurance training: marathon, ultra, backyard ultra, trail, cycling, swimming and triathlon. Each sport reads in its own units, so a ride shows km/h and a swim shows min/100m, while everything is stored the same way underneath.
 
-No login required. Everything lives in your browser's **localStorage**. Optional Google Drive sync uses a thin Next.js backend (server-side OAuth) — there's no database. Deploys to Vercel.
+No login required. Everything lives in your browser's **localStorage**, in kilometers and °C whatever you choose to see. Optional Google Drive sync uses a thin Next.js backend (server-side OAuth) — there's no database. Runs as a Docker container behind nginx; see [`Dockerfile`](Dockerfile).
 
 > Design language: **Strava × Notion** — calm surfaces, data-dense cards, an orange race-day accent, and full dark mode.
 
-> **Developers / AI agents:** start with [`docs/architecture.md`](docs/architecture.md) - the authoritative guide to the data model, state, flows, and conventions. This README is a user-facing overview and may lag behind newer features (multi-plan, the AI plan wizard, flexible periods, onboarding, Google Drive sync, English/Dutch i18n).
+> **Developers / AI agents:** start with [`docs/architecture.md`](docs/architecture.md) - the authoritative guide to the data model, state, flows, and conventions, and [`docs/racepilot.md`](docs/racepilot.md) for the multi-sport conversion and the decisions behind it. This README is a user-facing overview and may lag behind newer features.
 
 ---
 
 ## Screenshots
+
+| Landing page | Onboarding |
+| --- | --- |
+| ![Landing page](docs/screenshots/landing.png) | ![Onboarding](docs/screenshots/welcome.png) |
 
 | Dashboard | Dashboard (dark) |
 | --- | --- |
@@ -34,8 +38,9 @@ No login required. Everything lives in your browser's **localStorage**. Optional
 
 - **Dashboard** — countdown to race day, % through the training block, plan-completion %, weekly & monthly mileage (planned vs actual), upcoming and recently-completed workouts.
 - **Training plan** - all training weeks, grouped and collapsible, with a phase badge (Base / Build / Peak / Taper / Race / Reduced) and special-period labels. Mark complete, edit, add custom workouts.
-- **Workout tracking** — date, type (Easy / Tempo / Interval / Long / Recovery), planned & actual distance, planned & actual pace, duration. Actual pace is auto-derived from distance + time.
-- **Statistics** — total distance, longest run, weighted average pace, runs completed, weekly mileage trend, and long-run progression (planned vs actual) charts.
+- **Workout tracking** — date, sport (run / bike / swim), type (Easy / Tempo / Interval / Long / Recovery), planned & actual distance, planned & actual pace, duration. Actual pace is auto-derived from distance + time. Sport and type are separate axes: a tempo effort is a tempo effort on a bike too.
+- **Any sport, in its own language** — runners read min/km, cyclists km/h, swimmers min/100m. Pick kilometers or miles in Settings; it only changes what you see, never what is stored.
+- **Statistics** — total distance, longest run, weighted average pace, runs completed, weekly mileage trend, and long-run progression (planned vs actual) charts. A mixed plan also gets a per-sport breakdown, where time is the total that means something across sports.
 - **Calendar** — monthly grid with colored workout dots (faded = planned, solid = completed); tap a day to view, edit, or add workouts.
 - **Settings** — race details, theme (light/dark/system), and **export / import JSON** so you can hand the whole schema to an agent and re-import it.
 
@@ -82,16 +87,40 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). On first load the app generates your plan and saves it to localStorage.
+Open [http://localhost:3000](http://localhost:3000). The first visit shows the
+landing page; the app itself lives under `/app`, and `/welcome` runs the
+first-run flow.
 
 ```bash
-npm run build   # production build (Vercel-ready)
+npm run build   # production build
 npm run start   # serve the production build
 ```
 
-### Deploy to Vercel
+### Deploy
 
-Push to a Git repo and import it in Vercel. The app is mostly client-side but serves a few server Route Handlers under `app/api/*` for Google Drive OAuth (running as Vercel Functions). The only (optional) configuration is the Google Drive sync env below — leave it unset and the app runs localStorage-only.
+The app is mostly client-side, but it is **not** a static bundle: `app/api/*`
+are Route Handlers doing Google Drive OAuth and weather, and `proxy.ts` runs per
+request. It needs a Node server either way.
+
+**Docker (how it is deployed today).** [`Dockerfile`](Dockerfile) builds a
+Next.js standalone image that listens on port 80 and runs as a non-root user;
+[`docker-compose.prod.yml`](docker-compose.prod.yml) puts it behind a shared
+nginx proxy, and [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+builds, tests and ships it on a push to `main`.
+
+Two things that are easy to get wrong:
+
+- `NEXT_PUBLIC_SITE_URL` is a **build argument**, not a runtime variable. The
+  landing page, `/privacy`, `sitemap.xml` and `robots.txt` are prerendered, so
+  the canonical origin is baked into the image; changing domains means a
+  rebuild. Leave it unset and the app marks itself `noindex` rather than
+  advertise `localhost` as its canonical URL.
+- Health checks must probe `http://127.0.0.1/health`, not `localhost` — the
+  server binds IPv4-only and BusyBox `wget` tries `::1` first.
+
+**Vercel** also works with no configuration: import the repo and it supplies its
+own origin. The only (optional) setup is the Google Drive sync env below — leave
+it unset and the app runs localStorage-only.
 
 ---
 
