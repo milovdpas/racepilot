@@ -71,6 +71,20 @@ outside the repo (gitignored `split-screenshots/`).
 
 ---
 
+### Form labels are associated (fixed)
+
+`components/common/field.tsx` used to render a bare `<Label>` beside its
+children, so nothing tied the two together: screen readers announced an
+unlabelled textbox, and `getByLabelText` found nothing (which is why two
+browser tests had to select controls structurally). It now gives a single
+control an id and a matching `htmlFor`, and wraps anything else in a
+`role="group"` with `aria-labelledby`.
+
+The distinction that matters: a *single child* is not automatically a
+labelable control. The sport picker's child is a `<div>` of buttons, and
+`htmlFor` pointing at a div associates nothing — silently. `Field` decides by
+element type, treating host elements as wrappers and components as controls.
+
 ## 4. Won't fix (recorded so it isn't re-litigated)
 
 **`lib/google-drive.ts` and `lib/server/drive.ts` export the same four names**
