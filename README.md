@@ -40,26 +40,33 @@ No login required. Everything lives in your browser's **localStorage**, in kilom
 - **Training plan** - all training weeks, grouped and collapsible, with a phase badge (Base / Build / Peak / Taper / Race / Reduced) and special-period labels. Mark complete, edit, add custom workouts.
 - **Workout tracking** — date, sport (run / bike / swim), type (Easy / Tempo / Interval / Long / Recovery), planned & actual distance, planned & actual pace, duration. Actual pace is auto-derived from distance + time. Sport and type are separate axes: a tempo effort is a tempo effort on a bike too.
 - **Any sport, in its own language** — runners read min/km, cyclists km/h, swimmers min/100m. Pick kilometers or miles in Settings; it only changes what you see, never what is stored.
-- **Statistics** — total distance, longest run, weighted average pace, runs completed, weekly mileage trend, and long-run progression (planned vs actual) charts. A mixed plan also gets a per-sport breakdown, where time is the total that means something across sports.
+- **Statistics** — total distance, longest session, weighted average pace (or speed), sessions completed, weekly volume, and a longest-session-per-week chart. A plan that mixes sports gets the **whole set once per sport**, each in its own units, plus an overall section carrying only total time and session count — the two figures that survive being added across sports.
 - **Calendar** — monthly grid with colored workout dots (faded = planned, solid = completed); tap a day to view, edit, or add workouts.
-- **Settings** — race details, theme (light/dark/system), and **export / import JSON** so you can hand the whole schema to an agent and re-import it.
+- **Settings** — race details, your sports, country and units, theme and language (English/Dutch), optional features, example plans to explore, and **export / import JSON** so you can hand the whole schema to an agent and re-import it.
 
 ---
 
 ## The training plan
 
-A new install seeds a real, worked example: an exported 17-week marathon block
-with ~17 logged runs, per-kilometer splits, weather and off-day periods. It
-lives in [`lib/plan/example-plan.json`](lib/plan/example-plan.json) and is
-loaded by [`lib/plan/example-plan.ts`](lib/plan/example-plan.ts), which rebases
-every date onto the
-current week (in whole weeks, so weekdays and the Sunday race survive) — the
-demo never rots into a race that finished months ago.
+A new install seeds an example plan matching the sport you picked during
+onboarding — there is one for each of the seven race types, catalogued in
+[`lib/plan/examples.ts`](lib/plan/examples.ts), and you can add the others from
+**Settings → Try an example plan**.
+
+The marathon one is real training: an exported 17-week block with ~17 logged
+runs, per-kilometer splits, weather and off-day periods. It lives in
+[`lib/plan/example-plan.json`](lib/plan/example-plan.json) and is loaded by
+[`lib/plan/example-plan.ts`](lib/plan/example-plan.ts), which rebases every date
+onto the current week (in whole weeks, so weekdays and the Sunday race survive)
+— the demo never rots into a race that finished months ago. The rest are
+generated deterministically from a small spec
+([`example-specs.ts`](lib/plan/example-specs.ts)), so they cost a few hundred
+bytes each instead of another 26 KB of invented JSON.
 
 To refresh it from your own training: **Settings → Export**, then
 
 ```bash
-node scripts/scrub-example-plan.mjs marathon-plans-YYYY-MM-DD.json
+node scripts/scrub-example-plan.mjs racepilot-plans-YYYY-MM-DD.json
 ```
 
 That strips the `preferences` block and the home coordinates every weather
@@ -76,7 +83,7 @@ plan**) and let an AI build it, or export your JSON, edit it, and import it back
 - [Next.js 16](https://nextjs.org) (App Router) + TypeScript
 - [Tailwind CSS v4](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) (Base UI primitives)
 - [Zustand](https://github.com/pmndrs/zustand) with `persist` → localStorage
-- [Recharts](https://recharts.org) for graphs · [date-fns](https://date-fns.org) for dates · [next-themes](https://github.com/pacocoursey/next-themes) for dark mode
+- [Recharts](https://recharts.org) for graphs · [date-fns](https://date-fns.org) for dates · [next-themes](https://github.com/pacocoursey/next-themes) for dark mode · [react-i18next](https://react.i18next.com) for English/Dutch
 
 ---
 
@@ -167,7 +174,7 @@ Your consent screen is still in **Testing** mode (refresh tokens expire after 7 
 
 ## Weather setup (optional)
 
-Turn on **Settings → Weather** (or accept the onboarding prompt) to see per-day weather in the calendar and record the conditions of each logged run. It uses your **device location** (browser permission) and a server-side weather key — the key never reaches the browser.
+Turn on **Settings → Weather** (or accept the onboarding prompt) to see per-day weather in the calendar and record the conditions of each logged session. It uses your **device location** (browser permission) and a server-side weather key — the key never reaches the browser.
 
 To enable it:
 
@@ -199,28 +206,36 @@ This app is free and runs entirely in your browser, with no accounts, no ads, an
 ## Project structure
 
 ```
-app/                 # Routes: dashboard (/), plan, calendar, stats, settings
+app/
+  page.tsx           # the landing page — the only substantial indexable content
+  privacy/  welcome/ # the data promise, and the first-run flow
+  app/               # THE APP: dashboard, plan, calendar, off-days, stats, settings
+  api/               # Route Handlers: Google OAuth, Drive, weather
+proxy.ts             # sends returning users past the landing page before paint
 components/
   ui/                # shadcn/ui primitives
   layout/            # nav, theme provider/toggle
-  common/            # shared widgets (workout row, stat card, progress ring, …)
-  dashboard|plan|calendar|stats|settings/   # per-page views
+  common/            # shared widgets (workout row, stat card, sport icon, …)
+  marketing|onboarding/                     # landing page, welcome flow
+  dashboard|plan|calendar|stats|settings|wizard/   # per-page views
 lib/                 # primitives at the root, domains in folders
   types.ts           # domain models
-  utils.ts  date.ts  date-locale.ts  pace.ts  id.ts
+  utils.ts  date.ts  date-locale.ts  pace.ts  id.ts  site.ts  app-cookie.ts
+  sport.ts           # run/bike/swim + each sport's pace or speed convention
+  units.ts  region.ts  # km/mi conversion at the display edge; country detection
+  athlete.ts         # athlete types -> capabilities
   plan/              # context, defaults, merge, request, stats, workout,
-                     #   backyard, storage, example-plan(+.json)
+                     #   backyard, multisport, storage, examples(+builder,
+                     #   specs, example-plan.json)
   calendar/          # layout (spanning bars), range (visible days per view)
   weather/           # client, cache, sync
   drive/             # client, types, sync-decision (newest-wins)
   scanner/           # split-scanner (on-device OCR)
   server/            # server-only: session, google-oauth, drive, api
-  i18n/              # en/nl dictionaries
+  i18n/              # en/nl dictionaries (the Dict type enforces parity)
   test/              # factories + the server-only stub
-store/
-  use-training-store.ts   # Zustand store + localStorage persistence
-  use-sync-store.ts       # Google Drive sync state + auto-push
-hooks/                # useHydrated, useStats
+store/               # training (+localStorage persist), sync, weather, toast
+hooks/               # useHydrated, useStats, useFormat, useUnits, useDuration, …
 ```
 
 Statistics are **derived live** from your workouts rather than stored, so they never go stale — the only persisted state is the plan, your workouts, and preferences.

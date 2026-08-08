@@ -2,7 +2,7 @@
 /**
  * Turn a raw plan export into the bundled demo plan.
  *
- *   node scripts/scrub-example-plan.mjs marathon-plans-2026-08-07.json
+ *   node scripts/scrub-example-plan.mjs racepilot-plans-2026-08-07.json
  *
  * A raw export is NOT safe to commit: this repo is public, and every weather
  * snapshot carries the exporter's `lat`/`lon` — their home address, repeated
