@@ -61,7 +61,15 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.64 0.21 32);
+  /* Darker than --brand on purpose, and the two are separate tokens for
+     exactly this reason. At the brand's own lightness (0.64) white text on a
+     filled button is 3.55:1 and `text-primary` on the page is 3.70:1, both
+     under the 4.5:1 WCAG AA needs for body text. Dropping lightness to 0.58
+     at the same hue and chroma gives 4.54:1 and 4.74:1. --brand is untouched,
+     so the app mark, the theme colour, the manifest and the OG image keep the
+     exact orange; only filled surfaces darken, by a shade most people will
+     not notice and anyone running in sunlight will. */
+  --primary: oklch(0.58 0.21 32);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -102,8 +110,16 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
+  /* Dark mode cannot be fixed the same way, and it is worth saying why. On a
+     near-black page the two uses of this token pull in opposite directions:
+     white on a filled button needs lightness <= 0.585 to clear 4.5:1, while
+     `text-primary` on the background needs >= 0.605. Those ranges do not
+     overlap, so no single value satisfies both. Inverting the foreground does:
+     the orange stays exactly as bright as the brand, and near-black text on it
+     is 5.82:1. It is the page background colour, so the button reads as a
+     cut-out rather than a second shade of orange. */
   --primary: oklch(0.66 0.2 33);
-  --primary-foreground: oklch(0.99 0 0);
+  --primary-foreground: oklch(0.145 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);

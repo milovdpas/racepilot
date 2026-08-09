@@ -18,7 +18,7 @@ export const metadata: Metadata = {
  */
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto w-full max-w-2xl px-5 py-12 md:py-16">
+    <main className="mx-auto w-full max-w-2xl px-5 py-12 md:py-16">
       <Link
         href="/"
         className="text-sm text-muted-foreground hover:text-foreground"
@@ -121,6 +121,6 @@ export default function PrivacyPage() {
           Back to {SITE_NAME}
         </Link>
       </footer>
-    </div>
+    </main>
   );
 }

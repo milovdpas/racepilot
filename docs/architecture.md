@@ -26,10 +26,11 @@ sync (refresh token in an encrypted session cookie; no DB). Deploys to Vercel
 ## Routing — `/` is not the app
 
 ```
-app/layout.tsx        providers + root metadata only. No chrome.
+app/layout.tsx        theme + service worker + root metadata. No chrome.
 app/page.tsx          marketing landing. Server-rendered, indexable.
 app/privacy/          the data promise. Indexable.
-app/welcome/          the first-run flow. Full-bleed, no chrome.
+app/welcome/          the first-run flow. Full-bleed, no chrome. Its layout
+                      mounts <AppRuntime>, because it *is* the app.
 app/app/layout.tsx    the app chrome (AppNav, mobile top bar, <main>) + the
                       global dialog gates + `robots: noindex`.
 app/app/**            dashboard, plan, calendar, off-days, stats, settings.
@@ -42,6 +43,23 @@ rehydrates from `localStorage`. A crawler's `localStorage` is empty, so it never
 sees past the skeleton — before this split, the entire indexable body of `/` was
 six words. A real segment also lets one `metadata` export in `app/app/layout.tsx`
 mark the whole section `noindex`, including routes added later.
+
+**The client runtime is mounted per-section, not at the root.**
+`components/layout/app-runtime.tsx` holds `I18nProvider`, `SyncInitializer`,
+`OnboardingRedirect`, `AppCookieSync`, `RegionDetect` and `Toaster`, and is
+mounted by `app/app/layout.tsx` and `app/welcome/layout.tsx` only. It all used
+to sit in the root layout, which meant the two static English marketing pages
+downloaded both i18n dictionaries, the sync and weather stores and the toast
+layer, and fired an auth-session plus a weather request for a visitor with no
+account. Measured: blocking JS on `/` went 826 KB → 567 KB and on `/privacy`
+699 KB → 516 KB, with the dictionaries no longer in the blocking set at all.
+Only `ThemeProvider` (the marketing pages are themed too), `ServiceWorker` (it
+has to register wherever the visitor first lands) and the `MovedNotice` gate
+stay at the root. `MovedNotice` is a `React.lazy` boundary behind a hostname
+check, so the live site ships the check and nothing else.
+
+If you add something global, put it in `AppRuntime` unless `/` genuinely needs
+it — the landing page is the one page whose weight is a product concern.
 
 Consequences worth knowing:
 
@@ -68,6 +86,16 @@ Consequences worth knowing:
 - A crawler has no cookie, so `/` still prerenders and still serves the
   marketing page. The narrow matcher is deliberate: a broader one would put
   the proxy in front of every static page for no gain.
+
+**`--primary` is not `--brand`.** They carry the same hue and chroma but
+different lightness on purpose: `--brand` is the identity (app mark, theme
+colour, manifest, OG image) and never moves, while `--primary` is whatever text
+has to be legible against. White on the brand orange is 3.55:1, under the 4.5:1
+AA needs for body text, so light mode darkens `--primary` to 0.58 (4.53:1
+measured in-browser). Dark mode can't do the same — white-on-button wants
+lightness ≤ 0.585 and `text-primary`-on-background wants ≥ 0.605, and those
+don't overlap — so it inverts `--primary-foreground` to near-black instead
+(5.84:1). Change one, re-measure both.
 
 ## Data model — `lib/types.ts` (read this first)
 

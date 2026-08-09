@@ -78,7 +78,10 @@ export default function LandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="mx-auto w-full max-w-3xl px-5 py-12 md:py-20">
+      {/* A landmark, not a div: the app chrome has one and these two pages
+          sit outside it, so without this a screen reader has no "skip to the
+          content" target on the only pages a search visitor ever lands on. */}
+      <main className="mx-auto w-full max-w-3xl px-5 py-12 md:py-20">
         <header className="flex items-center gap-2">
           <span
             aria-hidden
@@ -200,7 +203,7 @@ export default function LandingPage() {
             Source
           </a>
         </footer>
-      </div>
+      </main>
     </>
   );
 }

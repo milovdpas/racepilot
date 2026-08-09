@@ -1,14 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppCookieSync } from "@/components/common/app-cookie-sync";
 import { MovedNotice } from "@/components/common/moved-notice";
-import { OnboardingRedirect } from "@/components/common/onboarding-redirect";
-import { RegionDetect } from "@/components/common/region-detect";
-import { SyncInitializer } from "@/components/common/sync-initializer";
-import { Toaster } from "@/components/common/toaster";
 import { ServiceWorker } from "@/components/layout/service-worker";
-import { I18nProvider } from "@/components/layout/i18n-provider";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 
@@ -54,9 +48,17 @@ export const viewport: Viewport = {
 };
 
 /**
- * Providers only. The app's chrome (nav, top bar, popups) lives in
- * `app/app/layout.tsx`, because `/`, `/privacy` and `/welcome` are full-bleed
- * pages that must not render it.
+ * The two providers every page genuinely needs, and nothing else.
+ *
+ * Theming applies to the marketing pages as much as the app, and the service
+ * worker has to register from wherever the visitor first lands or an install
+ * from the landing page has no shell to offer. Everything else the app needs
+ * moved to `components/layout/app-runtime.tsx`, which mounts under `/app` and
+ * `/welcome` only — see the note there for what it was costing `/`.
+ *
+ * The app's chrome (nav, top bar, popups) lives in `app/app/layout.tsx`,
+ * because `/`, `/privacy` and `/welcome` are full-bleed pages that must not
+ * render it.
  */
 export default function RootLayout({
   children,
@@ -76,16 +78,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <I18nProvider>
-            <ServiceWorker />
-            <SyncInitializer />
-            <MovedNotice />
-            <OnboardingRedirect />
-            <AppCookieSync />
-            <RegionDetect />
-            <Toaster />
-            {children}
-          </I18nProvider>
+          <ServiceWorker />
+          <MovedNotice />
+          {children}
         </ThemeProvider>
       </body>
     </html>

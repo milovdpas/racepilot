@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextPlanGate } from "@/components/common/next-plan-gate";
 import { WhatsNewGate } from "@/components/common/whats-new-gate";
 import { AppNav } from "@/components/layout/app-nav";
+import { AppRuntime } from "@/components/layout/app-runtime";
 import { AthleteLogo } from "@/components/layout/athlete-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SITE_NAME } from "@/lib/site";
@@ -24,7 +25,7 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <AppRuntime>
       <WhatsNewGate />
       <NextPlanGate />
       <div className="flex min-h-dvh">
@@ -43,6 +44,6 @@ export default function AppLayout({
           </main>
         </div>
       </div>
-    </>
+    </AppRuntime>
   );
 }
