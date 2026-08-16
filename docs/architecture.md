@@ -87,6 +87,20 @@ Consequences worth knowing:
   marketing page. The narrow matcher is deliberate: a broader one would put
   the proxy in front of every static page for no gain.
 
+**Dialogs are sized against the *visual* viewport, not `dvh`.**
+`components/ui/dialog.tsx` mirrors `visualViewport.height`/`offsetTop` into
+`--vv-h`/`--vv-top` while a dialog is open, and `[data-slot="dialog-content"]`
+in `globals.css` uses them for `top` and `max-height` (falling back to `100dvh`
+/ `0px`, which is the old behaviour). An on-screen keyboard does not shrink the
+layout viewport on either platform: Android Chrome defaults to
+`interactive-widget=resizes-visual` and iOS Safari overlays. So a dialog capped
+at `90dvh` and centred at `top: 50%` stayed centred in the full screen height
+while the keyboard covered the bottom half of it. Measured on the deployed
+build at 412x915 with a 380px keyboard, the "Log & complete" button sat 266px
+below the visible area: logging a 20 km run was impossible, because the splits
+make the dialog tall and every field wants the keyboard. Do not reintroduce
+`max-h-[90dvh]` on individual dialogs; the primitive owns it.
+
 **`--primary` is not `--brand`.** They carry the same hue and chroma but
 different lightness on purpose: `--brand` is the identity (app mark, theme
 colour, manifest, OG image) and never moves, while `--primary` is whatever text

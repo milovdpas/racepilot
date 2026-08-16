@@ -40,7 +40,7 @@ export function SplitScannerCard() {
           >
             <HelpCircle className="size-4" />
           </DialogTrigger>
-          <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-sm">
+          <DialogContent className="overflow-y-auto sm:max-w-sm">
             <DialogHeader>
               <DialogTitle>{t("splitScanner.helpTitle")}</DialogTitle>
               <DialogDescription>

@@ -254,7 +254,7 @@ export function WorkoutFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="grid max-h-[90dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-md">
+      <DialogContent className="grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? t("workoutForm.editTitle") : t("workoutForm.addTitle")}

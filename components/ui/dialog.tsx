@@ -39,6 +39,48 @@ function DialogOverlay({
   )
 }
 
+/**
+ * Mirror the *visual* viewport into CSS variables while a dialog is open.
+ *
+ * `dvh` measures the layout viewport, which an on-screen keyboard does not
+ * shrink: Android Chrome defaults to `interactive-widget=resizes-visual` and
+ * iOS Safari simply overlays. So a dialog capped at `90dvh` and centred with
+ * `top: 50%` stays centred in the *full* screen height while the bottom half of
+ * that screen is covered by the keyboard, putting the footer, and with it the
+ * save button, underneath it. Logging a 20 km run is where this bites: the
+ * splits make the dialog tall, and every field that matters wants the keyboard.
+ *
+ * Reading `visualViewport` fixes it on both platforms without depending on
+ * `interactive-widget` support, and without changing how the rest of the page
+ * behaves. The variables fall back to `100dvh` / `0px`, so a browser without
+ * the API (or with JS still loading) gets exactly the old behaviour.
+ *
+ * Scoped to an open dialog rather than the root layout: this is the only thing
+ * that needs it, and the marketing pages should not pay for a listener.
+ */
+function useVisualViewportVars() {
+  React.useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const root = document.documentElement
+    const apply = () => {
+      root.style.setProperty("--vv-h", `${vv.height}px`)
+      // `offsetTop` is how far the visual viewport has been pushed down, which
+      // is what keeps the dialog centred on what the user can actually see.
+      root.style.setProperty("--vv-top", `${vv.offsetTop}px`)
+    }
+    apply()
+    vv.addEventListener("resize", apply)
+    vv.addEventListener("scroll", apply)
+    return () => {
+      vv.removeEventListener("resize", apply)
+      vv.removeEventListener("scroll", apply)
+      root.style.removeProperty("--vv-h")
+      root.style.removeProperty("--vv-top")
+    }
+  }, [])
+}
+
 function DialogContent({
   className,
   children,
@@ -47,13 +89,14 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
 }) {
+  useVisualViewportVars()
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...props}

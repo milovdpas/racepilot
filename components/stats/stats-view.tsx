@@ -80,7 +80,7 @@ export function StatsView() {
             >
               <Maximize2 className="size-4" />
             </DialogTrigger>
-            <DialogContent className="max-h-[90dvh] w-[95vw] max-w-3xl overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-3xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t("stats.historyTitle")}</DialogTitle>
                 <DialogDescription>{t("stats.historySub")}</DialogDescription>

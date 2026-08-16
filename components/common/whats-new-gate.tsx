@@ -65,7 +65,7 @@ function useWhatsNewSteps(): Step[] {
           body={t("onboarding.splitsBody")}
           skipLabel={t("onboarding.notNow")}
           confirmLabel={t("onboarding.enableSplits")}
-          className="max-h-[90dvh] overflow-y-auto"
+          className="overflow-y-auto"
           onSkip={() => {
             setPreferences({ splitScannerOnboardingSeen: true });
             next();
@@ -94,7 +94,7 @@ function useWhatsNewSteps(): Step[] {
           body={t("athlete.promptBody")}
           skipLabel={t("onboarding.notNow")}
           confirmLabel={t("common.save")}
-          className="max-h-[90dvh] overflow-y-auto"
+          className="overflow-y-auto"
           // Skipping still records an answer — the empty array — so the app
           // stops asking and simply keeps showing everything.
           onSkip={() => {
