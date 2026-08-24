@@ -424,7 +424,14 @@ export const useTrainingStore = create<TrainingState>()(
       //      backfill. Bumped anyway: the convention is that a shape change
       //      moves the version, so "which version introduced this field?" is
       //      answerable from this list alone.
-      version: 15,
+      // v16: additive — Workout.steps, the structured breakdown a watch needs.
+      //      Absent means a flat workout, which is every session authored
+      //      before this and most easy runs after it, so there is nothing to
+      //      backfill and no transform to write. Structure cannot be derived
+      //      from a title anyway: "6×800m @ 4:10" is prose, and guessing at it
+      //      would put a wrong target on someone's watch. Existing plans gain
+      //      it through the AI round trip instead — see docs/watch-export.md.
+      version: 16,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         plans: state.plans,

@@ -35,6 +35,53 @@ export type WeekPhase =
   | "race"
   | "reduced";
 
+/**
+ * What a step is *for*. Separate from `WorkoutType`, which describes the
+ * session as a whole: a single interval session contains warmup, work and
+ * recovery steps, and each needs its own intensity on the watch.
+ */
+export type StepRole = "warmup" | "work" | "recovery" | "cooldown";
+
+/**
+ * One step of a structured workout.
+ *
+ * A step ends on **either** a distance or a time, never both — that is how
+ * every watch models it, and allowing both would leave "which one wins?"
+ * undefined. `isValidSteps()` in `lib/plan/workout-steps.ts` enforces it.
+ */
+export interface WorkoutStep {
+  role: StepRole;
+  /** Ends after this distance. Mutually exclusive with `durationSec`. */
+  distanceKm?: number;
+  /** Ends after this long. Mutually exclusive with `distanceKm`. */
+  durationSec?: number;
+  /**
+   * Target pace, "mm:ss" per km — the same canonical unit as `plannedPace`
+   * and every other pace in the app, for every sport. Absent means "no target",
+   * which is a real answer for a warmup.
+   */
+  pace?: string;
+  /**
+   * Half-width of the target band, in seconds per km. Absent means a single
+   * target rather than a zero-width range: a watch given `low === high` alerts
+   * constantly, so the two cases must stay distinguishable.
+   */
+  paceRangeSec?: number;
+  note?: string;
+}
+
+/**
+ * A structured workout, as a flat list with **one** level of nesting for
+ * repeats: `6 × (800m hard + 400m jog)`.
+ *
+ * One level and no more, deliberately. It is exactly what FIT expresses with
+ * `repeat_steps`, it covers every session a human actually writes down, and
+ * deeper nesting would need an editor far beyond what the gain justifies.
+ */
+export type WorkoutBlock =
+  | ({ kind: "step" } & WorkoutStep)
+  | { kind: "repeat"; times: number; steps: WorkoutStep[] };
+
 export interface Workout {
   id: string;
   date: string; // ISO yyyy-mm-dd — anchors the calendar + week grouping
@@ -52,6 +99,17 @@ export interface Workout {
   weekNumber: number;
   plannedDistanceKm: number;
   plannedPace?: string; // "mm:ss" per km
+  /**
+   * The session broken into steps, for watches and for anyone who wants to
+   * read the structure rather than decode `title`.
+   *
+   * Absent means a flat workout, which is every plan authored before this and
+   * most easy runs after it. **`plannedDistanceKm` stays the authoritative
+   * total** even when steps are present: every consumer in the app already
+   * reads it, and a time-based step has no distance to derive from. Steps are
+   * additive detail, never a second source of truth — see `stepsDistanceKm()`.
+   */
+  steps?: WorkoutBlock[];
   actualDistanceKm?: number;
   actualPace?: string; // entered, or derived from distance + duration
   durationMin?: number;

@@ -29,11 +29,13 @@ import {
   ScreenshotScanField,
 } from "@/components/common/screenshot-scan-field";
 import { TimeField } from "@/components/common/time-field";
+import { WorkoutStepsField } from "@/components/plan/workout-steps-field";
 import { formatClock, num, resolveLoggedRun } from "@/lib/pace";
 import {
   WORKOUT_TYPES,
   type TrainingPlan,
   type Workout,
+  type WorkoutBlock,
   type WorkoutSplit,
   type WorkoutType,
 } from "@/lib/types";
@@ -143,6 +145,8 @@ export function WorkoutFormDialog({
   const [mode, setMode] = useState<"plan" | "log">("plan");
   // Splits are an array, so they live beside the string-based FormState.
   const [splits, setSplits] = useState<WorkoutSplit[]>([]);
+  // Same for the structured steps.
+  const [steps, setSteps] = useState<WorkoutBlock[]>([]);
 
   // Reset the form to the target workout whenever the dialog opens (adjusting
   // state during render — the recommended alternative to a reset-in-effect).
@@ -156,6 +160,7 @@ export function WorkoutFormDialog({
     );
     setMode(workout?.completed ? "log" : "plan");
     setSplits(workout?.splits ?? []);
+    setSteps(workout?.steps ?? []);
   } else if (!open && wasOpen) {
     setWasOpen(false);
   }
@@ -208,6 +213,7 @@ export function WorkoutFormDialog({
         sport: form.sport,
         startTime: form.startTime.trim() || undefined,
         splits: splits.length > 0 ? splits : undefined,
+        steps: steps.length > 0 ? steps : undefined,
         notes: form.notes.trim() || undefined,
         completed: form.completed,
         // A logged activity has a concrete date.
@@ -226,6 +232,7 @@ export function WorkoutFormDialog({
         plannedPace: form.plannedPace.trim()
           ? fmt.toStoredPaceFor(form.plannedPace.trim(), form.sport)
           : undefined,
+        steps: steps.length > 0 ? steps : undefined,
         sport: form.sport,
         completed: false,
         flexible: flexible || undefined,
@@ -396,6 +403,23 @@ export function WorkoutFormDialog({
                   />
                 </Field>
               </div>
+
+              {/* Structure describes what you intend to do, so it belongs with
+                  the planned targets. Logging a session leaves it untouched. */}
+              <WorkoutStepsField
+                // Remount per open, and per workout. The field keeps raw text
+                // in local state so a half-typed "1." survives keystrokes, and
+                // that state must not outlive the workout it belongs to: the
+                // dialog's content is not torn down between opens, so without
+                // this it would mount once against an empty list and then
+                // silently overwrite the steps of every workout opened after.
+                key={`${open ? "open" : "closed"}-${workout?.id ?? "new"}`}
+                value={steps}
+                onChange={setSteps}
+                sport={form.sport}
+                plannedDistance={form.plannedDistanceKm}
+                onUseStepTotal={(v) => set("plannedDistanceKm", v)}
+              />
             </>
           ) : (
             <>

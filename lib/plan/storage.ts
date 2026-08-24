@@ -4,6 +4,7 @@ import {
   PLAN_VERSION,
   raceNameFor,
 } from "@/lib/plan/defaults";
+import { normalizeSteps } from "@/lib/plan/workout-steps";
 import { toSport } from "@/lib/sport";
 import {
   WORKOUT_TYPES,
@@ -148,6 +149,11 @@ function normalizeWorkouts(
       // stamping would silently turn every imported cycling plan into running.
       // A *present* value is still coerced, since that one can be nonsense.
       ...(w.sport === undefined ? {} : { sport: toSport(w.sport) }),
+      // Same rule for structure: absent stays absent (a flat workout), and
+      // anything present is rebuilt from scratch. This is the boundary an
+      // AI-authored plan crosses, so a step that ends on both a distance and a
+      // time, or on neither, is dropped rather than handed to an encoder.
+      ...(w.steps === undefined ? {} : { steps: normalizeSteps(w.steps) }),
     };
   }
   return out;

@@ -436,6 +436,33 @@ JSON (paste below, or attach the exported .json file):
     tapsToGo_one: "({{count}} more)",
     tapsToGo_other: "({{count}} more)",
   },
+  steps: {
+    title: "Structure",
+    optional: "optional",
+    count_one: "{{count}} block",
+    count_other: "{{count}} blocks",
+    hint:
+      "Break the session into steps and your watch can guide you through it. Worth doing for intervals and tempo work; a plain easy run needs nothing here.",
+    step: "Step",
+    times: "Repeats",
+    min: "min",
+    pacePlaceholder: "Target {{unit}} (optional)",
+    addStep: "Add step",
+    addRepeat: "Add repeat",
+    addToRepeat: "Add a step to this repeat",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    remove: "Remove",
+    total: "Steps add up to {{total}} {{unit}}.",
+    mismatch: "The workout says {{planned}}.",
+    useTotal: "Use the step total",
+    role: {
+      warmup: "Warm up",
+      work: "Work",
+      recovery: "Recovery",
+      cooldown: "Cool down",
+    },
+  },
   splitScanner: {
     title: "Screenshot scanner",
     enable: "Fill in a run from a screenshot",
@@ -632,6 +659,20 @@ Output schema (return exactly this shape, nothing else):
           "id": "<workoutId>", "date": "YYYY-MM-DD", "type": "easy|tempo|interval|long|recovery",
           "title": "...", "weekNumber": 1, "plannedDistanceKm": <number>, "plannedPace": "mm:ss",
           "completed": false
+          // OPTIONAL "steps": the session broken down, so my watch can guide me
+          // through it. Add it whenever the session HAS structure - intervals,
+          // tempo blocks, anything with a warmup - and leave it out for a plain
+          // easy or long run, where it would only be noise. Two shapes:
+          //   { "kind": "step", "role": "warmup|work|recovery|cooldown",
+          //     "distanceKm": <number> OR "durationSec": <number>,   // exactly one
+          //     "pace": "mm:ss",            // optional, per km, same as plannedPace
+          //     "paceRangeSec": <number> }  // optional, +/- seconds per km
+          //   { "kind": "repeat", "times": <number>, "steps": [ ...steps... ] }
+          // e.g. 6x800m: [ {"kind":"step","role":"warmup","distanceKm":2,"pace":"6:00"},
+          //   {"kind":"repeat","times":6,"steps":[
+          //     {"role":"work","distanceKm":0.8,"pace":"4:10"},
+          //     {"role":"recovery","distanceKm":0.4,"pace":"7:00"}]},
+          //   {"kind":"step","role":"cooldown","distanceKm":2,"pace":"6:00"} ]
           // For flexible scheduling also add: "flexible": true, "windowStart": "YYYY-MM-DD", "windowEnd": "YYYY-MM-DD"
           // New plans set "completed": false. Once I log a run the app fills in actuals:
           // "actualDistanceKm", "actualPace" ("mm:ss"), "durationMin" (number), optional
@@ -653,6 +694,7 @@ Rules:
 - Use my latest runs to estimate fitness and paces. Set every workout "completed": false.
 - If my goal time/pace isn't provided, infer a sensible "goalPace"/"goalLabel" from my latest runs and the race distance (or ask me first).
 - Each workout's id must appear in its week's "workoutIds", and its "date" must fall within that week.
+- "plannedDistanceKm" stays the total for the session. When you add "steps", make the distance-based steps add up to roughly that total, and never change "plannedDistanceKm" to match the steps instead.
 - "previousPlans" is history to learn from, NOT a template. Return ONLY the new plan in "plans" - never copy a previous plan, its weeks or its workouts into your output. Every id you emit must be brand new and unique.
 - Give me the result as a downloadable .json FILE so I can attach it directly. If you can't create a file, put the ENTIRE JSON in a single \`\`\`json code block, including the very first { and the very last } - never split it or leave characters out.
 - Ask me any clarifying questions first, then return ONLY the JSON.`,

@@ -448,6 +448,33 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     tapsToGo_one: "(nog {{count}})",
     tapsToGo_other: "(nog {{count}})",
   },
+  steps: {
+    title: "Structuur",
+    optional: "optioneel",
+    count_one: "{{count}} blok",
+    count_other: "{{count}} blokken",
+    hint:
+      "Deel de sessie op in stappen, dan kan je horloge je erdoorheen leiden. De moeite waard bij intervallen en tempowerk; een rustige duurloop heeft dit niet nodig.",
+    step: "Stap",
+    times: "Herhalingen",
+    min: "min",
+    pacePlaceholder: "Doel {{unit}} (optioneel)",
+    addStep: "Stap toevoegen",
+    addRepeat: "Herhaling toevoegen",
+    addToRepeat: "Stap aan deze herhaling toevoegen",
+    moveUp: "Omhoog",
+    moveDown: "Omlaag",
+    remove: "Verwijderen",
+    total: "Stappen komen samen op {{total}} {{unit}}.",
+    mismatch: "De training zegt {{planned}}.",
+    useTotal: "Gebruik het staptotaal",
+    role: {
+      warmup: "Warming-up",
+      work: "Werk",
+      recovery: "Herstel",
+      cooldown: "Cooling-down",
+    },
+  },
   splitScanner: {
     title: "Screenshot-scanner",
     enable: "Loop invullen uit een screenshot",
@@ -645,6 +672,20 @@ Uitvoer-schema (geef precies deze vorm terug, niets anders):
           "id": "<workoutId>", "date": "YYYY-MM-DD", "type": "easy|tempo|interval|long|recovery",
           "title": "...", "weekNumber": 1, "plannedDistanceKm": <getal>, "plannedPace": "mm:ss",
           "completed": false
+          // OPTIONEEL "steps": de sessie opgedeeld, zodat mijn horloge me erdoorheen
+          // kan leiden. Voeg het toe zodra een sessie STRUCTUUR heeft - intervallen,
+          // tempoblokken, alles met een warming-up - en laat het weg bij een gewone
+          // duurloop, waar het alleen ruis zou zijn. Twee vormen:
+          //   { "kind": "step", "role": "warmup|work|recovery|cooldown",
+          //     "distanceKm": <getal> OF "durationSec": <getal>,     // precies één
+          //     "pace": "mm:ss",            // optioneel, per km, net als plannedPace
+          //     "paceRangeSec": <getal> }   // optioneel, +/- seconden per km
+          //   { "kind": "repeat", "times": <getal>, "steps": [ ...steps... ] }
+          // bijv. 6x800m: [ {"kind":"step","role":"warmup","distanceKm":2,"pace":"6:00"},
+          //   {"kind":"repeat","times":6,"steps":[
+          //     {"role":"work","distanceKm":0.8,"pace":"4:10"},
+          //     {"role":"recovery","distanceKm":0.4,"pace":"7:00"}]},
+          //   {"kind":"step","role":"cooldown","distanceKm":2,"pace":"6:00"} ]
           // Voor flexibele planning voeg ook toe: "flexible": true, "windowStart": "YYYY-MM-DD", "windowEnd": "YYYY-MM-DD"
           // Nieuwe plannen zetten "completed": false. Zodra ik een training vastleg vult de app de werkelijke waarden in:
           // "actualDistanceKm", "actualPace" ("mm:ss"), "durationMin" (getal), optioneel
@@ -666,6 +707,7 @@ Regels:
 - Gebruik mijn laatste lopen om conditie en tempo's te schatten. Zet elke training op "completed": false.
 - Als mijn doeltijd/-tempo niet is gegeven, leid dan een logische "goalPace"/"goalLabel" af uit mijn laatste lopen en de wedstrijdafstand (of vraag het me eerst).
 - Het id van elke training moet in de "workoutIds" van zijn week staan, en de "date" moet binnen die week vallen.
+- "plannedDistanceKm" blijft het totaal van de sessie. Als je "steps" toevoegt, laat de stappen met een afstand samen ongeveer op dat totaal uitkomen, en pas nooit "plannedDistanceKm" aan om bij de stappen te passen.
 - "previousPlans" is historie om van te leren, GEEN sjabloon. Geef in "plans" alleen het nieuwe plan terug - kopieer nooit een eerder plan, zijn weken of trainingen naar je uitvoer. Elk id dat je teruggeeft moet volledig nieuw en uniek zijn.
 - Geef het resultaat als een downloadbaar .json-BESTAND zodat ik het direct kan toevoegen. Als je geen bestand kunt maken, zet dan de VOLLEDIGE JSON in één \`\`\`json-codeblok, inclusief de allereerste { en de allerlaatste } - splits het nooit en laat geen tekens weg.
 - Stel eerst eventuele verduidelijkende vragen en geef daarna ALLEEN de JSON terug.`,
