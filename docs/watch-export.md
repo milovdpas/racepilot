@@ -554,10 +554,19 @@ comment shows has already been felt.
    all-day vs timed), `fit.ts` (`buildFitMessages` for a flat workout, an
    interval workout with a repeat, and a bike workout), `target.ts` (the factory
    returns only usable targets).
-3. **A real FIT file on a real watch.** The only test that counts: export an
-   interval session, copy it to `GARMIN/NEWFILES/`, confirm the watch lists it
-   under Training → Workouts with the right steps and targets. Nothing in CI
-   substitutes for this.
+3. **A real FIT file, read by something that is not us.** Done, via
+   fitfileviewer.com on a `7x800m @ 4:10` export: five steps, warmup 1000 m at
+   5:53-6:07/km, work 800 m at 4:05-4:15/km, recovery 400 m at 6:52-7:08/km,
+   repeat-until-steps-complete jumping to step 1 seven times, cooldown 600 m
+   with an open target. Every band decodes back to the intended pace within the
+   2% default, and 1000 + 7x1200 + 600 is exactly the 10 km the workout says,
+   so the AI sized the warmup and cooldown to the total rather than overflowing
+   it. **Still untested on hardware**, which matters for one field only:
+   `capabilities` is sent as 32, which decodes as "tcx" and is inherited from
+   convention rather than being true of this file. 32 is what most real-world
+   workout files carry, so it is the empirically safe value; a truthful
+   `speed | distance` (1152) is the alternative and is untested. Some devices
+   read this field when deciding whether they can run a workout.
 4. **A real ICS file** in Google Calendar and Apple Calendar.
 5. **A real intervals.icu round trip** — post a workout, confirm it appears on
    their calendar, and confirm it reaches Garmin if the athlete has that link on.
