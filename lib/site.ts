@@ -49,3 +49,34 @@ export const IS_PRODUCTION_DEPLOY =
   Boolean(explicitOrigin) &&
   process.env.VERCEL_ENV !== "preview" &&
   process.env.VERCEL_ENV !== "development";
+
+/**
+ * Read a deployment flag that is on only when explicitly switched on.
+ *
+ * A bare truthiness check is wrong here and quietly so: in JavaScript the
+ * *string* "0" is truthy, so `Boolean(process.env.FLAG)` treats FLAG=0 as
+ * enabled, which is the opposite of what anyone writing it means. Only "1" and
+ * "true" count, whitespace and case are forgiven, and everything else --
+ * "0", "", unset, a typo -- is off.
+ */
+export function isFlagEnabled(value?: string): boolean {
+  const v = value?.trim().toLowerCase();
+  return v === "1" || v === "true";
+}
+
+/**
+ * Whether to show the "buy me a water" button in Settings.
+ *
+ * Off unless a deployment turns it on, which is the right default for an app
+ * anyone can self-host: a fork should not ship a donate button pointing at
+ * someone else's account, and it certainly should not do so silently.
+ *
+ * **Build time, not runtime**, and the `NEXT_PUBLIC_` prefix is the warning
+ * label: it is what makes Next inline the value into the client bundle, which
+ * is also what makes it un-editable afterwards. Toggling means rebuilding the
+ * image, not editing the container's environment. Same deal as
+ * `NEXT_PUBLIC_SITE_URL`, and named the same way so it reads that way.
+ */
+export const DONATE_ENABLED = isFlagEnabled(
+  process.env.NEXT_PUBLIC_DONATE_LINK_ENABLED,
+);

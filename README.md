@@ -146,6 +146,18 @@ each deployment's *own* origin.
 
 ---
 
+### Optional: the donate button
+
+`NEXT_PUBLIC_DONATE_LINK_ENABLED=1` shows the "buy me a water" button in
+Settings. `0`, empty or unset hides it, which is the default: a self-hosted
+copy should not ship a donate link pointing at this project's account.
+
+It is a **build arg**, not a runtime variable. The `NEXT_PUBLIC_` prefix is
+what inlines it into the client bundle, so changing it means rebuilding the
+image rather than restarting the container, exactly like `NEXT_PUBLIC_SITE_URL`.
+
+---
+
 ## Cloud sync setup (optional)
 
 By default everything lives in your browser's localStorage. You can optionally connect a **Google account** to back up and sync your progress via **Google Drive**, using a **server-side OAuth 2.0 authorization-code flow** (refresh tokens kept in an encrypted session cookie — no database, no tokens in the browser). Data is stored in Drive's hidden **app-data folder**, invisible in your Drive and accessible only to this app.

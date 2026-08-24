@@ -25,6 +25,13 @@ COPY . .
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
+# Shows the "buy me a water" button in Settings. Off unless set to 1, so a
+# self-hosted copy never ships a donate link pointing at someone else's
+# account. Build-time for the same reason as the URL above: it is inlined into
+# the client bundle, so flipping it means rebuilding, not editing .env.
+ARG NEXT_PUBLIC_DONATE_LINK_ENABLED
+ENV NEXT_PUBLIC_DONATE_LINK_ENABLED=$NEXT_PUBLIC_DONATE_LINK_ENABLED
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

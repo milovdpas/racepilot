@@ -4,9 +4,16 @@ import { Droplet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DONATE_ENABLED } from "@/lib/site";
 
+/**
+ * Opt-in per deployment: see `DONATE_ENABLED`. Rendering nothing rather than a
+ * disabled card, because a card explaining that donations are switched off is
+ * not information anyone wants.
+ */
 export function SupportCard() {
   const { t } = useTranslation();
+  if (!DONATE_ENABLED) return null;
   return (
     <Card className="gap-0 p-4">
       <h3 className="mb-1 text-sm font-semibold">{t("settings.support")}</h3>

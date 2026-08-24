@@ -50,6 +50,7 @@ jobs:
           # domain means a rebuild.
           build-args: |
             NEXT_PUBLIC_SITE_URL=${{ vars.SITE_URL }}
+            NEXT_PUBLIC_DONATE_LINK_ENABLED=${{ vars.DONATE_LINK_ENABLED }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/racepilot:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/racepilot:${{ github.sha }}
