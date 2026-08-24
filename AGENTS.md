@@ -16,7 +16,7 @@ Quick orientation:
   - shadcn here is **Base UI (`@base-ui/react`), not Radix** → compose with the **`render` prop**, not `asChild`.
   - **Tailwind v4** (CSS `@theme`, no config file); dynamic class names aren't generated — use static class maps.
   - i18n: every UI string is a key in **both** `lib/i18n/locales/en.ts` and `nl.ts` (the `Dict` type enforces parity). Use `useTranslation()`.
-  - Persisted-shape changes require **bumping the persist `version` + an additive `migrate`** in `use-training-store.ts` (currently v16).
+  - Persisted-shape changes require **bumping the persist `version` + an additive `migrate`** in `use-training-store.ts` (currently v17).
   - Pages are thin server components rendering a `"use client"` view inside `<HydrationGate>`. **The app lives under `/app/*`**; `/` is a server-rendered marketing page and `/welcome` is the first-run flow, both outside the app chrome in `app/app/layout.tsx`.
   - Sticky offsets and z-index are **CSS variables in `app/globals.css`** (`--h-topbar`, `--stick-under-viewbar`, `--z-sticky`, …), consumed as `top-(--stick-under-viewbar)`. Don't reintroduce pixel literals — they silently detach when a bar's height changes.
   - **Manifest icons must be PNG.** An SVG entry with `sizes: "any"` looks like a perfect match to Chrome's icon picker, but it cannot rasterize one for an Android WebAPK — it then reports `no-acceptable-icon` and stops looking, and "Install" silently degrades to a home-screen shortcut. `app/icon.svg` is the tab favicon only; `public/icons/*.png` (regenerate with `scripts/build-icons.mjs`) is what `app/manifest.ts` points at.

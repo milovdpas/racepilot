@@ -1,17 +1,40 @@
 "use client";
 
-import { Download, ScanText, Users } from "lucide-react";
+import { Download, ScanText, Sparkles, Users, Watch } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AthleteTypePicker } from "@/components/common/athlete-type-picker";
+import {
+  PlanStepsUpgrade,
+  usePendingStructure,
+} from "@/components/common/plan-steps-upgrade";
+import { WatchPicker } from "@/components/common/watch-picker";
 import { InstallInstructions } from "@/components/common/install-instructions";
 import { OnboardingStep } from "@/components/common/onboarding-step";
 import { SplitsExample } from "@/components/common/splits-example";
 import { useInstallApp } from "@/hooks/use-install-app";
 import { isLegacyHost } from "@/lib/legacy-host";
-import type { AthleteType } from "@/lib/types";
+import type { AthleteType, Preferences, WatchBrand } from "@/lib/types";
 import { useTrainingStore } from "@/store/use-training-store";
+
+/**
+ * The preference keys that record "this prompt has been answered".
+ *
+ * Exported so the debug panel's replay action can clear them without keeping
+ * its own copy of the list. It kept one, and the moment a fifth prompt was
+ * added the button silently stopped resetting everything — which is the worst
+ * kind of broken for a testing aid, because it looks like it worked.
+ *
+ * **Add a step below, add its key here.** They are the same change.
+ */
+export const ONE_TIME_PROMPT_KEYS = [
+  "splitScannerOnboardingSeen",
+  "athleteTypes",
+  "watch",
+  "stepsUpgradePromptSeen",
+  "installPromptSeen",
+] as const satisfies readonly (keyof Preferences)[];
 
 interface Step {
   key: string;
@@ -43,10 +66,14 @@ function useWhatsNewSteps(): Step[] {
     (s) => s.preferences.splitScannerOnboardingSeen,
   );
   const athleteTypes = useTrainingStore((s) => s.preferences.athleteTypes);
+  const watch = useTrainingStore((s) => s.preferences.watch);
+  const upgradeSeen = useTrainingStore((s) => s.preferences.stepsUpgradePromptSeen);
+  const { shouldOffer } = usePendingStructure();
   const installSeen = useTrainingStore((s) => s.preferences.installPromptSeen);
   const setPreferences = useTrainingStore((s) => s.setPreferences);
 
   const [picked, setPicked] = useState<AthleteType[]>([]);
+  const [watchPick, setWatchPick] = useState<WatchBrand | undefined>(undefined);
 
   // Nothing is announced to someone who hasn't finished the welcome flow —
   // they're seeing all of it there already. Nor on the retired deployment,
@@ -107,6 +134,67 @@ function useWhatsNewSteps(): Step[] {
           }}
         >
           <AthleteTypePicker value={picked} onChange={setPicked} />
+        </OnboardingStep>
+      ),
+    },
+    {
+      key: "watch",
+      // Same tri-state as the athlete question: `undefined` is never asked.
+      // Testing for a falsy value instead would re-ask anyone who answered
+      // "none", forever.
+      applies: ready && watch === undefined,
+      render: (next) => (
+        <OnboardingStep
+          icon={Watch}
+          title={t("watch.promptTitle")}
+          body={t("watch.promptBody")}
+          skipLabel={t("onboarding.notNow")}
+          confirmLabel={t("common.save")}
+          className="max-h-[90dvh] overflow-y-auto"
+          // Skipping records "none", which is an answer and stops the asking.
+          // Leaving it unset would bring the prompt back on the next load.
+          onSkip={() => {
+            setPreferences({ watch: "none" });
+            next();
+          }}
+          onConfirm={() => {
+            setPreferences({ watch: watchPick ?? "none" });
+            next();
+          }}
+        >
+          <WatchPicker value={watchPick} onChange={setWatchPick} />
+        </OnboardingStep>
+      ),
+    },
+    {
+      key: "steps-upgrade",
+      // Deliberately *after* the watch step. `applies` is recomputed every
+      // render, so the moment that step writes a real brand this one becomes
+      // eligible and the gate shows it next — which is the teachable moment:
+      // "your intervals will export as one flat block" is abstract until you
+      // have just said which watch you own.
+      applies: ready && shouldOffer && !upgradeSeen,
+      render: (next) => (
+        <OnboardingStep
+          icon={Sparkles}
+          title={t("upgradePlan.promptTitle")}
+          body={t("upgradePlan.promptBody")}
+          skipLabel={t("onboarding.notNow")}
+          confirmLabel={t("common.gotIt")}
+          className="max-h-[90dvh] overflow-y-auto"
+          // Both exits record it. The offer stays permanently available in the
+          // watch settings card, so this flag only stops the popup returning on
+          // every load; it does not take the feature away.
+          onSkip={() => {
+            setPreferences({ stepsUpgradePromptSeen: true });
+            next();
+          }}
+          onConfirm={() => {
+            setPreferences({ stepsUpgradePromptSeen: true });
+            next();
+          }}
+        >
+          <PlanStepsUpgrade chrome={false} />
         </OnboardingStep>
       ),
     },

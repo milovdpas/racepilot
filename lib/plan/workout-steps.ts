@@ -9,7 +9,13 @@
 // display edge, or in the encoder that needs m/s.
 
 import { paceToSeconds } from "@/lib/pace";
-import type { StepRole, WorkoutBlock, WorkoutStep } from "@/lib/types";
+import type {
+  StepRole,
+  Workout,
+  WorkoutBlock,
+  WorkoutStep,
+  WorkoutType,
+} from "@/lib/types";
 
 /** Every step in order, with repeats written out. What encoders want. */
 export function flattenSteps(blocks: readonly WorkoutBlock[]): WorkoutStep[] {
@@ -184,4 +190,20 @@ export function normalizeSteps(raw: unknown): WorkoutBlock[] | undefined {
   }
 
   return blocks.length > 0 ? blocks : undefined;
+}
+
+/**
+ * Workout types whose sessions have a structure worth writing down.
+ *
+ * `easy`, `long` and `recovery` are a single effort at a single pace by
+ * definition, and the upgrade prompt says so too: adding steps to them "is only
+ * noise". Counting them as missing structure is what made the first version of
+ * the nudge uncountable — it asked an athlete to fix 27 sessions when 25 of
+ * them were already exactly right, and could never reach zero.
+ */
+const STRUCTURED_TYPES: readonly WorkoutType[] = ["interval", "tempo"];
+
+/** Would this session be better on a watch with steps than without? */
+export function needsSteps(workout: Workout): boolean {
+  return STRUCTURED_TYPES.includes(workout.type) && !workout.steps?.length;
 }

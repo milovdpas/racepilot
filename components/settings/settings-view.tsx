@@ -14,6 +14,7 @@ import { InstallAppCard } from "@/components/settings/install-app-card";
 import { PlansCard } from "@/components/settings/plans-card";
 import { RaceDetailsCard } from "@/components/settings/race-details-card";
 import { SupportCard } from "@/components/settings/support-card";
+import { WatchCard } from "@/components/settings/watch-card";
 import { Card } from "@/components/ui/card";
 import { useActivePlan } from "@/hooks/use-active-plan";
 import { DEFAULT_TRAINING_PREFS } from "@/lib/plan/defaults";
@@ -52,6 +53,8 @@ export function SettingsView() {
       ) : null}
 
       <AthleteCard />
+
+      <WatchCard />
 
       <FeaturesCard />
 

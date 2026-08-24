@@ -434,7 +434,11 @@ export const useTrainingStore = create<TrainingState>()(
       //      from a title anyway: "6×800m @ 4:10" is prose, and guessing at it
       //      would put a wrong target on someone's watch. Existing plans gain
       //      it through the AI round trip instead — see docs/watch-export.md.
-      version: 16,
+      // v17: additive — Preferences.stepsUpgradePromptSeen. Left unset on
+      //      purpose: unset is what makes the one-time prompt appear, and it
+      //      only appears at all for someone who owns a watch and has sessions
+      //      that would benefit, so an existing user sees it exactly once.
+      version: 17,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         plans: state.plans,

@@ -14,9 +14,82 @@ and the decisions with their reasons**. Update it *within* each slice, not after
 | 1 | Workout structure (`Workout.steps`) | **done** |
 | 2 | Encoders (`.fit`, `.ics`) + the delivery Strategy | **done** |
 | 3 | The intervals.icu target | not started |
-| 4 | Watch profile (onboarding, settings, what's new) | not started |
+| 4 | Watch profile (onboarding, settings, what's new) | **done** |
 | 5 | Settings accordion | not started |
 | — | Garmin Training API target | blocked, enquiry sent |
+
+### Slice 4, landed
+
+- `components/common/watch-picker.tsx`, single-select, reused verbatim by the
+  onboarding step, the settings card and the what's-new prompt.
+- It renders in **two** places from one component, with `chrome` deciding
+  whether it draws its own heading: the watch settings card, and a what's-new
+  step that sits immediately *after* the watch question. `applies` is
+  recomputed every render, so the moment that step writes a real brand the
+  upgrade step becomes eligible and shows next. That is the teachable moment:
+  "your intervals will export as one flat block" is abstract until you have
+  just said which watch you own. `usePendingStructure()` is exported alongside
+  it, because the gate needs the *question* before it renders the answer and
+  duplicating the rule is how the two drift apart.
+- `Preferences.stepsUpgradePromptSeen` (persist **v17**) stops the popup
+  returning on every load. A plain boolean, not a tri-state: there is no
+  "declined" worth distinguishing, because the same offer stays permanently in
+  the settings card. Both exits record it.
+- The debug panel reports `watch` and can **replay the one-time prompts** by
+  clearing the flags in `ONE_TIME_PROMPT_KEYS`, which lives beside the steps in
+  `whats-new-gate.tsx` rather than in the panel. The panel kept its own copy
+  first, and adding a fifth prompt silently left it resetting four: the worst
+  kind of broken for a testing aid, because it still looks like it worked.
+  `lib/one-time-prompts.test.ts` now fails if a step writes a flag the list
+  does not clear. Testing a prompt that fires once otherwise means
+  editing `localStorage` by hand, and these questions are asked of the
+  *installed* app on a phone, where there is no console to do that in.
+- `Preferences.watch` is tri-state: `undefined` never asked, `"none"` asked and
+  declined. Skipping the prompt writes `"none"`, which is what stops it
+  returning; leaving it unset would ask again on the next load.
+- `components/common/plan-steps-upgrade.tsx` carries the whole AI round trip
+  in one place: export, copy the prompt, import back by file **or** paste.
+  Pasting is the commoner path, not the fallback, because most models answer in
+  the chat and only produce a file if asked. `sanitizeImportJson` already
+  repairs a reply wrapped in prose and a code fence.
+- It appears only when there is a watch selected **and** upcoming sessions that
+  genuinely want structure, and retires itself once they have it.
+
+**A number that cannot reach zero is not a nudge, it is a complaint.** The first
+version counted every upcoming workout without steps. On a real 17-week plan it
+said "43 sessions have no step breakdown"; the athlete ran the whole round trip,
+the AI did exactly as asked, and it still said 27 — because 25 of those were
+easy, long and recovery runs, which the prompt deliberately leaves alone, since
+a single effort at a single pace has no structure to write down. `needsSteps()`
+now counts only `interval` and `tempo`, so that plan reads 6 before and **2**
+after: the two the AI actually skipped. The two it skipped were right to skip, which took
+looking at the numbers to see: `6x800m @ 4:10 (reduced - Vacation)` has
+`plannedDistanceKm: 5`, and six times 800 m is 4.8 km of reps before any
+warmup. The title was stale, describing the session before it was scaled down
+for a holiday. So the prompt now says the stored numbers are the truth and the
+title can be out of date: scale the session to fit rather than overflow the
+total. The first attempt at this said the opposite, telling the model to obey
+the title, which would have produced exactly the overflow the same prompt
+forbids two lines earlier.
+
+The copied prompt also **names the workouts to change**, with their id, title,
+`plannedDistanceKm` and `plannedPace`. That saves the model deciding which of
+sixty sessions have structure, and it is what makes the "stored numbers are the
+truth" rule actionable: `6x800m` printed beside `5 km total` is the
+contradiction, right there, without the model having to hunt for it.
+
+**A live bug this slice surfaced: `common.copied` never existed.** The debug
+panel shipped with a button reading the literal string "common.copied", because
+`t()` takes a plain string and nothing checked it. `Dict` catches a key missing
+from `nl.ts`; nothing caught a key missing from both. `lib/i18n/keys.test.ts`
+now walks every `t("…")` in the source against the English dictionary, and its
+second case guards the guard so an empty pass cannot mean the scanner matched
+nothing. Verified it fails on a deliberately broken key before being kept.
+
+Verified in Chrome, 20 checks plus a full round trip: export the plan, add
+steps as the prompt asks, paste the reply back wrapped in prose and a fence,
+and watch the invalid step get dropped at the boundary while
+`plannedDistanceKm` stays put.
 
 ### Slice 2, landed
 

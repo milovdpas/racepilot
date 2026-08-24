@@ -236,6 +236,15 @@ export interface Preferences {
    * again. A companion "seen" boolean cannot express that difference.
    */
   watch?: WatchBrand;
+  /**
+   * Whether the one-time "your plan has sessions with no steps" prompt has run.
+   *
+   * A plain boolean, unlike `watch`: there is no "declined" worth
+   * distinguishing here, because the same offer stays permanently available in
+   * the watch settings card. This flag only stops the *popup* returning on
+   * every load.
+   */
+  stepsUpgradePromptSeen?: boolean;
   /** Weather feature opted in (needs geolocation + a configured server key). */
   weatherEnabled?: boolean;
   /** Show per-day weather in the calendar. */

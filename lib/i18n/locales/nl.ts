@@ -393,6 +393,8 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     tourSubtitle: "Vier dingen die RacePilot goed doet.",
     profileTitle: "Waar train je voor?",
     profileSubtitle: "Zodat we alleen laten zien wat relevant is.",
+    watchTitle: "Train je met een horloge?",
+    watchSubtitle: "Zodat een geplande sessie op je pols terechtkomt.",
     featuresTitle: "Optionele extra's",
     featuresSubtitle: "Standaard allemaal uit. Zet aan wat je wilt.",
     finishTitle: "Klaar wanneer jij dat bent",
@@ -400,6 +402,8 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       "Maak je eigen plan, of kijk eerst rond met een voorbeeld.",
     profileHint:
       "Optioneel - sla het over en alles blijft zichtbaar. Je kunt dit aanpassen in instellingen.",
+    watchHint:
+      "Optioneel, en aan te passen in Instellingen. Het bepaalt alleen welke uitleg je krijgt.",
     exploreWith: "Rondkijken met het {{plan}}",
     privacy: {
       free: "Helemaal gratis",
@@ -446,6 +450,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     title: "Debug-info",
     desc:
       "Wat de app over dit apparaat heeft afgeleid, om te controleren of bijvoorbeeld landherkenning doet wat je verwacht. Hier wordt niets van verstuurd.",
+    replayPrompts: "Stel de eenmalige vragen opnieuw",
     copy: "Debug-info kopiëren",
     version: "Versie {{version}}",
     tapsToGo_one: "(nog {{count}})",
@@ -503,6 +508,84 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       calendar:
         "Open het bestand om het aan je agenda toe te voegen. De meeste horloges tonen het dan op je pols.",
     },
+  },
+  upgradePlan: {
+    promptTitle: "Je horloge kan meer met dit plan",
+    promptBody:
+      "Een paar sessies hebben nog geen stappen, dus die komen als één blok op een gemiddeld tempo op je horloge. Dit lost dat in drie stappen op.",
+    title: "Structuur aan dit plan toevoegen",
+    body_one:
+      "{{count}} komende sessie heeft geen stappen, dus die exporteert als één blok op een gemiddeld tempo. Een AI kan de titels lezen en dat invullen.",
+    body_other:
+      "{{count}} komende sessies hebben geen stappen, dus die exporteren als één blok op een gemiddeld tempo. Een AI kan de titels lezen en dat invullen.",
+    export: "Plan exporteren",
+    import: "Resultaat importeren",
+    stepExport: "Exporteer je plan",
+    stepPrompt: "Plak het bij een AI met dit erbij",
+    stepImport: "Haal het resultaat terug",
+    orPaste: "Of plak de JSON die de AI je gaf:",
+    importPasted: "Geplakte JSON importeren",
+    andMore_one: "en nog {{count}}",
+    andMore_other: "en nog {{count}}",
+    only: "Voeg \"steps\" toe aan precies deze trainingen en verander verder niets in het bestand:",
+    copy: "Prompt kopiëren",
+    prompt: `Hier is mijn trainingsplan als JSON.
+
+Voeg een "steps"-array toe aan elke training waarvan de titel een gestructureerde sessie beschrijft: intervallen, tempoblokken, alles met een warming-up of cooling-down. Laat gewone duurlopen, lange duurlopen en herstelloopjes met rust; één afstand op één tempo heeft geen stappen nodig en ze daar toevoegen is alleen ruis.
+
+Elk item in "steps" heeft een van twee vormen:
+
+  { "kind": "step", "role": "warmup|work|recovery|cooldown",
+    "distanceKm": <getal> OF "durationSec": <getal>,     // precies één, nooit allebei
+    "pace": "mm:ss",            // optioneel, per kilometer, net als plannedPace
+    "paceRangeSec": <getal> }   // optioneel, +/- seconden per kilometer
+
+  { "kind": "repeat", "times": <getal>, "steps": [ ...steps... ] }
+
+Herhalingen nesten niet: een herhaling bevat alleen gewone stappen.
+
+Een training met de titel "6x800m @ 4:10" wordt bijvoorbeeld:
+
+  "steps": [
+    { "kind": "step", "role": "warmup", "distanceKm": 2, "pace": "6:00" },
+    { "kind": "repeat", "times": 6, "steps": [
+      { "role": "work", "distanceKm": 0.8, "pace": "4:10" },
+      { "role": "recovery", "distanceKm": 0.4, "pace": "7:00" }
+    ] },
+    { "kind": "step", "role": "cooldown", "distanceKm": 2 }
+  ]
+
+Regels:
+- Verander "plannedDistanceKm" NIET. Dat blijft het totaal van de sessie. Laat de stappen met een afstand daar ongeveer op uitkomen en pas zo nodig de warming-up en cooling-down aan.
+- Verander verder NIETS, voeg geen trainingen toe of verwijder ze, en hernummer niets. Het enige wat je toevoegt is "steps".
+- Elk tempo blijft "mm:ss" per kilometer, welke eenheden de titel ook gebruikt.
+- "plannedDistanceKm" en "plannedPace" zijn leidend; de titel kan verouderd zijn. Vraagt de titel meer dan het totaal toelaat, bijvoorbeeld "6x800m" in een sessie van 5 km, schaal de sessie dan zodat het past: minder herhalingen, of een korter blok, op het tempo dat bij de training staat. Ga nooit over het totaal heen om een titel te volgen.
+- Als een titel echt te weinig zegt om stappen van te maken, laat die training dan met rust in plaats van een sessie te verzinnen die ik niet gepland heb.
+- Geef het resultaat als een downloadbaar .json-BESTAND zodat ik het direct kan bijvoegen. Kun je geen bestand maken, zet dan de HELE JSON in één json-codeblok, inclusief de allereerste { en de allerlaatste } - splits het nooit en laat geen tekens weg.`,
+  },
+  watch: {
+    title: "Je horloge",
+    body: "Zodat de export je vertelt wat je met het bestand moet doen, in de woorden van je eigen apparaat.",
+    promptTitle: "Met welk horloge train je?",
+    promptBody:
+      "RacePilot kan van een geplande sessie een training maken waar je horloge je doorheen leidt. Vertel wat je draagt en je krijgt de juiste stappen.",
+    notSet: "Nog geen horloge gekozen.",
+    garmin: "Garmin",
+    garminDesc: "Forerunner, Fenix, Venu en de rest",
+    coros: "COROS",
+    corosDesc: "Pace, Apex, Vertix",
+    wahoo: "Wahoo",
+    wahooDesc: "ELEMNT, Rival",
+    apple: "Apple Watch",
+    appleDesc: "Heeft een hulp-app nodig om te importeren",
+    polar: "Polar",
+    polarDesc: "Alleen agenda, geen import van trainingen",
+    suunto: "Suunto",
+    suuntoDesc: "Alleen agenda, geen import van trainingen",
+    other: "Iets anders",
+    otherDesc: "Je krijgt de agenda",
+    none: "Geen horloge",
+    noneDesc: "Bied dit helemaal niet aan",
   },
   splitScanner: {
     title: "Screenshot-scanner",

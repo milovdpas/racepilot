@@ -391,12 +391,16 @@ JSON (paste below, or attach the exported .json file):
     tourSubtitle: "Four things RacePilot does well.",
     profileTitle: "What do you train for?",
     profileSubtitle: "So we only show you what's relevant.",
+    watchTitle: "Do you train with a watch?",
+    watchSubtitle: "So a planned session can end up on your wrist.",
     featuresTitle: "Optional extras",
     featuresSubtitle: "All off by default. Turn on what you want.",
     finishTitle: "Ready when you are",
     finishSubtitle: "Build your own plan, or look around with an example first.",
     profileHint:
       "Optional - skip it and everything stays visible. You can change this in Settings.",
+    watchHint:
+      "Optional, and changeable in Settings. It only decides which instructions you are shown.",
     exploreWith: "Look around with the {{plan}}",
     privacy: {
       free: "Completely free",
@@ -434,6 +438,7 @@ JSON (paste below, or attach the exported .json file):
     title: "Debug info",
     desc:
       "What the app worked out about this device, for checking that things like country detection landed the way you expect. Nothing here is sent anywhere.",
+    replayPrompts: "Ask the one-time prompts again",
     copy: "Copy debug info",
     version: "Version {{version}}",
     tapsToGo_one: "({{count}} more)",
@@ -491,6 +496,84 @@ JSON (paste below, or attach the exported .json file):
       calendar:
         "Open the file to add it to your calendar. Most watches then show it on your wrist.",
     },
+  },
+  upgradePlan: {
+    promptTitle: "Your watch can do more with this plan",
+    promptBody:
+      "Some sessions have no step breakdown yet, so they would reach your watch as one block at an average pace. This fixes that in three steps.",
+    title: "Add structure to this plan",
+    body_one:
+      "{{count}} upcoming session has no step breakdown, so it exports as one block at an average pace. An AI can read the titles and fill that in.",
+    body_other:
+      "{{count}} upcoming sessions have no step breakdown, so they export as one block at an average pace. An AI can read the titles and fill that in.",
+    export: "Export the plan",
+    import: "Import the result",
+    stepExport: "Export your plan",
+    stepPrompt: "Paste it to an AI with this",
+    stepImport: "Bring the result back",
+    orPaste: "Or paste the JSON the AI gave you:",
+    importPasted: "Import pasted JSON",
+    andMore_one: "and {{count}} more",
+    andMore_other: "and {{count}} more",
+    only: "Add \"steps\" to exactly these workouts and change nothing else in the file:",
+    copy: "Copy the prompt",
+    prompt: `Here is my training plan as JSON.
+
+Add a "steps" array to every workout whose title describes a structured session: intervals, tempo blocks, anything with a warmup or a cooldown. Leave plain easy runs, long runs and recovery runs alone; a single distance at a single pace needs no steps and adding them there is only noise.
+
+Each entry in "steps" is one of two shapes:
+
+  { "kind": "step", "role": "warmup|work|recovery|cooldown",
+    "distanceKm": <number> OR "durationSec": <number>,   // exactly one, never both
+    "pace": "mm:ss",            // optional, per kilometer, same format as plannedPace
+    "paceRangeSec": <number> }  // optional, +/- seconds per kilometer
+
+  { "kind": "repeat", "times": <number>, "steps": [ ...steps... ] }
+
+Repeats do not nest: a repeat contains plain steps only.
+
+For example, a workout titled "6x800m @ 4:10" becomes:
+
+  "steps": [
+    { "kind": "step", "role": "warmup", "distanceKm": 2, "pace": "6:00" },
+    { "kind": "repeat", "times": 6, "steps": [
+      { "role": "work", "distanceKm": 0.8, "pace": "4:10" },
+      { "role": "recovery", "distanceKm": 0.4, "pace": "7:00" }
+    ] },
+    { "kind": "step", "role": "cooldown", "distanceKm": 2 }
+  ]
+
+Rules:
+- Do NOT change "plannedDistanceKm". It stays the total for the session. Make the distance-based steps add up to roughly that total instead, adjusting the warmup and cooldown if you need to.
+- Do NOT change any other field, add or remove workouts, or renumber anything. The only thing you are adding is "steps".
+- Every pace stays in "mm:ss" per kilometer, whatever units the title uses.
+- "plannedDistanceKm" and "plannedPace" are the truth; the title can be out of date. If the title asks for more than the total allows, for example "6x800m" in a 5 km session, scale the session to fit: fewer reps, or a shorter block, at the pace the workout actually says. Do not exceed the total to satisfy a title.
+- If a title genuinely does not say enough to build steps from, leave that workout untouched rather than inventing a session I did not plan.
+- Give me the result as a downloadable .json FILE so I can attach it directly. If you can't create a file, put the ENTIRE JSON in a single json code block, including the very first { and the very last } - never split it or leave characters out.`,
+  },
+  watch: {
+    title: "Your watch",
+    body: "So the export tells you what to do with the file, in the words your own device uses.",
+    promptTitle: "Which watch do you train with?",
+    promptBody:
+      "RacePilot can turn a planned session into a workout your watch guides you through. Tell it what you wear and it will give you the right steps.",
+    notSet: "No watch selected yet.",
+    garmin: "Garmin",
+    garminDesc: "Forerunner, Fenix, Venu and the rest",
+    coros: "COROS",
+    corosDesc: "Pace, Apex, Vertix",
+    wahoo: "Wahoo",
+    wahooDesc: "ELEMNT, Rival",
+    apple: "Apple Watch",
+    appleDesc: "Needs a helper app to import",
+    polar: "Polar",
+    polarDesc: "Calendar only, no workout import",
+    suunto: "Suunto",
+    suuntoDesc: "Calendar only, no workout import",
+    other: "Something else",
+    otherDesc: "You will get the calendar",
+    none: "No watch",
+    noneDesc: "Do not offer this at all",
   },
   splitScanner: {
     title: "Screenshot scanner",

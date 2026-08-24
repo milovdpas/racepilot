@@ -3,6 +3,7 @@ import {
   describeSteps,
   flattenSteps,
   isValidSteps,
+  needsSteps,
   normalizeSteps,
   type StepFormat,
   stepsDistanceKm,
@@ -260,5 +261,32 @@ describe("normalizeSteps", () => {
     const out = normalizeSteps(junk);
     expect(out).toBeDefined();
     expect(isValidSteps(out ?? [])).toBe(true);
+  });
+});
+
+describe("needsSteps", () => {
+  const w = (type: string, steps?: WorkoutBlock[]) =>
+    ({ id: "w", date: "2026-09-01", type, title: "t", completed: false, ...(steps ? { steps } : {}) }) as never;
+
+  it("wants structure for the session types that have any", () => {
+    expect(needsSteps(w("interval"))).toBe(true);
+    expect(needsSteps(w("tempo"))).toBe(true);
+  });
+
+  it("leaves single-effort sessions alone", () => {
+    // This is the bug the first version had: it counted these as missing
+    // structure, so the nudge asked an athlete to fix 27 sessions when 25 were
+    // already right, and could never reach zero.
+    expect(needsSteps(w("easy"))).toBe(false);
+    expect(needsSteps(w("long"))).toBe(false);
+    expect(needsSteps(w("recovery"))).toBe(false);
+  });
+
+  it("is satisfied once a structured session has steps", () => {
+    expect(needsSteps(w("interval", [{ kind: "step", role: "work", distanceKm: 1 }]))).toBe(false);
+  });
+
+  it("treats an empty array as no steps, since it renders as nothing", () => {
+    expect(needsSteps(w("tempo", []))).toBe(true);
   });
 });
