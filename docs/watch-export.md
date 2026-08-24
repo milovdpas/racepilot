@@ -556,6 +556,45 @@ accordion of four groups, persisted in `preferences.settingsSections`
   message can land in a collapsed section. `PlansCard`'s `onDeleted` raises a
   toast instead, which is visible wherever the athlete is looking.
 
+---
+
+## Demo plans ship with structure
+
+Found on the way in: finishing onboarding with a watch selected walked straight
+into "9 upcoming sessions have no step breakdown" - advice about *your old plan*,
+aimed at the plan we had just handed over ourselves.
+
+`lib/plan/example-steps.ts` (`shapedSteps`) fits a `StepShape` to a total. The
+generated demos declare a `shape` per session template and the builder fits it to
+that week's scaled distance, because `buildExamplePlan` scales every session by a
+volume factor - steps written into the spec would be right in week 1 and wrong in
+a cutback week. The bundled marathon block has its steps in the JSON.
+
+- **The reps are the session; the ease is the padding.** Warmup and cooldown take
+  the remainder, so "6×800m" stays 800 m. Only when the reps genuinely overrun
+  the total does everything shrink by one factor - the same "the stored numbers
+  are the truth, scale to fit" rule the AI prompt states.
+- **Reps keep their own unit.** A cyclist's "4×8 min" reaches the watch as eight
+  minutes, not as the distance eight minutes covers at today's target pace.
+- **The ease floor is relative below 5 km.** A flat 600 m at each end leaves a
+  taper-week swim set with nothing for the reps, and the session would come back
+  structureless - straight back into the prompt.
+- **Two demo workouts had titles their own numbers could not hold** ("6×800m" on
+  5 km total). Corrected in the data: a demo that contradicts itself teaches the
+  wrong thing.
+
+`lib/plan/example-steps.test.ts` asserts every demo, bundled and generated, has
+zero `needsSteps()` workouts. That is the backstop for
+`scripts/scrub-example-plan.mjs`, which regenerates the marathon JSON from a raw
+export and would otherwise drop the steps silently; the script now warns about
+both missing structure and em dashes in titles.
+
+Demo plan names and workout titles are **copy**, so the em-dash rule applies to
+them. `AGENTS.md`'s check command now covers `lib/plan/example-specs.ts` and
+`lib/plan/example-plan.json`; eleven violations were fixed.
+
+---
+
 ## Deferred
 
 **The Garmin target** — `lib/export/targets/garmin.ts`, a third `ExportTarget`

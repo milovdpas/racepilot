@@ -23,8 +23,8 @@ Quick orientation:
   - The bundled example plan (`lib/plan/example-plan.json`) is a scrubbed real export. **This repo is public:** raw exports carry home coordinates, so `marathon-plans-*.json` is gitignored and `scripts/scrub-example-plan.mjs` strips `lat`/`lon` and `preferences`.
 - **Copy:** never use an em dash (`—`) in anything a user reads. That means the i18n dictionaries, the landing and privacy pages, page metadata, and the OG image. Rewrite the sentence instead: a full stop usually works, a comma or a colon otherwise. A hyphen is acceptable but a rewrite reads better. This does **not** apply to code comments or docs, only to user-facing strings. Check before committing copy with:
   ```bash
-  grep -rn "—" lib/i18n/locales/*.ts app/page.tsx app/*/page.tsx | grep -vE ":[[:space:]]*(\*|//)"
+  grep -rn "—" lib/i18n/locales/*.ts app/page.tsx app/*/page.tsx lib/plan/example-specs.ts lib/plan/example-plan.json | grep -vE ":[[:space:]]*(\*|//)"
   ```
-  The second `grep` drops comment lines, which are exempt; any output left is a real violation.
+  The second `grep` drops comment lines, which are exempt; any output left is a real violation. The demo plans count as copy: their workout titles and plan names are read by every user who opens an example.
 - **Commits:** the title is **hard-capped at 72 characters**, including the `type:` prefix — count it, don't estimate. Conventional-commit prefixes (`feat:`, `fix:`, `refactor:`, `chore:`, `update:`), imperative mood, no trailing full stop. Put the detail in the body, wrapped at 72 too; explain *why*, and call out anything a reviewer would otherwise have to discover.
 - **Verify:** keep `npm run build`, `npm run lint` and `npm test` green (`npm run typecheck` is the fast inner loop). Pure logic in `lib/` gets a `*.test.ts`; components are covered by browser smoke instead. Browser smoke via `playwright-core` + system Chrome (`channel: "chrome"`); see `docs/architecture.md` → "Build & verify".

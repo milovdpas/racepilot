@@ -38,9 +38,23 @@ delete bundle.preferences;
 
 let scrubbed = 0;
 let workouts = 0;
+const flat = [];
+const emDash = [];
 for (const plan of Object.values(bundle.plans)) {
   for (const w of Object.values(plan.workouts ?? {})) {
     workouts++;
+    // Two things the demo has to get right that a raw export need not.
+    //
+    // Structure: an interval or tempo session with no `steps` puts a new user
+    // into the "your watch can do more with this plan" prompt the moment they
+    // finish onboarding, about the plan we handed them ourselves.
+    //
+    // Copy: an em dash in a workout title breaks the house rule (AGENTS.md),
+    // and a title written by the plan AI can easily carry one.
+    if (["interval", "tempo"].includes(w.type) && !w.steps?.length) {
+      flat.push(`${w.date} ${w.title}`);
+    }
+    if (/—/.test(`${w.title ?? ""}${w.notes ?? ""}`)) emDash.push(w.title);
     if (!w.weather) continue;
     if ("lat" in w.weather || "lon" in w.weather) scrubbed++;
     delete w.weather.lat;
@@ -58,8 +72,25 @@ if (/"(lat|lon)"\s*:/.test(json)) {
 
 writeFileSync(OUT, json);
 
+// Warnings, not errors: the file is still worth having, and
+// `lib/plan/example-steps.test.ts` fails the build if the structure gap is left
+// unfixed. Printed last so they are the thing still on screen.
 const plans = Object.keys(bundle.plans).length;
 console.log(
   `${OUT}: ${plans} plan(s), ${workouts} workouts, ` +
     `coordinates stripped from ${scrubbed} weather snapshot(s).`,
 );
+
+if (flat.length) {
+  console.warn(
+    `
+WARNING: ${flat.length} structured session(s) have no steps. ` +
+      `Add them before committing, or example-steps.test.ts will fail:`,
+  );
+  for (const line of flat) console.warn(`  ${line}`);
+}
+if (emDash.length) {
+  console.warn(`
+WARNING: em dash in ${emDash.length} title(s):`);
+  for (const title of emDash) console.warn(`  ${title}`);
+}
