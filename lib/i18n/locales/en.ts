@@ -189,6 +189,10 @@ export const en = {
     actual: "Actual",
   },
   settings: {
+    groupPlan: "Your plan",
+    groupProfile: "About you",
+    groupFeatures: "Features",
+    groupApp: "App",
     title: "Settings",
     subtitle: "Preferences, theme, and your data.",
     plans: "Plans",

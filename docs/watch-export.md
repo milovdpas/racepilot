@@ -15,7 +15,7 @@ and the decisions with their reasons**. Update it *within* each slice, not after
 | 2 | Encoders (`.fit`, `.ics`) + the delivery Strategy | **done** |
 | 3 | The intervals.icu target | not started |
 | 4 | Watch profile (onboarding, settings, what's new) | **done** |
-| 5 | Settings accordion | not started |
+| 5 | Settings accordion | **done** |
 | — | Garmin Training API target | blocked, enquiry sent |
 
 ### Slice 4, landed
@@ -521,16 +521,40 @@ choose between.
 
 ---
 
-## Slice 5 — Settings, de-cluttered
+## Slice 5 — Settings, de-cluttered  **done**
 
-Settings is 12 cards in one column and this adds two more. Convert
-`components/settings/settings-view.tsx` to an **accordion** of four groups —
-Plan, Training, Features, App — with only the first expanded. Use the existing
-Base UI primitives (`render` prop, not `asChild`) and persist the open section in
-`preferences.settingsSection`. Cards move unchanged; this is grouping, not a
-rewrite.
+Settings had reached fifteen cards in one column, which is a list you scroll
+rather than a page you read. `components/settings/settings-view.tsx` is now an
+accordion of four groups, persisted in `preferences.settingsSections`
+(**persist v18**, additive-optional):
 
----
+| Group | Cards |
+|---|---|
+| Your plan | Plans, Example plans, Race details, Training preferences |
+| About you | Athlete, Watch |
+| Features | Features, Cloud sync |
+| App | Appearance, Data, Install |
+
+### Decisions
+
+- **Sections open independently.** Base UI's `Accordion.Root` defaults
+  `multiple` to `false`, which is right for an FAQ and wrong here: someone
+  comparing two settings should not have to close one to see the other. The
+  override lives in `components/ui/accordion.tsx`, so it is the behaviour of
+  *our* accordion rather than a flag every call site has to remember. Note the
+  prop is `multiple`, not `openMultiple` - the wrong name type-checks as a DOM
+  attribute and silently does nothing.
+- **The persisted value is an array, and empty is a real answer.** `undefined`
+  means never touched and opens the first section; `[]` means the athlete closed
+  everything. Collapsing the two would reopen "Your plan" on every visit.
+- **Two cards stay outside the accordion.** The debug panel, because its entire
+  interface is ten taps on the version line and a tap target behind a collapsed
+  section is one nobody can reach. And the support card, for the opposite
+  reason: an ask you have to go looking for is an ask nobody answers.
+- **`DataCard` owns its own status again.** It used to report import and delete
+  results through a message the settings view rendered; inside an accordion that
+  message can land in a collapsed section. `PlansCard`'s `onDeleted` raises a
+  toast instead, which is visible wherever the athlete is looking.
 
 ## Deferred
 

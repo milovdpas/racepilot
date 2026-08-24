@@ -14,15 +14,20 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/store/use-toast-store";
 import { useTrainingStore } from "@/store/use-training-store";
 
-/** Export / import the whole store, plus the copyable "edit with AI" prompt. */
-export function DataCard({
-  status,
-  onStatus,
-}: {
-  /** Shared with PlansCard so "plan deleted" reports in the same place. */
-  status: { ok: boolean; msg: string } | null;
-  onStatus: (s: { ok: boolean; msg: string }) => void;
-}) {
+/**
+ * Export / import the whole store, plus the copyable "edit with AI" prompt.
+ *
+ * The status message is local again. It used to be lifted into the settings
+ * page and shared with PlansCard, so "plan deleted" reported here; once the
+ * page became an accordion that put the confirmation for an action in one
+ * section inside a different, probably collapsed one. Deleting a plan is a
+ * transient event and now says so in a toast, which leaves this message about
+ * importing, right next to the controls that produce it.
+ */
+export function DataCard() {
+  const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(
+    null,
+  );
   const { t } = useTranslation();
   const exportData = useTrainingStore((s) => s.exportData);
   const importData = useTrainingStore((s) => s.importData);
@@ -46,12 +51,12 @@ export function DataCard({
   const runImport = (json: string) => {
     try {
       importData(json);
-      onStatus({ ok: true, msg: t("settings.importedOk") });
+      setStatus({ ok: true, msg: t("settings.importedOk") });
       toast.success(t("settings.importedOk"));
       setImportText("");
     } catch (e) {
       console.error("Import failed:", e);
-      onStatus({ ok: false, msg: t("settings.importFailed") });
+      setStatus({ ok: false, msg: t("settings.importFailed") });
     }
   };
 

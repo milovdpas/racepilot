@@ -256,6 +256,15 @@ export interface Preferences {
   /** Plan ids whose "race done, plan your next race?" prompt has been shown. */
   nextPlanPromptSeen?: string[];
   /**
+   * Which Settings sections are expanded.
+   *
+   * Absent means never touched, which opens the plan section; `[]` is a real
+   * answer meaning everything is closed, so the two have to stay
+   * distinguishable. Values are the ids in `settings-view.tsx`; keep them
+   * stable, since they are persisted.
+   */
+  settingsSections?: string[];
+  /**
    * Last calendar view the user picked. Absent means they haven't chosen yet,
    * which falls back to a per-device default (agenda on mobile, month on
    * desktop) rather than a fixed one.

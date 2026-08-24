@@ -438,7 +438,11 @@ export const useTrainingStore = create<TrainingState>()(
       //      purpose: unset is what makes the one-time prompt appear, and it
       //      only appears at all for someone who owns a watch and has sessions
       //      that would benefit, so an existing user sees it exactly once.
-      version: 17,
+      // v18: additive — Preferences.settingsSections, which Settings section
+      //      is expanded. Absent opens the plan section, so nothing to
+      //      backfill; an empty array means everything closed, which is why
+      //      absent and empty are not the same thing.
+      version: 18,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         plans: state.plans,

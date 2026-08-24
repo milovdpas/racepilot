@@ -189,6 +189,10 @@ export const nl: Dict = {
     actual: "Werkelijk",
   },
   settings: {
+    groupPlan: "Je plan",
+    groupProfile: "Over jou",
+    groupFeatures: "Functies",
+    groupApp: "App",
     title: "Instellingen",
     subtitle: "Voorkeuren, thema en je gegevens.",
     plans: "Plannen",
