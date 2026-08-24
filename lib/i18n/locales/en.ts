@@ -11,6 +11,7 @@ export const en = {
     increase: "Increase",
     now: "Now",
     gotIt: "Got it",
+    close: "Close",
     example: "Example",
   },
   nav: {
@@ -118,6 +119,8 @@ export const en = {
     startTime: "Started at (optional)",
   },
   calendar: {
+    exportIcs: "Add to calendar",
+    exported: "Calendar file downloaded",
     title: "Calendar",
     subtitle: "Your training month at a glance.",
     today: "Today",
@@ -446,6 +449,7 @@ JSON (paste below, or attach the exported .json file):
     step: "Step",
     times: "Repeats",
     min: "min",
+    minutesShort: "{{count}} min",
     pacePlaceholder: "Target {{unit}} (optional)",
     addStep: "Add step",
     addRepeat: "Add repeat",
@@ -461,6 +465,31 @@ JSON (paste below, or attach the exported .json file):
       work: "Work",
       recovery: "Recovery",
       cooldown: "Cool down",
+    },
+  },
+  export: {
+    title: "Send to your watch",
+    desc_one: "One workout, ready to take with you.",
+    desc_other: "{{count}} workouts, ready to take with you.",
+    target: "Target {{pace}}",
+    done: "Exported",
+    failed: "That export did not work. Please try again.",
+    "fit-file": "Workout file (.fit)",
+    "fit-fileBody":
+      "A real structured workout: your watch counts the steps down and holds you to each target.",
+    "ics-file": "Calendar (.ics)",
+    "ics-fileBody":
+      "Adds your training to any calendar, and to your wrist through it. A reminder of what to do, not a workout the watch guides you through.",
+    followUp: {
+      garmin:
+        "Connect your watch to a computer, copy the file into GARMIN/NEWFILES, then unplug. Garmin Connect cannot import workouts, so the cable is the only way in.",
+      coros: "Import the file in COROS Training Hub, then sync your watch.",
+      wahoo: "Import the file in the Wahoo app, then sync your device.",
+      apple:
+        "Open the file in an app that imports workouts to Apple Watch, such as WatchFit.",
+      generic: "Copy the file to your watch the way your device expects.",
+      calendar:
+        "Open the file to add it to your calendar. Most watches then show it on your wrist.",
     },
   },
   splitScanner: {

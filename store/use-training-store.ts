@@ -424,7 +424,10 @@ export const useTrainingStore = create<TrainingState>()(
       //      backfill. Bumped anyway: the convention is that a shape change
       //      moves the version, so "which version introduced this field?" is
       //      answerable from this list alone.
-      // v16: additive — Workout.steps, the structured breakdown a watch needs.
+      // v16: additive — Workout.steps, the structured breakdown a watch needs,
+      //      and Preferences.watch. The latter is left unset on purpose: unset
+      //      means "never asked", which is exactly what makes the one-time
+      //      prompt appear for existing users.
       //      Absent means a flat workout, which is every session authored
       //      before this and most easy runs after it, so there is nothing to
       //      backfill and no transform to write. Structure cannot be derived

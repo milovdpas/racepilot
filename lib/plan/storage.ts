@@ -280,9 +280,20 @@ function normalizeBundleData(data: BundleShape): NormalizedBundle {
   return { plans: { [plan.id]: plan }, activePlanId: plan.id, preferences };
 }
 
-/** Trigger a browser download of the export bundle. */
-export function downloadJSON(filename: string, contents: string): void {
-  const blob = new Blob([contents], { type: "application/json" });
+/**
+ * Trigger a browser download.
+ *
+ * Generalised from a JSON-only helper when the watch exports arrived: a `.fit`
+ * is binary and a `.ics` is text/calendar, and neither survives being labelled
+ * application/json. `downloadJSON` below keeps the old signature so its call
+ * sites did not have to care.
+ */
+export function downloadFile(
+  filename: string,
+  data: BlobPart,
+  mime: string,
+): void {
+  const blob = new Blob([data], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -291,4 +302,9 @@ export function downloadJSON(filename: string, contents: string): void {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+/** Trigger a browser download of the export bundle. */
+export function downloadJSON(filename: string, contents: string): void {
+  downloadFile(filename, contents, "application/json");
 }

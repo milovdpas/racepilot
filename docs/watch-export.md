@@ -12,11 +12,66 @@ and the decisions with their reasons**. Update it *within* each slice, not after
 | Slice | What | Status |
 |---|---|---|
 | 1 | Workout structure (`Workout.steps`) | **done** |
-| 2 | Encoders (`.fit`, `.ics`) + the delivery Strategy | not started |
+| 2 | Encoders (`.fit`, `.ics`) + the delivery Strategy | **done** |
 | 3 | The intervals.icu target | not started |
 | 4 | Watch profile (onboarding, settings, what's new) | not started |
 | 5 | Settings accordion | not started |
 | — | Garmin Training API target | blocked, enquiry sent |
+
+### Slice 2, landed
+
+- `lib/export/ics.ts` + 16 tests. Folds at 75 **octets**, not characters, and
+  never splits a UTF-8 sequence: "6×800m" is multi-byte, and a naive character
+  count emits lines a strict parser rejects.
+- `lib/export/fit.ts` + 18 tests, split pure (`buildFitMessages`) from
+  SDK-bound (`encodeFit`, dynamic import).
+- `lib/export/target.ts` + 8 tests: the `ExportTarget` Strategy and
+  `availableTargets` factory.
+- `downloadJSON` generalised to `downloadFile(name, data, mime)`; the three
+  existing call sites are untouched.
+- UI: "Add to calendar" on **both** the calendar header and the plan overview
+  (no dialog: there is one thing it does), and a per-workout watch icon in
+  `components/common/workout-row.tsx` opening
+  `components/export/send-to-watch-dialog.tsx`.
+
+**Targets carry a `scope`: `"workout"` or `"plan"`.** These are different jobs,
+not one job with a flag. A `.fit` is a single session you take out on a run; a
+calendar is the whole block laid out over months. The first build offered both
+beside a single workout, and it read as a question — "which of these do I
+want?" — when the answer for one session is always the file. So the workout
+dialog asks `availableTargets(prefs, "workout")` and the calendar export is
+offered where the whole plan is in view. Slice 3's intervals.icu target is
+workout-scope, so it lands in that same dialog with no UI change.
+
+**The calendar export is the whole plan from today onwards, never the visible
+range.** Two rules, and both were checked rather than assumed. The range: twelve
+sessions spread across four months, paged three months forward, exported again,
+same twelve. The cut-off: `upcomingWorkouts()` in `lib/plan/workout.ts` filters
+by **date, not by completion**. A calendar full of runs already done is a record
+rather than a plan, and date is the predictable rule — today's session belongs
+in today's calendar whether or not it is ticked off, and a completed workout
+dated next week is a data entry mistake, not a reason to hide it. When nothing
+is left ahead, the plan page disables the button and the calendar hides it,
+rather than handing over an empty `.ics`.
+
+**The FIT scales were established empirically, not read off a page.** Probe
+files were encoded and decoded back with the SDK's own `Decoder`:
+`duration_value` is **centimetres** for a distance step and **milliseconds**
+for a time step; the speed band is `customTargetValueLow/High` in **m/s at
+scale 1000**, and `customTargetSpeedLow` is a *decode-side subfield name* that
+the encoder does not accept. A repeat is `durationType:
+"repeatUntilStepsCmplt"` with `durationValue` = the index to jump back to and
+`targetValue` = the count, emitted **after** the steps it repeats. Every one of
+those is pinned by an encode-then-decode test, because a wrong scale produces a
+file that looks perfectly fine as a number and is 100x wrong on the wrist.
+
+Also note the band inversion: a *slower* pace is a *lower* speed, so the slow
+end of the pace range becomes `low`. Backwards, a watch silently ignores it.
+
+Verified in Chrome, 27 checks, including decoding the `.fit` **the browser
+produced** with Garmin's decoder: 5 steps, 800 real metres, 3.922 m/s, repeat
+6x from step 1. Bundle checked: the 1.4 MB SDK is absent from `/`, `/app`,
+`/app/plan` and `/app/calendar`.
 
 ### Slice 1, landed
 
@@ -341,6 +396,45 @@ consumers, which is the established pattern in this codebase.
    `FeaturesCard`.
 3. **Existing users** — one `Step` in `components/common/whats-new-gate.tsx` with
    `applies: ready && watch === undefined`.
+
+### How to deliver: sync or a file
+
+A second preference beside the brand, because owning a Garmin does not say
+whether you want to plug it in every week or have sessions appear on it.
+
+```ts
+/** Sync where possible, or always hand over a file. `undefined` = never
+ *  chosen, which offers both, the same rule the other tri-states follow. */
+watchDelivery?: "sync" | "file";
+```
+
+The resolution rules, all inside `availableTargets` so no view has to know
+them:
+
+| Preference | Sync status | What is offered |
+|---|---|---|
+| `"file"` | anything | the file only |
+| `"sync"` | `ready` | sync only, since that is what they asked for |
+| `"sync"` | `needs-setup` | **sync with a connect prompt, plus the file** |
+| `undefined` | `ready` | both |
+| any | `unavailable` | the file only |
+
+The third row is the one that matters and the reason `TargetStatus` already
+distinguishes `needs-setup` from `unavailable`. Someone who chose sync and has
+not connected their account must not be left with no way to train this week:
+they get the prompt *and* the fallback, so the preference never becomes a dead
+end. Silently downloading a file instead would be worse — it hides that their
+choice is not in effect.
+
+**The choice only appears once a sync target exists.** Until Slice 3 lands, and
+on any deployment where the proxy is not configured, `status()` returns
+`unavailable` and the setting is hidden entirely, exactly as the weather and
+Drive cards hide themselves. Offering a preference between one option and
+nothing is noise.
+
+This also means Slice 3 and Slice 4 can land in either order: build the profile
+first and the delivery choice simply stays hidden until there is something to
+choose between.
 
 ### Per-brand follow-up
 

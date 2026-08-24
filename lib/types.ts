@@ -169,6 +169,34 @@ export const ATHLETE_TYPES: AthleteType[] = [
   "swimmer",
 ];
 
+/**
+ * Which watch the athlete owns. Drives the *instructions* an export shows, and
+ * which targets are offered — never the file itself, which is the same bytes
+ * for every brand that can read it.
+ *
+ * "other" is a watch we have no instructions for; "none" is asked and declined.
+ */
+export type WatchBrand =
+  | "garmin"
+  | "coros"
+  | "wahoo"
+  | "apple"
+  | "polar"
+  | "suunto"
+  | "other"
+  | "none";
+
+export const WATCH_BRANDS: WatchBrand[] = [
+  "garmin",
+  "coros",
+  "wahoo",
+  "apple",
+  "polar",
+  "suunto",
+  "other",
+  "none",
+];
+
 export interface Preferences {
   theme: "light" | "dark" | "system";
   locale?: "en" | "nl";
@@ -199,6 +227,15 @@ export interface Preferences {
   units?: UnitSystem;
   /** Whether the one-time "add to home screen" prompt has been shown. */
   installPromptSeen?: boolean;
+  /**
+   * The athlete's watch, so export instructions match their device.
+   *
+   * Tri-state, the same mechanism `athleteTypes` uses and for the same reason:
+   * `undefined` means never asked, so existing users still get the one-time
+   * prompt, and `"none"` means asked and declined, so they are never asked
+   * again. A companion "seen" boolean cannot express that difference.
+   */
+  watch?: WatchBrand;
   /** Weather feature opted in (needs geolocation + a configured server key). */
   weatherEnabled?: boolean;
   /** Show per-day weather in the calendar. */

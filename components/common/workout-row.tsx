@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarRange, Check, Pencil } from "lucide-react";
+import { CalendarRange, Check, Pencil, Watch } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useActivePlan } from "@/hooks/use-active-plan";
 import { useFormat } from "@/hooks/use-format";
@@ -14,12 +14,15 @@ export function WorkoutRow({
   workout,
   onToggle,
   onEdit,
+  onSendToWatch,
   showDate = true,
   className,
 }: {
   workout: Workout;
   onToggle?: (id: string) => void;
   onEdit?: (workout: Workout) => void;
+  /** Offered only where a usable export target exists; see `availableTargets`. */
+  onSendToWatch?: (workout: Workout) => void;
   showDate?: boolean;
   className?: string;
 }) {
@@ -104,6 +107,17 @@ export function WorkoutRow({
               )}`}
         </p>
       </div>
+
+      {onSendToWatch ? (
+        <button
+          type="button"
+          aria-label="Send to watch"
+          onClick={() => onSendToWatch(workout)}
+          className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+        >
+          <Watch className="size-4" />
+        </button>
+      ) : null}
 
       {onEdit ? (
         <button

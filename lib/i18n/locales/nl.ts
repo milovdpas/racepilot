@@ -13,6 +13,7 @@ export const nl: Dict = {
     increase: "Verhogen",
     now: "Nu",
     gotIt: "Duidelijk",
+    close: "Sluiten",
     example: "Voorbeeld",
   },
   nav: {
@@ -118,6 +119,8 @@ export const nl: Dict = {
     startTime: "Gestart om (optioneel)",
   },
   calendar: {
+    exportIcs: "Aan agenda toevoegen",
+    exported: "Agendabestand gedownload",
     title: "Kalender",
     subtitle: "Je trainingsmaand in één oogopslag.",
     today: "Vandaag",
@@ -458,6 +461,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     step: "Stap",
     times: "Herhalingen",
     min: "min",
+    minutesShort: "{{count}} min",
     pacePlaceholder: "Doel {{unit}} (optioneel)",
     addStep: "Stap toevoegen",
     addRepeat: "Herhaling toevoegen",
@@ -473,6 +477,31 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       work: "Werk",
       recovery: "Herstel",
       cooldown: "Cooling-down",
+    },
+  },
+  export: {
+    title: "Naar je horloge sturen",
+    desc_one: "Eén training, klaar om mee te nemen.",
+    desc_other: "{{count}} trainingen, klaar om mee te nemen.",
+    target: "Doel {{pace}}",
+    done: "Geëxporteerd",
+    failed: "Die export is niet gelukt. Probeer het opnieuw.",
+    "fit-file": "Trainingsbestand (.fit)",
+    "fit-fileBody":
+      "Een echte gestructureerde training: je horloge telt de stappen af en houdt je aan elk doel.",
+    "ics-file": "Agenda (.ics)",
+    "ics-fileBody":
+      "Zet je training in elke agenda, en zo ook op je pols. Een herinnering aan wat je gaat doen, geen training waar je horloge je doorheen leidt.",
+    followUp: {
+      garmin:
+        "Sluit je horloge aan op een computer, kopieer het bestand naar GARMIN/NEWFILES en koppel het los. Garmin Connect kan trainingen niet importeren, dus de kabel is de enige weg.",
+      coros: "Importeer het bestand in COROS Training Hub en synchroniseer je horloge.",
+      wahoo: "Importeer het bestand in de Wahoo-app en synchroniseer je apparaat.",
+      apple:
+        "Open het bestand in een app die trainingen naar Apple Watch importeert, zoals WatchFit.",
+      generic: "Kopieer het bestand naar je horloge zoals je apparaat dat verwacht.",
+      calendar:
+        "Open het bestand om het aan je agenda toe te voegen. De meeste horloges tonen het dan op je pols.",
     },
   },
   splitScanner: {
