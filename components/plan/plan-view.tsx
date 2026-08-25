@@ -134,7 +134,7 @@ export function PlanView() {
         </div>
       ) : null}
 
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-between gap-2">
         {/* The whole block, not a single session: that is what a calendar is
             for, and it is why this sits here and on the calendar rather than
             beside one workout. */}

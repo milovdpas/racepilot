@@ -36,6 +36,12 @@ if (!bundle.plans || typeof bundle.plans !== "object") {
 // The app seeds a plan, never preferences.
 delete bundle.preferences;
 
+// Nor a training history. An export now carries the athlete's imported
+// activities, which are real sessions of a real person and have no business in
+// a demo shipped from a public repo.
+const droppedActivities = bundle.activities?.length ?? 0;
+delete bundle.activities;
+
 let scrubbed = 0;
 let workouts = 0;
 const flat = [];
@@ -78,7 +84,8 @@ writeFileSync(OUT, json);
 const plans = Object.keys(bundle.plans).length;
 console.log(
   `${OUT}: ${plans} plan(s), ${workouts} workouts, ` +
-    `coordinates stripped from ${scrubbed} weather snapshot(s).`,
+    `coordinates stripped from ${scrubbed} weather snapshot(s), ` +
+    `${droppedActivities} imported activities dropped.`,
 );
 
 if (flat.length) {

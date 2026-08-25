@@ -27,6 +27,17 @@ export function formatDayLabel(iso: string): string {
   return format(parseISO(iso), "EEE d MMM", { locale: getDateLocale() });
 }
 
+/**
+ * Month and year, like "Feb 2024".
+ *
+ * For spans measured in years, where `formatDayLabel` is the wrong tool: it
+ * omits the year, so an imported history running from Feb 2024 to Aug 2026
+ * would read "Tue 6 Feb to Sun 23 Aug" and look like six months.
+ */
+export function formatMonthYear(iso: string): string {
+  return format(parseISO(iso), "MMM yyyy", { locale: getDateLocale() });
+}
+
 /** Human range like "22–28 Jun" / "29 Jun – 5 Jul". */
 export function formatRange(startISO: string, endISO: string): string {
   const s = parseISO(startISO);

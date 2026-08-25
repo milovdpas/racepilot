@@ -11,7 +11,8 @@ import { StepRace } from "@/components/wizard/steps/step-race";
 import { StepTraining } from "@/components/wizard/steps/step-training";
 import { WizardStepper } from "@/components/wizard/wizard-stepper";
 import { BACKYARD_LOOP_KM } from "@/lib/plan/backyard";
-import { toISO } from "@/lib/date";
+import { toISO, todayISO } from "@/lib/date";
+import { trainingPicture } from "@/lib/activity/summary";
 import { canBeContext } from "@/lib/plan/context";
 import { useFormat } from "@/hooks/use-format";
 import { capabilitiesFor, soleSport } from "@/lib/athlete";
@@ -34,6 +35,7 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
   const router = useRouter();
   const addPlanFromImport = useTrainingStore((s) => s.addPlanFromImport);
   const plans = useTrainingStore((s) => s.plans);
+  const activities = useTrainingStore((s) => s.activities);
 
   // Previous plans, most recent race first.
   const planList = useMemo(
@@ -131,7 +133,13 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
           // Built lazily so it always reflects the latest draft.
           requestJson={() =>
             JSON.stringify(
-              buildPlanRequest(draft, plans, { country, units: fmt.units }),
+              buildPlanRequest(draft, plans, {
+                country,
+                units: fmt.units,
+                // Recomputed here rather than stored, so an import made on the
+                // previous wizard step is already in it.
+                history: trainingPicture(activities, todayISO()),
+              }),
               null,
               2,
             )

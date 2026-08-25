@@ -34,7 +34,6 @@ export function DataCard() {
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [importText, setImportText] = useState("");
-  const { copied, copy } = useCopyToClipboard();
   const { copied: promptCopied, copy: copyPrompt } = useCopyToClipboard();
 
   const aiPrompt = t("settings.aiPrompt");
@@ -71,59 +70,13 @@ export function DataCard() {
         <Button variant="outline" size="sm" onClick={handleExport}>
           <Download className="size-4" /> {t("settings.exportJson")}
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const json = exportData();
-            if (json) void copy(json);
-          }}
-        >
-          {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-          {copied ? t("settings.copied") : t("settings.copyJson")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileRef.current?.click()}
-        >
-          <Upload className="size-4" /> {t("settings.importFile")}
-        </Button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/json"
-          className="hidden"
-          onChange={async (e) => {
-            const f = e.target.files?.[0];
-            if (f) runImport(await f.text());
-            e.target.value = "";
-          }}
-        />
       </div>
 
-      <div className="mt-3">
-        <Label className="text-xs text-muted-foreground">
-          {t("settings.pasteJson")}
-        </Label>
-        <Textarea
-          className="mt-1.5 h-24 resize-y font-mono text-xs"
-          placeholder='{"plans": …}'
-          value={importText}
-          onChange={(e) => setImportText(e.target.value)}
-        />
-        <Button
-          size="sm"
-          className="mt-2"
-          disabled={!importText.trim()}
-          onClick={() => runImport(importText)}
-        >
-          {t("settings.importPasted")}
-        </Button>
-      </div>
-
-      {/* Edit with AI helper */}
-      <div className="mt-4 rounded-lg border bg-muted/40 p-3">
+      {/* Between the two, because that is the order the job happens in:
+          export your plan, hand it to an AI, bring the answer back. It used
+          to sit below the import box, so the middle step of the workflow was
+          the last thing on the card. */}
+      <div className="mt-3 rounded-lg border bg-muted/40 p-3">
         <div className="flex items-center gap-2">
           <Sparkles className="size-4 text-primary" />
           <p className="text-xs font-semibold">{t("settings.aiTitle")}</p>
@@ -146,6 +99,51 @@ export function DataCard() {
             <Copy className="size-4" />
           )}
           {promptCopied ? t("settings.copied") : t("settings.copyPrompt")}
+        </Button>
+      </div>
+
+
+      {/* Out above, in below. "Import file" used to sit in the export row, so a
+          button that overwrites your plans lived next to the two that only read
+          them. Paired with the paste box instead, since those are two ways to do
+          one thing rather than two separate steps. */}
+      <div className="mt-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Label className="text-xs text-muted-foreground">
+            {t("settings.pasteJson")}
+          </Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileRef.current?.click()}
+          >
+            <Upload className="size-4" /> {t("settings.importFile")}
+          </Button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (f) runImport(await f.text());
+              e.target.value = "";
+            }}
+          />
+        </div>
+        <Textarea
+          className="mt-1.5 h-24 resize-y font-mono text-xs"
+          placeholder='{"plans": …}'
+          value={importText}
+          onChange={(e) => setImportText(e.target.value)}
+        />
+        <Button
+          size="sm"
+          className="mt-2"
+          disabled={!importText.trim()}
+          onClick={() => runImport(importText)}
+        >
+          {t("settings.importPasted")}
         </Button>
       </div>
 

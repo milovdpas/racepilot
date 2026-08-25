@@ -27,6 +27,32 @@ export interface WorkoutSplit {
   elevM?: number; // elevation delta in meters (may be negative)
 }
 
+/**
+ * One session the athlete actually did, imported from a data export rather than
+ * planned here. Evidence of current fitness, which is what the plan AI needs
+ * and what `latestRuns` used to ask people to type by hand.
+ *
+ * Deliberately a *summary*. The source files carry GPS traces starting at the
+ * athlete's front door; nothing with a coordinate in it reaches this type, and
+ * `lib/activity/strava-csv.ts` reads only the columns named here. Keeping the
+ * shape this narrow is what makes that guarantee checkable.
+ */
+export interface ActivitySummary {
+  /** The exporter's own id. The dedupe key, so a re-import replaces cleanly. */
+  id: string;
+  date: string; // ISO yyyy-mm-dd, local to the athlete
+  sport: Sport;
+  /** The athlete's own title, e.g. "Hoogte meterkes". May be empty. */
+  name: string;
+  distanceKm: number;
+  /** Moving time, which is what pace is computed from. */
+  movingSec: number;
+  pace: string; // "mm:ss" per km, same canonical unit as everywhere else
+  elevGainM?: number;
+  /** Absent in plenty of exports, so nothing may depend on it. */
+  avgHr?: number;
+}
+
 export type WeekPhase =
   | "base"
   | "build"

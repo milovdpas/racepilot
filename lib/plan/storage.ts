@@ -5,9 +5,10 @@ import {
   raceNameFor,
 } from "@/lib/plan/defaults";
 import { normalizeSteps } from "@/lib/plan/workout-steps";
-import { toSport } from "@/lib/sport";
+import { isSport, toSport } from "@/lib/sport";
 import {
   WORKOUT_TYPES,
+  type ActivitySummary,
   type Preferences,
   type TrainingPlan,
   type Workout,
@@ -22,6 +23,9 @@ export interface ExportBundle {
   plans: Record<string, TrainingPlan>;
   activePlanId: string | null;
   preferences: Preferences;
+  /** Imported training history. Absent in every bundle written before it
+   *  existed, and in any bundle from someone who never imported one. */
+  activities?: ActivitySummary[];
 }
 
 /** Serialize the full app state to a pretty JSON string for export. */
@@ -29,6 +33,7 @@ export function serializeExport(
   plans: Record<string, TrainingPlan>,
   activePlanId: string | null,
   preferences: Preferences,
+  activities: ActivitySummary[] = [],
 ): string {
   const bundle: ExportBundle = {
     app: "marathon-tracker",
@@ -37,6 +42,9 @@ export function serializeExport(
     plans,
     activePlanId,
     preferences,
+    // Omitted rather than written as [] so a bundle from someone with no
+    // history is byte-identical to one from before the field existed.
+    ...(activities.length > 0 ? { activities } : {}),
   };
   return JSON.stringify(bundle, null, 2);
 }
@@ -221,6 +229,9 @@ export interface NormalizedBundle {
   plans: Record<string, TrainingPlan>;
   activePlanId: string | null;
   preferences?: Preferences;
+  /** Absent when the bundle carried none. Distinct from an empty history: only
+   *  one of the two should overwrite what the user already has. */
+  activities?: ActivitySummary[];
 }
 
 /**
@@ -228,6 +239,51 @@ export interface NormalizedBundle {
  * `parseImport` so the bundled example plan can travel the same path a user's
  * import does, without a pointless stringify/parse round trip.
  */
+/**
+ * Coerce an imported activity history, dropping anything that is not one.
+ *
+ * The same defensive boundary `normalizePlan` is: a bundle can arrive from a
+ * hand-edited file or an AI that echoed the shape back approximately. A single
+ * malformed row must not take the whole import down, and a row that survives
+ * has to be safe for `trainingPicture` to divide by.
+ *
+ * Unknown extra keys are dropped rather than carried, which is what keeps the
+ * "no coordinate ever reaches the store" guarantee true for imports as well as
+ * for the CSV parser.
+ */
+function normalizeActivities(raw: unknown): ActivitySummary[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: ActivitySummary[] = [];
+  for (const item of raw) {
+    const a = item as Partial<ActivitySummary>;
+    if (
+      typeof a?.id !== "string" ||
+      typeof a.date !== "string" ||
+      !isSport(a.sport) ||
+      typeof a.distanceKm !== "number" ||
+      !Number.isFinite(a.distanceKm) ||
+      a.distanceKm <= 0 ||
+      typeof a.movingSec !== "number" ||
+      !Number.isFinite(a.movingSec) ||
+      a.movingSec <= 0
+    ) {
+      continue;
+    }
+    out.push({
+      id: a.id,
+      date: a.date,
+      sport: a.sport,
+      name: typeof a.name === "string" ? a.name : "",
+      distanceKm: a.distanceKm,
+      movingSec: a.movingSec,
+      pace: typeof a.pace === "string" ? a.pace : "",
+      ...(typeof a.elevGainM === "number" ? { elevGainM: a.elevGainM } : {}),
+      ...(typeof a.avgHr === "number" ? { avgHr: a.avgHr } : {}),
+    });
+  }
+  return out;
+}
+
 export function normalizeBundle(data: unknown): NormalizedBundle {
   return normalizeBundleData(data as BundleShape);
 }
@@ -238,6 +294,7 @@ interface BundleShape {
   activePlanId?: string;
   plan?: TrainingPlan;
   preferences?: Preferences & Partial<TrainingPlan>;
+  activities?: unknown;
 }
 
 function normalizeBundleData(data: BundleShape): NormalizedBundle {
@@ -255,7 +312,12 @@ function normalizeBundleData(data: BundleShape): NormalizedBundle {
     if (ids.length === 0) throw new Error("Invalid file: no plans found.");
     const activePlanId =
       data.activePlanId && plans[data.activePlanId] ? data.activePlanId : ids[0];
-    return { plans, activePlanId, preferences: data.preferences };
+    return {
+      plans,
+      activePlanId,
+      preferences: data.preferences,
+      activities: normalizeActivities(data.activities),
+    };
   }
 
   // Legacy single-plan bundle, or a bare plan object.

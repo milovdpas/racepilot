@@ -56,3 +56,13 @@ pace-screenshots/
 # ignored. Never narrow this.
 racepilot-plans-*.json
 marathon-plans-*.json
+
+# Strava (and other) account data exports. Same reason as above, only worse: an
+# unpacked export is GPS traces that start at the athlete's front door, plus
+# logins.csv, contacts.csv, followers.csv, profile.csv and messaging.json.
+#
+# Only activities.csv is ever read (see docs/activity-import.md) and it holds no
+# coordinates at all, but the archive around it is not safe to have in a public
+# repo. Keep exports outside the working tree where you can.
+export-strava/
+strava_export_*/

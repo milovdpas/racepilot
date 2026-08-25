@@ -225,7 +225,7 @@ export const nl: Dict = {
     copyJson: "JSON kopiëren",
     copied: "Gekopieerd",
     importFile: "Bestand importeren",
-    pasteJson: "…of plak JSON",
+    pasteJson: "Plak plan-JSON hier, of",
     importPasted: "Geplakte JSON importeren",
     aiTitle: "Je plan aanpassen met AI",
     aiIntro:
@@ -242,6 +242,7 @@ Je MAG elke GEPLANDE (nog niet voltooide) toekomstige training vrij verplaatsen,
 Elke training heeft GEPLANDE doelen ("plannedDistanceKm", "plannedPace") en, zodra ik hem gedaan heb, VASTGELEGDE werkelijke waarden ("actualDistanceKm", "actualPace", "durationMin" in minuten, optioneel "startTime" als "HH:mm", optioneel "weather" = {tempC, condition, ...}, en optioneel "splits" = tempo per kilometer [{km, pace "mm:ss", elevM}]). Gebruik "splits" om te zien hoe de loop verdeeld was (gelijkmatig, positieve/negatieve split, inzakken aan het eind, heuvels via elevM). Vergelijk gepland met werkelijk om te beoordelen hoe de training echt verloopt (bijv. structureel langzamer/korter dan gepland, of zware sessies in de hitte) en pas de komende trainingen daarop aan.
 
 Je MOET je aan deze regels houden:
+- De JSON kan een "activities"-lijst bevatten: trainingen die ik ECHT heb gedaan, geimporteerd uit mijn Strava-gegevensexport, inclusief training buiten dit plan - { id, date, sport, distanceKm, movingSec, pace, elevGainM? }, nieuwste eerst. Lees die naast de voltooide trainingen om mijn huidige vorm te beoordelen; vaak is het beter bewijs, want het dekt training die dit plan nooit heeft gezien en het bestaat ook als ik hier nog niets heb vastgelegd. Geef de lijst ONGEWIJZIGD terug: het is een verslag van het verleden, geen onderdeel van het plan, en niets erin mag je aanpassen of verwijderen.
 - WIJZIG NOOIT de wedstrijddatum. Houd "raceDate" exact hetzelfde en houd de wedstrijddag-training op zijn datum. De wedstrijddatum staat vast.
 - WIJZIG NOOIT een voltooide training: elke training met "completed": true moet exact zo blijven, inclusief "id", "completed", "actualDistanceKm", "actualPace", "durationMin", "startTime", "weather" en "splits" (zodat ik mijn vastgelegde voortgang niet verlies).
 - Houd de JSON-structuur geldig (plans, weeks, workouts). Als je een training naar een andere week verplaatst, verplaats dan ook zijn id naar de "workoutIds" van die week, en houd de "date" van elke training binnen het start/eind-bereik van zijn week.
@@ -256,8 +257,8 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     planDeleted: "Plan verwijderd.",
     support: "Steun",
     supportDesc:
-      "Deze app is gratis en draait volledig in je browser. Vind je hem nuttig voor je training? Dan mag je iets in het potje doen.",
-    buyMeAWater: "Trakteer me op water",
+      "Deze app is gratis en draait volledig in je browser. Vind je hem nuttig voor je training? Dan zou ik het heel nice vinden als je iets doneert.",
+    buyMeAWater: "Trakteer me op een water",
   },
   sync: {
     title: "Cloudsynchronisatie",
@@ -632,6 +633,28 @@ Regels:
     mockPace: "Tempo",
     mockElev: "Hoogte",
   },
+  activityImport: {
+    hint: "Kies de zip die Strava je mailt, of de activities.csv die erin zit. Alleen dat ene bestand wordt gelezen, op je eigen apparaat, en er wordt niets geupload.",
+    howToTitle: "Zo krijg je je export",
+    howToStep1: "Open je accountinstellingen:",
+    howToStep2:
+      'Zoek "Je account downloaden", kies Aan de slag en vraag je archief aan.',
+    howToStep3:
+      "Strava mailt je een zip, meestal binnen een paar minuten. Kom terug en voeg hem hier toe.",
+    howToWeb:
+      "Dit kan alleen op de Strava-website. De Strava-app kan je gegevens niet exporteren.",
+    zipNoCsv:
+      "Deze zip bevat geen activities.csv. Controleer of dit de export is die Strava je heeft gemaild, en niet een map met activiteiten.",
+    zipUnreadable:
+      "Deze zip kon niet worden geopend. Pak hem zelf uit en kies activities.csv die erin zit.",
+    added_one: "{{count}} activiteit geimporteerd.",
+    added_other: "{{count}} activiteiten geimporteerd.",
+    skipped_one: "{{count}} was geen hardloop-, fiets- of zwemtraining.",
+    skipped_other: "{{count}} waren geen hardloop-, fiets- of zwemtrainingen.",
+    nothingFound:
+      "Geen activiteiten gevonden. Kies activities.csv uit de export, niet een bestand uit de map activities.",
+    failed: "Dit bestand kon niet worden gelezen. Kies de Strava-export zip, of de activities.csv die erin zit.",
+  },
   wizard: {
     title: "Een plan maken",
     back: "Terug",
@@ -696,6 +719,9 @@ Regels:
     planRuns: "{{runs}} trainingen · {{distance}} vastgelegd",
     showAllPlans: "Toon alle {{count}} plannen",
     showLess: "Toon minder",
+    historyInUse_one: "De AI gebruikt je geimporteerde trainingsgeschiedenis: {{count}} activiteit, {{from}} tot {{to}}.",
+    historyInUse_other: "De AI gebruikt je geimporteerde trainingsgeschiedenis: {{count}} activiteiten, {{from}} tot {{to}}.",
+    importActivities: "Toevoegen uit Strava-export",
     latestRuns: "Je recente trainingen",
     latestRunsHint:
       "Optioneel - geeft de AI een idee van je huidige conditie. Voeg een paar recente trainingen toe.",
@@ -718,16 +744,16 @@ Regels:
     // Stap 4
     aiIntro:
       "Je planaanvraag is klaar. Geef het aan een AI-chatbot om het volledige schema te bouwen:",
-    aiStep1: "1. Exporteer de planaanvraag (of kopieer het) hieronder.",
-    aiStep2: "2. Kopieer de prompt en plak het in je AI-chatbot, met het geëxporteerde bestand erbij.",
+    aiStep1: "1. Kopieer de prompt en plak hem in je AI-chatbot.",
+    aiStep2: "2. Exporteer de planaanvraag en voeg dat bestand toe aan hetzelfde gesprek.",
     aiStep3: "3. De AI geeft een plan terug als JSON - mogelijk stelt het eerst een paar vragen.",
-    aiStep4: "4. Plak of voeg die JSON hieronder toe en druk op Plan voltooien.",
+    aiStep4: "4. Plak of importeer die JSON hieronder en druk op Plan voltooien.",
     exportRequest: "Aanvraag exporteren (JSON)",
     copyRequest: "Aanvraag kopiëren",
     copyPrompt: "Prompt kopiëren",
     copied: "Gekopieerd",
-    importLabel: "Plak de plan-JSON van de AI",
-    attachFile: "Bestand toevoegen",
+    importLabel: "Plak het plan van de AI hieronder, of",
+    importFile: "Bestand importeren",
     completePlan: "Plan voltooien",
     created: "Plan aangemaakt",
     completeError:
@@ -756,7 +782,8 @@ Als race.type "backyard" is, gaat het om een BACKYARD ULTRA en geldt de gebruike
 - "goalPace" moet een rustig, herhaalbaar rondetempo zijn dat elk uur genoeg rust overhoudt (een ronde in ongeveer 40-50 minuten is gebruikelijk), NIET een wedstrijdtempo. "goalLabel" moet iets als "24 yards" zijn.
 - Bouw af richting de wedstrijdweek, maar de piektrainingen zijn duur en herhaalde rondes in plaats van één lange afstand.
 - offDays[]: periodes waarin ik niet volledig kan trainen - { start, end, title, note }. De "note" zegt hoe beperkt (bijv. geen training / zeer beperkt / verminderd).
-- latestRuns[]: mijn recente trainingen - { sport, distanceKm, durationMin (TOTALE tijd, in minuten), pace (min/km voor elke sport, afgeleid uit afstand + totale tijd), date }. Gebruik deze om mijn conditie per sport te schatten; 40 km betekent iets heel anders op de fiets dan lopend. Als dit leeg is, vraag me dan naar mijn conditie.
+- latestRuns[]: mijn recente trainingen - { sport, distanceKm, durationMin (TOTALE tijd, in minuten), pace (min/km voor elke sport, afgeleid uit afstand + totale tijd), date }. Gebruik deze om mijn conditie per sport te schatten; 40 km betekent iets heel anders op de fiets dan lopend. Als dit EN trainingHistory allebei leeg zijn, vraag me dan naar mijn conditie.
+- trainingHistory (alleen als ik mijn activiteitenlog heb geimporteerd): het beeld van wat ik ECHT heb getraind - { from, to, sessions, weeks, sessionsPerWeek, avgWeeklyKm, peakWeeklyKm, longestKm, recentWeeklyKm (de laatste 8 weken, oudste eerst, waarbij een 0 een week is waarin ik niet trainde), recentSessions (mijn laatste 10 volledig), bySport (sessions, totalKm, longestKm, typicalPace per sport) }. Dit is sterker bewijs dan latestRuns, want het is mijn hele recente blok in plaats van een paar trainingen die ik heb ingetypt. Gebruik het om het STARTvolume per week te bepalen en om te beoordelen hoe snel ik veilig kan opbouwen: begin het plan niet ver boven avgWeeklyKm en ga er vroeg niet overheen peakWeeklyKm. Nullen in recentWeeklyKm zijn echte gaten, dus behandel een recente reeks daarvan als rustperiode om vanaf op te bouwen, niet als taper.
 - previousPlans[]: mijn eerdere trainingsblokken, als ALLEEN-LEZEN historie. Elk blok heeft { name, raceName, raceDistanceKm, raceDate, startDate, goalPace, goalLabel, weeks, summary, weeklyMileage[], completedRuns[] }.
   - summary: { completionPct (hoeveel van dat plan ik echt heb gedaan), completedRuns, totalKm, plannedTotalKm, longestRunKm, averagePace, peakWeekKm }.
   - weeklyMileage[]: { week, plannedKm, actualKm } - gepland versus werkelijk per week, zodat je ziet hoe trouw ik was en hoe de omvang opliep.

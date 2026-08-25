@@ -224,7 +224,7 @@ export const en = {
     copyJson: "Copy JSON",
     copied: "Copied",
     importFile: "Import file",
-    pasteJson: "…or paste JSON",
+    pasteJson: "Paste plan JSON here, or",
     importPasted: "Import pasted JSON",
     aiTitle: "Edit your plan with AI",
     aiIntro:
@@ -241,6 +241,7 @@ You MAY freely reschedule, add, remove or modify any PLANNED (not-yet-completed)
 Each workout has PLANNED targets ("plannedDistanceKm", "plannedPace") and, once I've done it, LOGGED actuals ("actualDistanceKm", "actualPace", "durationMin" in minutes, optional "startTime" as "HH:mm", optional "weather" = {tempC, condition, ...}, and optional "splits" = per-kilometer pacing [{km, pace "mm:ss", elevM}]). Use "splits" to see how the run was paced (even splits, positive/negative split, a blow-up late on, hills via elevM). Compare planned vs actual to judge how the training is actually going (e.g. consistently slower/shorter than planned, or hard sessions done in heat) and adapt upcoming workouts accordingly.
 
 You MUST follow these rules:
+- The JSON may carry an "activities" list: sessions I ACTUALLY did, imported from my Strava data export, including training done outside this plan - { id, date, sport, distanceKm, movingSec, pace, elevGainM? }, newest first. Read it alongside the completed workouts to judge my current form; it is often the better evidence, because it covers training this plan never saw and it exists even when I have logged nothing here yet. Return the list UNCHANGED: it is a record of the past, not part of the plan, and nothing in it is yours to edit or remove.
 - NEVER change the race date. Keep "raceDate" exactly the same and keep the race-day workout on its date. The race date is fixed.
 - NEVER alter a completed workout: any workout with "completed": true must stay exactly as-is, including its "id", "completed", "actualDistanceKm", "actualPace", "durationMin", "startTime", "weather" and "splits" (don't lose my logged progress).
 - Keep the JSON structure valid (plans, weeks, workouts). If you move a workout to a different week, also move its id into that week's "workoutIds", and keep each workout's "date" inside its week's start/end range.
@@ -620,6 +621,28 @@ Rules:
     mockPace: "Pace",
     mockElev: "Elev",
   },
+  activityImport: {
+    hint: "Take the zip Strava emails you, or the activities.csv inside it. Only that one file is read, on your device, and nothing is ever uploaded.",
+    howToTitle: "How to get your export",
+    howToStep1: "Open your account settings:",
+    howToStep2:
+      'Find "Download your account", choose Get Started, then request your archive.',
+    howToStep3:
+      "Strava emails you a zip, usually within a few minutes. Come back here and add it.",
+    howToWeb:
+      "This only works on the Strava website. The Strava mobile app cannot export your data.",
+    zipNoCsv:
+      "That zip has no activities.csv in it. Make sure it is the export Strava emailed you, not a folder of activities.",
+    zipUnreadable:
+      "That zip could not be opened. Unzip it yourself and pick activities.csv from inside instead.",
+    added_one: "Imported {{count}} activity.",
+    added_other: "Imported {{count}} activities.",
+    skipped_one: "{{count}} was not a run, ride or swim.",
+    skipped_other: "{{count}} were not runs, rides or swims.",
+    nothingFound:
+      "No activities found. Pick activities.csv from the export, not one of the files in the activities folder.",
+    failed: "That file could not be read. It should be the Strava export zip, or the activities.csv from inside it.",
+  },
   wizard: {
     title: "Create a plan",
     back: "Back",
@@ -683,6 +706,9 @@ Rules:
     planRuns: "{{runs}} sessions · {{distance}} logged",
     showAllPlans: "Show all {{count}} plans",
     showLess: "Show less",
+    historyInUse_one: "The AI will use your imported training history: {{count}} activity, {{from}} to {{to}}.",
+    historyInUse_other: "The AI will use your imported training history: {{count}} activities, {{from}} to {{to}}.",
+    importActivities: "Add from Strava export",
     latestRuns: "Your recent sessions",
     latestRunsHint:
       "Optional - gives the AI a sense of your current fitness. Add a few recent sessions.",
@@ -705,16 +731,16 @@ Rules:
     // Step 4
     aiIntro:
       "Your plan request is ready. Hand it to an AI chatbot to build the full schedule:",
-    aiStep1: "1. Export the plan request (or copy it) below.",
-    aiStep2: "2. Copy the prompt and paste it into your AI chatbot, attaching the exported file.",
+    aiStep1: "1. Copy the prompt and paste it into your AI chatbot.",
+    aiStep2: "2. Export the plan request and attach that file to the same chat.",
     aiStep3: "3. The AI returns a plan as JSON - it may ask a few questions first.",
-    aiStep4: "4. Paste or attach that JSON below and press Complete plan.",
+    aiStep4: "4. Paste or import that JSON below and press Complete plan.",
     exportRequest: "Export request (JSON)",
     copyRequest: "Copy request",
     copyPrompt: "Copy prompt",
     copied: "Copied",
-    importLabel: "Paste the AI's plan JSON",
-    attachFile: "Attach file",
+    importLabel: "Paste the AI's plan below, or",
+    importFile: "Import file",
     completePlan: "Complete plan",
     created: "Plan created",
     completeError:
@@ -743,7 +769,8 @@ If race.type is "backyard", this is a BACKYARD ULTRA and the usual fixed-distanc
 - "goalPace" should be an easy, repeatable loop pace that still banks useful rest each hour (finishing a loop in roughly 40-50 minutes is typical), NOT a race pace. "goalLabel" should read like "24 yards".
 - Taper into race week, but the peak sessions are duration and repeated loops rather than one long distance.
 - offDays[]: periods I can't fully train - { start, end, title, note }. The "note" says how limited it is (e.g. no training / very limited / reduced).
-- latestRuns[]: my recent sessions - { sport, distanceKm, durationMin (TOTAL time, in minutes), pace (min/km for every sport, derived from distance + total time), date }. Use these to estimate my current fitness in EACH sport; 40 km means something very different on a bike than on foot. If this is empty, ask me about my fitness.
+- latestRuns[]: my recent sessions - { sport, distanceKm, durationMin (TOTAL time, in minutes), pace (min/km for every sport, derived from distance + total time), date }. Use these to estimate my current fitness in EACH sport; 40 km means something very different on a bike than on foot. If this AND trainingHistory are both empty, ask me about my fitness.
+- trainingHistory (only when I have imported my activity log): the shape of what I have ACTUALLY been training - { from, to, sessions, weeks, sessionsPerWeek, avgWeeklyKm, peakWeeklyKm, longestKm, recentWeeklyKm (the last 8 weeks, oldest first, where a 0 is a week I did not train), recentSessions (my last 10 in full), bySport (sessions, totalKm, longestKm, typicalPace per sport) }. This is stronger evidence than latestRuns, because it is my whole recent block rather than a few sessions I typed in. Use it to set the STARTING weekly volume and to judge how fast I can safely ramp: do not open the plan far above avgWeeklyKm, and do not exceed peakWeeklyKm early. Zeros in recentWeeklyKm are real gaps, so treat a recent run of them as time off to build back from rather than as a taper.
 - previousPlans[]: my earlier training blocks, as READ-ONLY history. Each has { name, raceName, raceDistanceKm, raceDate, startDate, goalPace, goalLabel, weeks, summary, weeklyMileage[], completedRuns[] }.
   - summary: { completionPct (how much of that plan I actually did), completedRuns, totalKm, plannedTotalKm, longestRunKm, averagePace, peakWeekKm }.
   - weeklyMileage[]: { week, plannedKm, actualKm } - planned vs actual per week, so you can see adherence and how volume ramped.

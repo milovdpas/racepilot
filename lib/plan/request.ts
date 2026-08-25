@@ -4,6 +4,7 @@
 // versioned contract, so it's the part most likely to need a test when the
 // schema bumps.
 
+import type { TrainingPicture } from "@/lib/activity/summary";
 import { paceFromDistanceDuration, parseDurationToMinutes } from "@/lib/pace";
 import { buildPlanContext } from "@/lib/plan/context";
 import { backyardDistanceKm } from "@/lib/plan/backyard";
@@ -107,6 +108,13 @@ const WEEKDAY_KEYS = [
 export interface RequestAthlete {
   country?: string;
   units: UnitSystem;
+  /**
+   * The shape of what the athlete has actually been doing, from an imported
+   * history. Absent when nobody imported one, which is why the field is
+   * omitted rather than sent empty: "no data" and "trained nothing" are
+   * different claims and only one is ours to make.
+   */
+  history?: TrainingPicture | null;
 }
 
 /**
@@ -167,6 +175,11 @@ export function buildPlanRequest(
             draft.goalType === "finish" ? null : draft.goalValue.trim() || null,
         },
     offDays: draft.offDays,
+    // A handful of typed rows is thin evidence when the athlete has handed over
+    // years of training. This is the shape of the log rather than the log
+    // itself: weekly volume, its recent trend, the longest session and a
+    // typical pace per sport, in a few hundred bytes.
+    ...(athlete.history ? { trainingHistory: athlete.history } : {}),
     latestRuns: draft.latestRuns
       .filter((r) => r.distanceKm)
       .map((r) => {

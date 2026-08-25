@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ActivityImportField } from "@/components/common/activity-import-field";
 import { TrainingPrefsFields } from "@/components/common/training-prefs-fields";
 import { PreviousPlansPicker } from "@/components/wizard/previous-plans-picker";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import {
 import { SportIcon } from "@/components/common/sport-icon";
 import { SPORTS, type Sport } from "@/lib/sport";
 import { useFormat } from "@/hooks/use-format";
+import { formatMonthYear } from "@/lib/date";
+import { useTrainingStore } from "@/store/use-training-store";
 import { Label } from "@/components/ui/label";
 import type { Draft, LatestRun } from "@/lib/plan/request";
 import type { TrainingPlan, TrainingPrefs } from "@/lib/types";
@@ -37,6 +40,7 @@ export function StepTraining({
 }) {
   const { t } = useTranslation();
   const fmt = useFormat();
+  const activities = useTrainingStore((s) => s.activities);
   // Only a multi-sport plan needs to say which sport each session was: for a
   // single-sport plan every row inherits the plan's, and a picker on each line
   // would be three taps of noise per row.
@@ -64,6 +68,26 @@ export function StepTraining({
         <p className="mb-2 mt-0.5 text-xs text-muted-foreground">
           {t("wizard.latestRunsHint")}
         </p>
+
+        {/* Typing these rows out is the reason most people give the AI three
+            sessions to plan from. An export fills them in, and the same import
+            builds the history that feeds every later plan too. */}
+        <div className="mb-3">
+          {/* Says what is already stored, whether it was imported here or in
+              Settings. Without this the step looks identical either way, so an
+              athlete who imported in Settings sees an empty list and imports
+              again. */}
+          {activities.length > 0 ? (
+            <p className="mb-2 text-xs font-medium">
+              {t("wizard.historyInUse", {
+                count: activities.length,
+                from: formatMonthYear(activities[activities.length - 1].date),
+                to: formatMonthYear(activities[0].date),
+              })}
+            </p>
+          ) : null}
+          <ActivityImportField label={t("wizard.importActivities")} />
+        </div>
         <div className="space-y-2">
           {draft.latestRuns.map((r, i) => (
             // Index keys are fine here: rows have no identity beyond position

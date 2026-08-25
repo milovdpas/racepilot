@@ -18,7 +18,9 @@ import {
   rekeyCollidingWorkouts,
   weekIndexForDate,
 } from "@/lib/plan/merge";
+import { mergeActivities } from "@/lib/activity/strava-csv";
 import type {
+  ActivitySummary,
   OffDay,
   PlanMeta,
   Preferences,
@@ -41,6 +43,13 @@ interface TrainingState {
   plans: Record<string, TrainingPlan>;
   activePlanId: string | null;
   preferences: Preferences;
+  /**
+   * Sessions the athlete actually did, imported from a data export. Evidence of
+   * current fitness for the plan AI, and separate from `plans` on purpose: it
+   * is a record of the past that outlives any one training block, so deleting a
+   * plan must not delete the history that shaped it.
+   */
+  activities: ActivitySummary[];
   hydrated: boolean;
   /** ISO timestamp of the last local mutation — used for sync conflict resolution. */
   lastModified: string;
@@ -91,6 +100,9 @@ interface TrainingState {
   ) => string;
   deleteWorkout: (id: string) => void;
 
+  /** Merge an import into the history, deduped on the exporter's id. */
+  addActivities: (incoming: ActivitySummary[]) => void;
+  clearActivities: () => void;
   setPreferences: (patch: Partial<Preferences>) => void;
   exportData: () => string;
   importData: (json: string) => void;
@@ -116,6 +128,7 @@ export const useTrainingStore = create<TrainingState>()(
     (set, get) => ({
       plans: {},
       activePlanId: null,
+      activities: [],
       preferences: DEFAULT_PREFERENCES,
       hydrated: false,
       lastModified: "",
@@ -345,14 +358,22 @@ export const useTrainingStore = create<TrainingState>()(
       setPreferences: (patch) =>
         set((s) => ({ preferences: { ...s.preferences, ...patch } })),
 
+      addActivities: (incoming) =>
+        set((s) => ({
+          activities: mergeActivities(s.activities, incoming),
+          lastModified: nowISO(),
+        })),
+
+      clearActivities: () => set({ activities: [], lastModified: nowISO() }),
+
       exportData: () => {
-        const { plans, activePlanId, preferences } = get();
+        const { plans, activePlanId, preferences, activities } = get();
         if (Object.keys(plans).length === 0) return "";
-        return serializeExport(plans, activePlanId, preferences);
+        return serializeExport(plans, activePlanId, preferences, activities);
       },
 
       importData: (json) => {
-        const { plans, activePlanId, preferences } = parseImport(json);
+        const { plans, activePlanId, preferences, activities } = parseImport(json);
         // Carry over finished sessions by id: an AI-modified import is often
         // built from a stale export, so merge logged workouts from the current
         // plans rather than letting the import overwrite them.
@@ -366,6 +387,13 @@ export const useTrainingStore = create<TrainingState>()(
         set((s) => ({
           plans: mergedPlans,
           activePlanId,
+          // Merged, not replaced. An import is usually an AI round trip built
+          // from a stale export, and the same reasoning that carries logged
+          // workouts across applies here: history the athlete has imported
+          // since must not be dropped by a bundle that predates it.
+          activities: activities
+            ? mergeActivities(s.activities, activities)
+            : s.activities,
           preferences: preferences
             ? { ...s.preferences, ...preferences }
             : s.preferences,
@@ -374,10 +402,16 @@ export const useTrainingStore = create<TrainingState>()(
       },
 
       applyRemote: (json, modifiedTime) => {
-        const { plans, activePlanId, preferences } = parseImport(json);
+        const { plans, activePlanId, preferences, activities } = parseImport(json);
         set((s) => ({
           plans,
           activePlanId,
+          // Merged for the same reason as `importData`, and it matters more
+          // here: a device that has never imported would otherwise push an
+          // empty history over the top of one another device just built.
+          activities: activities
+            ? mergeActivities(s.activities, activities)
+            : s.activities,
           preferences: preferences
             ? { ...s.preferences, ...preferences }
             : s.preferences,
@@ -442,11 +476,17 @@ export const useTrainingStore = create<TrainingState>()(
       //      is expanded. Absent opens the plan section, so nothing to
       //      backfill; an empty array means everything closed, which is why
       //      absent and empty are not the same thing.
-      version: 18,
+      // v19: additive — `activities`, the imported training history. Absent
+      //      means nobody has imported one, which is the correct reading for
+      //      every existing user, so there is nothing to backfill. It is
+      //      persisted rather than kept in the wizard because the same history
+      //      feeds the next plan and the one after it.
+      version: 19,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         plans: state.plans,
         activePlanId: state.activePlanId,
+        activities: state.activities,
         preferences: state.preferences,
         lastModified: state.lastModified,
       }),
