@@ -10,7 +10,7 @@
 //
 // Pure: no React, no DOM, no clock of its own (the caller passes `today`).
 
-import { addDays, startOfWeek } from "date-fns";
+import { addDays, differenceInCalendarWeeks, startOfWeek } from "date-fns";
 import { fromISO, toISO } from "@/lib/date";
 import { paceToSeconds, secondsToPace } from "@/lib/pace";
 import type { Sport } from "@/lib/sport";
@@ -60,9 +60,11 @@ export interface TrainingPicture {
   avgWeeklyKm: number;
   peakWeeklyKm: number;
   longestKm: number;
-  /** Weekly distance for the last `TREND_WEEKS`, oldest first. Zeros included:
-   *  a week off is information, and dropping it would flatten a taper or an
-   *  injury gap into a straight line. */
+  /** Weekly distance for the last `TREND_WEEKS`, oldest first, and never
+   *  reaching back past the athlete's first ever activity. Zeros inside that
+   *  span are kept: a week off is information, and dropping it would flatten a
+   *  taper or an injury gap into a straight line. A zero *before* they started
+   *  is not a rest week, and the AI reads this array as a ramp. */
   recentWeeklyKm: number[];
   /** The last `RECENT_SESSIONS` in full, newest first. */
   recentSessions: RecentSession[];
@@ -101,10 +103,38 @@ export function trainingPicture(
     .sort((a, b) => a.date.localeCompare(b.date));
   if (inWindow.length === 0) return null;
 
-  // Every week in the window, including empty ones - see `recentWeeklyKm`.
+  // Where the athlete's own history begins.
+  //
+  // Weeks before their first ever activity are absent data, not rest, and the
+  // two must not be averaged together: a six-week-old Strava account divided by
+  // the full 16-week window reports a third of its real volume, and the plan
+  // prompt tells the model to open near `avgWeeklyKm`.
+  const firstEver = activities.reduce(
+    (min, a) => (a.date < min ? a.date : min),
+    activities[0]?.date ?? from,
+  );
+  const start = firstEver > from ? weekKey(firstEver) : from;
+
+  // Counted in calendar weeks, not by dividing milliseconds. `start` is always
+  // a Monday, so a raw division rounds a partial week up from Friday onward -
+  // which made the same six-week history read 28.6 km/week on a Thursday and
+  // 25 on the Friday. An athlete's plan should not depend on which day they
+  // opened the wizard. This is also DST-safe, which the division was not.
+  const weeks = Math.min(
+    windowWeeks,
+    Math.max(
+      1,
+      differenceInCalendarWeeks(fromISO(today), fromISO(start), {
+        weekStartsOn: 1,
+      }) + 1,
+    ),
+  );
+
+  // Every week since `start`, including empty ones - see `recentWeeklyKm`.
   const kmByWeek = new Map<string, number>();
   for (let i = 0; i < windowWeeks; i++) {
-    kmByWeek.set(toISO(addDays(thisMonday, -7 * i)), 0);
+    const key = toISO(addDays(thisMonday, -7 * i));
+    if (key >= start) kmByWeek.set(key, 0);
   }
   for (const a of inWindow) {
     const key = weekKey(a.date);
@@ -131,23 +161,6 @@ export function trainingPicture(
   });
 
   const totalKm = inWindow.reduce((sum, a) => sum + a.distanceKm, 0);
-  // Averaged over the weeks the history actually covers, not always 16.
-  //
-  // A six-week-old Strava account divided by 16 reports a third of its real
-  // volume, and the plan AI is told to open near `avgWeeklyKm` - so an athlete
-  // running 40 km a week would be handed a 15 km plan. Weeks before their first
-  // ever activity are absent data; weeks after it with nothing in them are real
-  // rest, and those still count.
-  const firstEver = activities.reduce(
-    (min, a) => (a.date < min ? a.date : min),
-    activities[0]?.date ?? from,
-  );
-  const start = firstEver > from ? weekKey(firstEver) : from;
-  const covered = Math.max(
-    1,
-    Math.round((fromISO(today).getTime() - fromISO(start).getTime()) / 604_800_000) + 1,
-  );
-  const weeks = Math.min(windowWeeks, covered);
 
   return {
     from: inWindow[0].date,

@@ -29,18 +29,39 @@ describe("trainingPicture", () => {
     expect(trainingPicture([run("2020-01-01", 10)], TODAY)).toBeNull();
   });
 
+  // Five weekly 40 km runs. The first is Sun 2026-07-19, whose week starts
+  // Mon 07-13, so seven calendar weeks reach Mon 08-24: 200 km over 7.
+  const SIX_WEEKS = [
+    "2026-08-23", "2026-08-16", "2026-08-09", "2026-07-26", "2026-07-19",
+  ].map((d) => run(d, 40));
+
   it("averages over the weeks the history covers, not always sixteen", () => {
-    // A six-week-old Strava account divided by the fixed 16-week window
-    // reported a third of its real volume, and the plan AI is told to open
-    // near avgWeeklyKm - so a 40 km/week athlete would be handed a 15 km plan.
-    const weekly = [
-      "2026-08-23", "2026-08-16", "2026-08-09",
-      "2026-07-26", "2026-07-19",
-    ].map((d) => run(d, 40));
-    const p = trainingPicture(weekly, TODAY)!;
-    expect(p.weeks).toBeLessThanOrEqual(7);
-    // 200 km over the ~6 weeks since the first session, not over 16.
-    expect(p.avgWeeklyKm).toBeGreaterThan(25);
+    // Divided by the fixed 16-week window this read 12.5 km/week, and the plan
+    // prompt tells the model to open near avgWeeklyKm - so a 40 km/week athlete
+    // would have been handed a 12 km plan.
+    const p = trainingPicture(SIX_WEEKS, TODAY)!;
+    expect(p.weeks).toBe(7);
+    expect(p.avgWeeklyKm).toBe(28.6);
+  });
+
+  it.each(["2026-08-24", "2026-08-26", "2026-08-28", "2026-08-29", "2026-08-30"])(
+    "gives the same answer whichever day the wizard is opened (%s)",
+    (today) => {
+      // Counting by dividing milliseconds rounded a partial week up from Friday
+      // onward, so this same history read 28.6 km/week on the Thursday and 25
+      // on the Friday. Nobody's plan should depend on that.
+      const p = trainingPicture(SIX_WEEKS, today)!;
+      expect(p.weeks).toBe(7);
+      expect(p.avgWeeklyKm).toBe(28.6);
+    },
+  );
+
+  it("does not reach the trend back past the first ever activity", () => {
+    // A zero before the athlete started is absent data, not a rest week, and
+    // the AI reads this array as a ramp. Seven entries, not eight, and the
+    // first is the week their history begins.
+    const p = trainingPicture(SIX_WEEKS, TODAY)!;
+    expect(p.recentWeeklyKm).toEqual([40, 40, 0, 40, 40, 40, 0]);
   });
 
   it("still counts rest weeks inside a longer history", () => {
@@ -61,9 +82,10 @@ describe("trainingPicture", () => {
     expect(p.longestKm).toBe(20);
     expect(p.from).toBe("2026-08-18");
     expect(p.to).toBe("2026-08-23");
-    // Spread over the weeks covered since the first session, not the days
-    // actually trained: a rest day is not absent data.
-    expect(p.avgWeeklyKm).toBeGreaterThan(0);
+    // 42 km over the two calendar weeks since the first session, not over the
+    // days actually trained and not over the whole 16-week window.
+    expect(p.weeks).toBe(2);
+    expect(p.avgWeeklyKm).toBe(21);
   });
 
   it("groups into weeks starting Monday", () => {
@@ -74,11 +96,15 @@ describe("trainingPicture", () => {
     expect(p.recentWeeklyKm.slice(-2)).toEqual([20, 5]);
   });
 
-  it("keeps empty weeks in the trend", () => {
+  it("keeps empty weeks inside the history", () => {
     // A week off is information. Dropping the zeros would flatten an injury gap
     // into a straight line and the AI would plan straight over it.
+    //
+    // Mon 08-03 is the first activity, so the trend starts there: trained,
+    // rested, trained, and the current week still to come. The weeks before
+    // 08-03 are absent data and no longer appear at all.
     const p = trainingPicture([run("2026-08-03", 30), run("2026-08-17", 40)], TODAY)!;
-    expect(p.recentWeeklyKm).toEqual([0, 0, 0, 0, 30, 0, 40, 0]);
+    expect(p.recentWeeklyKm).toEqual([30, 0, 40, 0]);
     expect(p.peakWeeklyKm).toBe(40);
   });
 
