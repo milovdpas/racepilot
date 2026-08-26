@@ -251,6 +251,8 @@ export interface NormalizedBundle {
  * "no coordinate ever reaches the store" guarantee true for imports as well as
  * for the CSV parser.
  */
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 function normalizeActivities(raw: unknown): ActivitySummary[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const out: ActivitySummary[] = [];
@@ -258,7 +260,11 @@ function normalizeActivities(raw: unknown): ActivitySummary[] | undefined {
     const a = item as Partial<ActivitySummary>;
     if (
       typeof a?.id !== "string" ||
+      // Shape *and* value: `formatMonthYear` and `trainingPicture` both feed
+      // this straight to date-fns, which throws on an unparseable string. A
+      // hand-edited or AI-echoed bundle is exactly where one comes from.
       typeof a.date !== "string" ||
+      !ISO_DATE.test(a.date) ||
       !isSport(a.sport) ||
       typeof a.distanceKm !== "number" ||
       !Number.isFinite(a.distanceKm) ||

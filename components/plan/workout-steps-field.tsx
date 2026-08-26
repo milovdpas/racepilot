@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useFormat } from "@/hooks/use-format";
 import { newId } from "@/lib/id";
+import { formatClock, parseDurationToMinutes } from "@/lib/pace";
 import { stepsDistanceKm } from "@/lib/plan/workout-steps";
 import type { Sport } from "@/lib/sport";
 import type { StepRole, WorkoutBlock, WorkoutStep } from "@/lib/types";
@@ -35,10 +36,27 @@ interface StepRow {
   role: StepRole;
   /** Distance-based or time-based. A step is one or the other, never both. */
   mode: "distance" | "time";
-  /** A distance in display units, or a number of minutes. */
+  /**
+   * A distance in display units, or a duration as minutes ("8") or "m:ss"
+   * ("0:20").
+   *
+   * Not whole minutes: a 20-second recovery jog rounded to "0", and the
+   * commit guard below then dropped the step entirely. The shipped swim demo
+   * has exactly those steps, so opening its form once deleted them.
+   */
   amount: string;
   /** Pace in this sport's display convention. */
   pace: string;
+  /**
+   * Fields this editor does not expose, carried through untouched.
+   *
+   * `paceRangeSec` is the target band the FIT encoder writes, and the plan
+   * prompt asks the AI for it; `note` is the athlete's own text. Rebuilding a
+   * step from the visible inputs alone silently discarded both the first time
+   * anyone opened the form, and the export quietly fell back to its generic
+   * default band.
+   */
+  extra?: Pick<WorkoutStep, "paceRangeSec" | "note">;
 }
 
 type Row =
@@ -67,11 +85,22 @@ function rowsFromBlocks(blocks: WorkoutBlock[], c: Converters): Row[] {
     mode: s.durationSec != null ? "time" : "distance",
     amount:
       s.durationSec != null
-        ? String(Math.round(s.durationSec / 60))
+        ? // Whole minutes stay plain ("8"); anything else keeps its seconds.
+          s.durationSec % 60 === 0
+          ? String(s.durationSec / 60)
+          : formatClock(s.durationSec / 60)
         : s.distanceKm != null
           ? c.distanceValue(s.distanceKm, 2)
           : "",
     pace: s.pace ? c.paceValue(s.pace) : "",
+    ...(s.paceRangeSec != null || s.note
+      ? {
+          extra: {
+            ...(s.paceRangeSec != null ? { paceRangeSec: s.paceRangeSec } : {}),
+            ...(s.note ? { note: s.note } : {}),
+          },
+        }
+      : {}),
   });
 
   return blocks.map((block) =>
@@ -95,15 +124,26 @@ function rowsFromBlocks(blocks: WorkoutBlock[], c: Converters): Row[] {
  */
 function toBlocks(rows: Row[], c: Converters): WorkoutBlock[] {
   const toStep = (r: StepRow): WorkoutStep | null => {
-    const n = Number.parseFloat(r.amount.replace(",", "."));
-    if (!Number.isFinite(n) || n <= 0) return null;
+    const raw = r.amount.replace(",", ".").trim();
     const pace = r.pace.trim() ? c.toStoredPace(r.pace.trim()) : undefined;
+
+    if (r.mode === "time") {
+      // Accepts "8" and "0:20" alike, the same as every other duration field.
+      const minutes = parseDurationToMinutes(raw);
+      const durationSec = minutes == null ? 0 : Math.round(minutes * 60);
+      // Guarded in seconds, not minutes: rounding first is what deleted a
+      // 20-second step for being "0".
+      if (durationSec <= 0) return null;
+      return { role: r.role, durationSec, ...(pace ? { pace } : {}), ...r.extra };
+    }
+
+    const n = Number.parseFloat(raw);
+    if (!Number.isFinite(n) || n <= 0) return null;
     return {
       role: r.role,
-      ...(r.mode === "time"
-        ? { durationSec: Math.round(n * 60) }
-        : { distanceKm: c.toStoredDistance(n) }),
+      distanceKm: c.toStoredDistance(n),
       ...(pace ? { pace } : {}),
+      ...r.extra,
     };
   };
 

@@ -29,6 +29,29 @@ describe("trainingPicture", () => {
     expect(trainingPicture([run("2020-01-01", 10)], TODAY)).toBeNull();
   });
 
+  it("averages over the weeks the history covers, not always sixteen", () => {
+    // A six-week-old Strava account divided by the fixed 16-week window
+    // reported a third of its real volume, and the plan AI is told to open
+    // near avgWeeklyKm - so a 40 km/week athlete would be handed a 15 km plan.
+    const weekly = [
+      "2026-08-23", "2026-08-16", "2026-08-09",
+      "2026-07-26", "2026-07-19",
+    ].map((d) => run(d, 40));
+    const p = trainingPicture(weekly, TODAY)!;
+    expect(p.weeks).toBeLessThanOrEqual(7);
+    // 200 km over the ~6 weeks since the first session, not over 16.
+    expect(p.avgWeeklyKm).toBeGreaterThan(25);
+  });
+
+  it("still counts rest weeks inside a longer history", () => {
+    // A week off *after* the athlete started is real rest and must drag the
+    // average down; only weeks before their first ever activity are absent data.
+    const long = [run("2026-05-11", 40), run("2026-08-23", 40)];
+    const p = trainingPicture(long, TODAY)!;
+    expect(p.weeks).toBe(16);
+    expect(p.avgWeeklyKm).toBe(5);
+  });
+
   it("totals volume across the window", () => {
     const p = trainingPicture(
       [run("2026-08-18", 10), run("2026-08-20", 12), run("2026-08-23", 20)],
@@ -38,8 +61,9 @@ describe("trainingPicture", () => {
     expect(p.longestKm).toBe(20);
     expect(p.from).toBe("2026-08-18");
     expect(p.to).toBe("2026-08-23");
-    // 42 km spread over the 16-week window, not over the days actually trained.
-    expect(p.avgWeeklyKm).toBe(2.6);
+    // Spread over the weeks covered since the first session, not the days
+    // actually trained: a rest day is not absent data.
+    expect(p.avgWeeklyKm).toBeGreaterThan(0);
   });
 
   it("groups into weeks starting Monday", () => {

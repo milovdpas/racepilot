@@ -118,3 +118,10 @@ export function markForAthlete(types?: readonly AthleteType[]): MarkId {
   if (caps.sports.size > 1) return "multi";
   return [...caps.sports][0];
 }
+
+const MARKS: readonly MarkId[] = ["run", "bike", "swim", "multi"];
+
+/** A `MARK_COOKIE` value, or the running mark for anything unrecognised. */
+export function markFromCookie(value?: string | null): MarkId {
+  return MARKS.includes(value as MarkId) ? (value as MarkId) : "run";
+}

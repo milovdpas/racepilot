@@ -2,6 +2,10 @@ import type { Dict } from "./en";
 
 export const nl: Dict = {
   common: {
+    dismiss: "Sluiten",
+    edit: "Bewerken",
+    remove: "Verwijderen",
+    toggleTheme: "Thema wisselen",
     cancel: "Annuleren",
     save: "Opslaan",
     delete: "Verwijderen",
@@ -471,7 +475,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       "Deel de sessie op in stappen, dan kan je horloge je erdoorheen leiden. De moeite waard bij intervallen en tempowerk; een rustige duurloop heeft dit niet nodig.",
     step: "Stap",
     times: "Herhalingen",
-    min: "min",
+    min: "min of m:ss",
     minutesShort: "{{count}} min",
     pacePlaceholder: "Doel {{unit}} (optioneel)",
     addStep: "Stap toevoegen",
@@ -491,6 +495,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     },
   },
   export: {
+    sendToWatch: "Naar horloge sturen",
     title: "Naar je horloge sturen",
     desc_one: "Eén training, klaar om mee te nemen.",
     desc_other: "{{count}} trainingen, klaar om mee te nemen.",

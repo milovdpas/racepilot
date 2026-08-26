@@ -12,6 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { AthleteLogo } from "@/components/layout/athlete-logo";
+import type { MarkId } from "@/lib/athlete";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -30,7 +31,7 @@ function isActive(pathname: string, href: string): boolean {
   return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 }
 
-export function AppNav() {
+export function AppNav({ initialMark }: { initialMark?: MarkId }) {
   const pathname = usePathname();
   const { t } = useTranslation();
 
@@ -39,7 +40,7 @@ export function AppNav() {
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r bg-card/40 px-4 py-6 md:flex">
         <div className="mb-8 flex items-center gap-2 px-2">
-          <AthleteLogo />
+          <AthleteLogo initial={initialMark} />
           <div className="leading-tight">
             <p className="text-sm font-semibold">{t("common.appName")}</p>
             <p className="text-xs text-muted-foreground">

@@ -31,9 +31,8 @@ export function AppCookieSync() {
         : `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
     };
     set(APP_COOKIE, hasPlans ? "1" : "");
-    // Written even before they have a plan: the install prompt fires right
-    // after onboarding, which is exactly when the sport is known and a plan
-    // may not exist yet.
+    // Written even before a plan exists: the sport is known the moment
+    // onboarding ends, which is the load right after this one.
     set(MARK_COOKIE, athleteTypes?.length ? markForAthlete(athleteTypes) : "");
   }, [hydrated, hasPlans, athleteTypes]);
 

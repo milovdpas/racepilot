@@ -142,7 +142,7 @@ export function StepTraining({
               />
               <button
                 type="button"
-                aria-label="remove run"
+                aria-label={t("common.remove")}
                 onClick={() =>
                   set(
                     "latestRuns",

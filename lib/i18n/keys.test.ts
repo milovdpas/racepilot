@@ -86,3 +86,28 @@ describe("translation keys", () => {
     expect(usedKeys().length).toBeGreaterThan(200);
   });
 });
+
+describe("screen-reader labels", () => {
+  it("are translated, not hardcoded English", () => {
+    // The check above only sees `t("…")`, so it cannot catch a label written as
+    // a plain string. `aria-label` is the commonest place that happens, because
+    // nothing on screen looks wrong: a Dutch user with a screen reader simply
+    // hears English. Seven of these had accumulated before anyone noticed.
+    const offenders: string[] = [];
+    for (const root of ["components", "app"]) {
+      for (const file of sourceFiles(root)) {
+        const src = readFileSync(file, "utf8");
+        for (const m of src.matchAll(/aria-label="([^"]*)"/g)) {
+          offenders.push(`${file}: ${m[1]}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("finds them when they exist, so an empty pass means something", () => {
+    // Guards the guard: the pattern has to match the shape it is looking for.
+    expect([...'<button aria-label="Dismiss" />'.matchAll(/aria-label="([^"]*)"/g)]).toHaveLength(1);
+    expect([...'<button aria-label={t("common.close")} />'.matchAll(/aria-label="([^"]*)"/g)]).toHaveLength(0);
+  });
+});

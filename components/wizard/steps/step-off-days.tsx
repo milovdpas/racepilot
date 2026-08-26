@@ -56,7 +56,7 @@ export function StepOffDays({ draft, set }: { draft: Draft; set: SetDraft }) {
               </div>
               <button
                 type="button"
-                aria-label="remove"
+                aria-label={t("common.remove")}
                 onClick={() =>
                   set(
                     "offDays",

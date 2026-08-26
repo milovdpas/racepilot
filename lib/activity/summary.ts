@@ -131,13 +131,31 @@ export function trainingPicture(
   });
 
   const totalKm = inWindow.reduce((sum, a) => sum + a.distanceKm, 0);
+  // Averaged over the weeks the history actually covers, not always 16.
+  //
+  // A six-week-old Strava account divided by 16 reports a third of its real
+  // volume, and the plan AI is told to open near `avgWeeklyKm` - so an athlete
+  // running 40 km a week would be handed a 15 km plan. Weeks before their first
+  // ever activity are absent data; weeks after it with nothing in them are real
+  // rest, and those still count.
+  const firstEver = activities.reduce(
+    (min, a) => (a.date < min ? a.date : min),
+    activities[0]?.date ?? from,
+  );
+  const start = firstEver > from ? weekKey(firstEver) : from;
+  const covered = Math.max(
+    1,
+    Math.round((fromISO(today).getTime() - fromISO(start).getTime()) / 604_800_000) + 1,
+  );
+  const weeks = Math.min(windowWeeks, covered);
+
   return {
     from: inWindow[0].date,
     to: inWindow[inWindow.length - 1].date,
     sessions: inWindow.length,
-    weeks: windowWeeks,
-    sessionsPerWeek: round1(inWindow.length / windowWeeks),
-    avgWeeklyKm: round1(totalKm / windowWeeks),
+    weeks,
+    sessionsPerWeek: round1(inWindow.length / weeks),
+    avgWeeklyKm: round1(totalKm / weeks),
     peakWeeklyKm: Math.max(...weeklyOldestFirst),
     longestKm: round1(Math.max(...inWindow.map((a) => a.distanceKm))),
     recentWeeklyKm: weeklyOldestFirst.slice(-TREND_WEEKS),

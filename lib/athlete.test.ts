@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capabilitiesFor, markForAthlete, showsSport } from "./athlete";
+import { capabilitiesFor, markForAthlete, markFromCookie, showsSport } from "./athlete";
 
 describe("capabilitiesFor", () => {
   it("shows everything when the user has never been asked", () => {
@@ -99,5 +99,22 @@ describe("markForAthlete", () => {
     // has told us nothing at all.
     expect(markForAthlete(undefined)).toBe("run");
     expect(markForAthlete([])).toBe("run");
+  });
+});
+
+describe("markFromCookie", () => {
+  it("passes through the marks it knows", () => {
+    for (const m of ["run", "bike", "swim", "multi"] as const) {
+      expect(markFromCookie(m)).toBe(m);
+    }
+  });
+
+  it("falls back to running for anything else", () => {
+    // The cookie is written by the client and can be anything by the time it
+    // comes back. Absent is also the honest answer for a first visit.
+    expect(markFromCookie(undefined)).toBe("run");
+    expect(markFromCookie("")).toBe("run");
+    expect(markFromCookie("triathlete")).toBe("run");
+    expect(markFromCookie("<script>")).toBe("run");
   });
 });

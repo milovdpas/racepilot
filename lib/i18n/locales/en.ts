@@ -1,5 +1,9 @@
 export const en = {
   common: {
+    dismiss: "Dismiss",
+    edit: "Edit",
+    remove: "Remove",
+    toggleTheme: "Toggle theme",
     cancel: "Cancel",
     save: "Save",
     delete: "Delete",
@@ -459,7 +463,7 @@ JSON (paste below, or attach the exported .json file):
       "Break the session into steps and your watch can guide you through it. Worth doing for intervals and tempo work; a plain easy run needs nothing here.",
     step: "Step",
     times: "Repeats",
-    min: "min",
+    min: "min or m:ss",
     minutesShort: "{{count}} min",
     pacePlaceholder: "Target {{unit}} (optional)",
     addStep: "Add step",
@@ -479,6 +483,7 @@ JSON (paste below, or attach the exported .json file):
     },
   },
   export: {
+    sendToWatch: "Send to watch",
     title: "Send to your watch",
     desc_one: "One workout, ready to take with you.",
     desc_other: "{{count}} workouts, ready to take with you.",

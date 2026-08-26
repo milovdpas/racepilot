@@ -1,7 +1,4 @@
-import { cookies } from "next/headers";
 import type { MetadataRoute } from "next";
-import { MARK_COOKIE } from "@/lib/app-cookie";
-import type { MarkId } from "@/lib/athlete";
 
 /**
  * Makes the tracker installable to a phone home screen, which matters for a
@@ -13,24 +10,8 @@ import type { MarkId } from "@/lib/athlete";
  * silently downgrades "Install" to a home-screen bookmark. (A service worker
  * is *not* required for installability — measured both ways — but see
  * public/sw.js for why we ship one anyway.)
- *
- * The icon follows whoever is installing, via `MARK_COOKIE`: a swimmer should
- * not get a runner on their home screen. This is the only moment it can be
- * chosen, because both Android and iOS capture the icon at install time and
- * never revisit it — changing sport later leaves the installed icon alone.
- * Reading a cookie also makes this route dynamic, which is why it is no longer
- * statically generated.
  */
-const MARKS: readonly MarkId[] = ["run", "bike", "swim", "multi"];
-
-export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const raw = (await cookies()).get(MARK_COOKIE)?.value as MarkId | undefined;
-  // Anything unrecognised, including no cookie at all, is the running mark.
-  const mark = raw && MARKS.includes(raw) ? raw : "run";
-  // The running set keeps the unsuffixed names it has always had, so an
-  // already-installed app keeps pointing at the files it was installed with.
-  const suffix = mark === "run" ? "" : `-${mark}`;
-
+export default function manifest(): MetadataRoute.Manifest {
   return {
     // A stable identity, so moving start_url doesn't create a second installed
     // app alongside the first. Frozen: changing it mints a duplicate icon on
@@ -60,12 +41,12 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     // home-screen shortcut. app/icon.svg is still the tab favicon via
     // <link rel="icon">, which is a separate mechanism.
     icons: [
-      { src: `/icons/icon${suffix}-192.png`, type: "image/png", sizes: "192x192", purpose: "any" },
-      { src: `/icons/icon${suffix}-512.png`, type: "image/png", sizes: "512x512", purpose: "any" },
-      // Launchers crop to a circle/squircle; this variant keeps the mark
+      { src: "/icons/icon-192.png", type: "image/png", sizes: "192x192", purpose: "any" },
+      { src: "/icons/icon-512.png", type: "image/png", sizes: "512x512", purpose: "any" },
+      // Launchers crop to a circle/squircle; this variant keeps the runner
       // inside the safe zone and bleeds the background to every edge.
       {
-        src: `/icons/icon${suffix}-maskable-512.png`,
+        src: "/icons/icon-maskable-512.png",
         type: "image/png",
         sizes: "512x512",
         purpose: "maskable",

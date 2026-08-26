@@ -218,12 +218,14 @@ export function parseStravaCsv(text: string): ParseResult {
       movingSec,
     );
 
-    if (!metres || !movingSec) {
+    // Guarded after rounding, not before: anything under 5 m rounds to 0.00 km,
+    // and pace would then divide by zero and store the literal "-" that
+    // `secondsToPace` returns for a non-finite input.
+    const distanceKm = metres ? Math.round((metres / 1000) * 100) / 100 : 0;
+    if (!distanceKm || !movingSec) {
       skip("no-distance");
       continue;
     }
-
-    const distanceKm = Math.round((metres / 1000) * 100) / 100;
     activities.push({
       id: (row[idCol] ?? "").trim() || `${date}-${distanceKm}`,
       date,

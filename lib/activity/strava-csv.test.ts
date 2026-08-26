@@ -92,6 +92,16 @@ describe("parseStravaCsv", () => {
     });
   });
 
+  it("skips an activity too short to have a pace", () => {
+    // Under 5 m rounds to 0.00 km, and pace then divided by zero and stored the
+    // literal "-" that secondsToPace returns for a non-finite input - a row
+    // that normalizeActivities would later reject on a bundle round trip.
+    const tiny = `1,"Aug 23, 2026, 9:17:44 AM",x,Run,4,0,4,4,4,1,0,`;
+    const { activities, skipped } = parseStravaCsv(row(tiny));
+    expect(activities).toEqual([]);
+    expect(skipped["no-distance"]).toBe(1);
+  });
+
   it("keeps heart rate when the export has it", () => {
     const withHr = `1,"Aug 23, 2026, 9:17:44 AM",x,Run,7099,18.16,7099.0,6666.0,18164.8,2.725,514.5,148`;
     expect(parseStravaCsv(row(withHr)).activities[0].avgHr).toBe(148);

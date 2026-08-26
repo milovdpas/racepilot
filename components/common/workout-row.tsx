@@ -111,7 +111,7 @@ export function WorkoutRow({
       {onSendToWatch ? (
         <button
           type="button"
-          aria-label="Send to watch"
+          aria-label={t("export.sendToWatch")}
           onClick={() => onSendToWatch(workout)}
           className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
         >
@@ -122,7 +122,7 @@ export function WorkoutRow({
       {onEdit ? (
         <button
           type="button"
-          aria-label="Edit workout"
+          aria-label={t("common.edit")}
           onClick={() => onEdit(workout)}
           className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
         >

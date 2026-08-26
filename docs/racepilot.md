@@ -228,7 +228,14 @@ record why not.
   the WebAPK at install time and rate-limits updates to days; iOS snapshots the
   touch icon when the user adds it. Only the in-app mark and the browser tab
   favicon can change — and the favicon is invisible in `display: standalone`.
-  Do not attempt a dynamic manifest.
+  Do not attempt a dynamic manifest. Tried anyway in the app-mark work and
+  reverted: Next injects `<link rel="manifest">` **without**
+  `crossorigin="use-credentials"`, so the manifest is fetched with credentials
+  omitted and no cookie reaches it. Every install got the runner regardless, and
+  the only lasting effect was making the route dynamic. A cookie *does*
+  work for the **in-app** badge, though, because a document request sends
+  it normally: `app/app/layout.tsx` reads `MARK_COOKIE` so the first paint
+  already has the right mark instead of visibly changing from a runner.
 - **Race day is three workouts on one date**, not one workout with legs. Every
   consumer already understands a workout and none of them would know how to sum
   legs; `raceLegIndex` orders them and marks them as the race. There is no
