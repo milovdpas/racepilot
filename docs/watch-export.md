@@ -531,9 +531,23 @@ accordion of four groups, persisted in `preferences.settingsSections`
 | Group | Cards |
 |---|---|
 | Your plan | Plans, Example plans, Race details, Training preferences |
+| Edit or export plan | Data |
 | About you | Athlete, Watch |
 | Features | Features, Cloud sync |
-| App | Appearance, Data, Install |
+| Appearance | Appearance |
+
+Data has its own group, named for the two jobs people come to it for. Under
+"App" nobody found it, and folded into "Your plan" it is still something you
+have to already know is there, sitting below race details and training
+preferences. That left the last group holding only appearance, so it is named
+for what it holds. Its persisted id stays `"app"` - those ids are documented as
+stable, and renaming one would silently close the section for everyone who had
+it open. `"data"` is a new id, which is additive: an existing saved set simply
+does not name it, so it starts closed.
+
+Install and Support both sit outside the accordion now, for the same reason as
+each other: they are offers rather than settings, an offer nobody finds is one
+nobody takes, and each already renders nothing when it does not apply.
 
 ### Decisions
 

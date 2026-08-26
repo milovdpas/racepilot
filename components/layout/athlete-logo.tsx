@@ -1,8 +1,7 @@
 "use client";
 
-import { ATHLETE_EMOJI } from "@/components/common/athlete-type-picker";
 import { AppLogo } from "@/components/layout/app-logo";
-import { capabilitiesFor } from "@/lib/athlete";
+import { markForAthlete } from "@/lib/athlete";
 import { useTrainingStore } from "@/store/use-training-store";
 
 /**
@@ -20,13 +19,12 @@ export function AthleteLogo({
 }) {
   const hydrated = useTrainingStore((s) => s.hydrated);
   const types = useTrainingStore((s) => s.preferences.athleteTypes);
-  const primary = capabilitiesFor(types).primary;
 
   return (
     <AppLogo
       size={size}
       className={className}
-      emoji={hydrated && primary ? ATHLETE_EMOJI[primary] : undefined}
+      mark={hydrated ? markForAthlete(types) : "run"}
     />
   );
 }

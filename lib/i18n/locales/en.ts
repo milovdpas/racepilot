@@ -190,9 +190,10 @@ export const en = {
   },
   settings: {
     groupPlan: "Your plan",
+    groupData: "Edit or export plan",
     groupProfile: "About you",
     groupFeatures: "Features",
-    groupApp: "App",
+    groupApp: "Appearance",
     title: "Settings",
     subtitle: "Preferences, theme, and your data.",
     plans: "Plans",

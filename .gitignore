@@ -66,3 +66,8 @@ marathon-plans-*.json
 # repo. Keep exports outside the working tree where you can.
 export-strava/
 strava_export_*/
+
+# Reference images dropped in the working tree while designing a mark. Not
+# ours to redistribute, and nothing in the app reads them.
+/cycling-*.webp
+/cycling-*.jpg

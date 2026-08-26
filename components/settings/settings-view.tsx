@@ -27,7 +27,7 @@ import { toast } from "@/store/use-toast-store";
 import { useTrainingStore } from "@/store/use-training-store";
 
 /** The sections, in order. Also the persisted values, so keep them stable. */
-const SECTIONS = ["plan", "profile", "features", "app"] as const;
+const SECTIONS = ["plan", "data", "profile", "features", "app"] as const;
 type Section = (typeof SECTIONS)[number];
 
 /**
@@ -88,6 +88,17 @@ export function SettingsView() {
           </AccordionPanel>
         </AccordionItem>
 
+        {/* Its own section rather than a card inside "Your plan". Filed under
+            "App" nobody found it, and buried among race details and training
+            preferences it is still something you have to already know is
+            there. The heading names the two jobs people actually come for. */}
+        <AccordionItem value="data">
+          <AccordionTrigger>{t("settings.groupData")}</AccordionTrigger>
+          <AccordionPanel>
+            <DataCard />
+          </AccordionPanel>
+        </AccordionItem>
+
         <AccordionItem value="profile">
           <AccordionTrigger>{t("settings.groupProfile")}</AccordionTrigger>
           <AccordionPanel>
@@ -113,17 +124,18 @@ export function SettingsView() {
           <AccordionPanel>
             <div className="space-y-5">
               <AppearanceCard />
-              <DataCard />
-              <InstallAppCard />
             </div>
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
 
-      {/* Outside, like the debug panel and for the opposite reason: an ask you
-          have to go looking for is an ask nobody answers. It renders nothing at
-          all unless the deployment enables it, so it costs a self-hoster
-          nothing to have it here. */}
+      {/* Both outside, and for the same reason as each other: they are offers,
+          not settings. An offer you have to go looking for is one nobody takes,
+          and neither renders anything at all when it does not apply - the
+          install card hides once installed, and support hides unless the
+          deployment enables it. */}
+      <InstallAppCard />
+
       <SupportCard />
 
       <DebugPanel />

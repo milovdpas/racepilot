@@ -95,3 +95,26 @@ export function showsSport(caps: AthleteCapabilities, sport: Sport): boolean {
 export function soleSport(caps: AthleteCapabilities): Sport | undefined {
   return caps.sports.size === 1 ? [...caps.sports][0] : undefined;
 }
+
+/** Which piece of artwork the app badge shows. See `components/layout/app-mark.tsx`. */
+export type MarkId = Sport | "multi";
+
+/**
+ * Which mark an athlete gets.
+ *
+ * Chosen from the *sports* they train, not from the first type they happened to
+ * pick. A swimmer-and-cyclist is doing two sports and the badge should say so;
+ * showing whichever they tapped first would claim something narrower than the
+ * truth. It also means runner + trail + ultra correctly stays the running mark,
+ * since all three are the same sport.
+ *
+ * `primary` is used only as the "have they told us anything?" test: an athlete
+ * who never answered gets `ALL` capabilities, and reading `sports.size` off
+ * that would put the multi-sport mark on someone who has said nothing.
+ */
+export function markForAthlete(types?: readonly AthleteType[]): MarkId {
+  const caps = capabilitiesFor(types);
+  if (!caps.primary) return "run";
+  if (caps.sports.size > 1) return "multi";
+  return [...caps.sports][0];
+}

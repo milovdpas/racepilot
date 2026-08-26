@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { APP_COOKIE, APP_COOKIE_MAX_AGE } from "@/lib/app-cookie";
+import { APP_COOKIE, APP_COOKIE_MAX_AGE, MARK_COOKIE } from "@/lib/app-cookie";
+import { markForAthlete } from "@/lib/athlete";
 import { useTrainingStore } from "@/store/use-training-store";
 
 /**
@@ -19,14 +20,22 @@ import { useTrainingStore } from "@/store/use-training-store";
 export function AppCookieSync() {
   const hydrated = useTrainingStore((s) => s.hydrated);
   const hasPlans = useTrainingStore((s) => Object.keys(s.plans).length > 0);
+  const athleteTypes = useTrainingStore((s) => s.preferences.athleteTypes);
 
   useEffect(() => {
     if (!hydrated) return;
     const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = hasPlans
-      ? `${APP_COOKIE}=1; Path=/; Max-Age=${APP_COOKIE_MAX_AGE}; SameSite=Lax${secure}`
-      : `${APP_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
-  }, [hydrated, hasPlans]);
+    const set = (name: string, value: string) => {
+      document.cookie = value
+        ? `${name}=${value}; Path=/; Max-Age=${APP_COOKIE_MAX_AGE}; SameSite=Lax${secure}`
+        : `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+    };
+    set(APP_COOKIE, hasPlans ? "1" : "");
+    // Written even before they have a plan: the install prompt fires right
+    // after onboarding, which is exactly when the sport is known and a plan
+    // may not exist yet.
+    set(MARK_COOKIE, athleteTypes?.length ? markForAthlete(athleteTypes) : "");
+  }, [hydrated, hasPlans, athleteTypes]);
 
   return null;
 }

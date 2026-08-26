@@ -190,9 +190,10 @@ export const nl: Dict = {
   },
   settings: {
     groupPlan: "Je plan",
+    groupData: "Plan bewerken of exporteren",
     groupProfile: "Over jou",
     groupFeatures: "Functies",
-    groupApp: "App",
+    groupApp: "Weergave",
     title: "Instellingen",
     subtitle: "Voorkeuren, thema en je gegevens.",
     plans: "Plannen",
