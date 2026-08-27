@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, Loader2, Watch } from "lucide-react";
+import { CalendarPlus, Download, Loader2, Watch } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -92,8 +92,20 @@ export function SendToWatchDialog({
         format,
         now: new Date(),
       });
-      if (result.ok) toast.success(t("export.done"));
-      else toast.error(t("export.failed"));
+      if (result.ok) {
+        // The follow-up carries over into the toast rather than staying in a
+        // dialog that is about to close. "Copy it into GARMIN/NEWFILES" is
+        // needed *after* the download, which is exactly when the dialog is
+        // gone, so the toast says it instead of a bare "Exported".
+        const hint = followUpKey(target, preferences.watch);
+        toast.success(hint ? t(hint) : t("export.done"));
+        // The file is in Downloads; there is nothing left to do here.
+        onOpenChange(false);
+      } else {
+        // Deliberately left open on failure: the error toast is easier to act
+        // on with the button that produced it still in front of you.
+        toast.error(t("export.failed"));
+      }
     } catch (e) {
       // A target is contracted to return { ok: false } rather than throw, but
       // a throw must not leave the dialog spinning with every button disabled
@@ -123,19 +135,14 @@ export function SendToWatchDialog({
               const Icon = ICON[target.id];
               const hint = followUpKey(target, preferences.watch);
               return (
-                <button
-                  key={target.id}
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => void run(target)}
-                  className="grid gap-1 rounded-lg border p-3 text-left hover:bg-accent disabled:opacity-60"
-                >
+                // A panel with a button in it, not one big clickable panel.
+                // It used to be a bordered <button> holding a title, a
+                // description and a paragraph of instructions, which reads as
+                // something to inform you rather than something to press -
+                // nobody could tell the card was the download.
+                <div key={target.id} className="grid gap-1 rounded-lg border p-3">
                   <span className="flex items-center gap-2 text-sm font-medium">
-                    {busy === target.id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Icon className="size-4 text-muted-foreground" />
-                    )}
+                    <Icon className="size-4 text-muted-foreground" />
                     {t(`export.${target.id}`)}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -146,7 +153,20 @@ export function SendToWatchDialog({
                       {t(hint)}
                     </span>
                   ) : null}
-                </button>
+                  <Button
+                    size="sm"
+                    className="mt-2 justify-self-start"
+                    disabled={busy !== null}
+                    onClick={() => void run(target)}
+                  >
+                    {busy === target.id ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Download className="size-4" />
+                    )}
+                    {t("export.download")}
+                  </Button>
+                </div>
               );
             })
           )}

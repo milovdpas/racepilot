@@ -500,6 +500,7 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     desc_one: "Eén training, klaar om mee te nemen.",
     desc_other: "{{count}} trainingen, klaar om mee te nemen.",
     target: "Doel {{pace}}",
+    download: "Downloaden",
     done: "Geëxporteerd",
     failed: "Die export is niet gelukt. Probeer het opnieuw.",
     "fit-file": "Trainingsbestand (.fit)",

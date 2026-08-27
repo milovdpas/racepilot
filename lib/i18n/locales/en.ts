@@ -488,6 +488,7 @@ JSON (paste below, or attach the exported .json file):
     desc_one: "One workout, ready to take with you.",
     desc_other: "{{count}} workouts, ready to take with you.",
     target: "Target {{pace}}",
+    download: "Download",
     done: "Exported",
     failed: "That export did not work. Please try again.",
     "fit-file": "Workout file (.fit)",

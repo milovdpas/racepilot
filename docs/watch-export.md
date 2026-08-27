@@ -598,6 +598,20 @@ nobody takes, and each already renders nothing when it does not apply.
 
 ---
 
+## The send-to-watch dialog
+
+Each target is a **panel with a button in it**, not one big clickable panel. It
+used to be a bordered `<button>` wrapping a title, a description and a paragraph
+of device instructions, which reads as something to inform you rather than
+something to press: nobody could tell the card *was* the download.
+
+A successful download closes the dialog, since the file is in Downloads and
+there is nothing left to do there. The device follow-up moves into the toast
+rather than staying in a dialog that is about to disappear - "copy it into
+GARMIN/NEWFILES" is needed *after* the download, which is exactly when the
+dialog is gone. A failure leaves it open, because an error is easier to act on
+with the button that produced it still in front of you.
+
 ## Demo plans ship with structure
 
 Found on the way in: finishing onboarding with a watch selected walked straight
