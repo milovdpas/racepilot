@@ -12,15 +12,16 @@ import {
 import { StepFinish } from "@/components/onboarding/step-finish";
 import { StepPrivacy } from "@/components/onboarding/step-privacy";
 import { StepProfile } from "@/components/onboarding/step-profile";
+import { StepWatch } from "@/components/onboarding/step-watch";
 import { StepTour } from "@/components/onboarding/step-tour";
 import { Button } from "@/components/ui/button";
 import { defaultExampleFor } from "@/lib/plan/examples";
-import type { AthleteType } from "@/lib/types";
+import type { AthleteType, WatchBrand } from "@/lib/types";
 import { enableWeather } from "@/lib/weather/sync";
 import { useSyncStore } from "@/store/use-sync-store";
 import { useTrainingStore } from "@/store/use-training-store";
 
-const STEPS = ["privacy", "tour", "profile", "features", "finish"] as const;
+const STEPS = ["privacy", "tour", "profile", "watch", "features", "finish"] as const;
 
 /**
  * The first-run flow, as a page rather than a stack of dialogs.
@@ -46,6 +47,7 @@ export function OnboardingFlow() {
 
   const [step, setStep] = useState(0);
   const [athleteTypes, setAthleteTypes] = useState<AthleteType[]>([]);
+  const [watch, setWatch] = useState<WatchBrand | undefined>(undefined);
   const [features, setFeatures] = useState<FeatureChoices>(NO_FEATURES);
   const [busy, setBusy] = useState(false);
 
@@ -62,6 +64,10 @@ export function OnboardingFlow() {
     setPreferences({
       onboardingSeen: true,
       athleteTypes,
+      // Only when they picked one. Leaving it unset is what keeps the
+      // one-time prompt available later, and unset already offers every
+      // export rather than none.
+      ...(watch ? { watch } : {}),
       ...(features.weather ? { weatherCalendar: true } : {}),
       ...(features.splits
         ? { splitScannerEnabled: true, splitScannerOnboardingSeen: true }
@@ -135,6 +141,9 @@ export function OnboardingFlow() {
       {current === "tour" ? <StepTour /> : null}
       {current === "profile" ? (
         <StepProfile value={athleteTypes} onChange={setAthleteTypes} />
+      ) : null}
+      {current === "watch" ? (
+        <StepWatch value={watch} onChange={setWatch} />
       ) : null}
       {current === "features" ? (
         <StepFeatures value={features} onChange={setFeatures} />

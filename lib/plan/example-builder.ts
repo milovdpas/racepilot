@@ -12,6 +12,7 @@ import { addDays, startOfWeek } from "date-fns";
 import { toISO } from "@/lib/date";
 import { paceToSeconds, secondsToPace } from "@/lib/pace";
 import { PLAN_VERSION } from "@/lib/plan/defaults";
+import { type StepShape, shapedSteps } from "@/lib/plan/example-steps";
 import type { Sport } from "@/lib/sport";
 import type {
   TrainingPlan,
@@ -34,6 +35,16 @@ export interface SessionTemplate {
   km: number;
   /** Target pace, "m:ss" per km. */
   pace: string;
+  /**
+   * The session's structure, if it has one. Fitted to the week's scaled
+   * distance by `shapedSteps`, so a cutback week gets a shorter warmup rather
+   * than a session that no longer matches its own total.
+   *
+   * Set it on every interval and tempo template. Without it the demo hands a
+   * brand-new athlete the "your watch can do more with this plan" prompt on
+   * their first screen, which is advice about *their* old plan, not ours.
+   */
+  shape?: StepShape;
 }
 
 export interface ExampleSpec {
@@ -97,6 +108,16 @@ function phaseFor(i: number, weeks: number): WeekPhase {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
+/** A template's structure at this week's distance, or nothing if it has none. */
+function stepsFor(
+  s: Pick<SessionTemplate, "shape" | "pace">,
+  km: number,
+): Pick<Workout, "steps"> {
+  if (!s.shape) return {};
+  const steps = shapedSteps(km, s.pace, s.shape);
+  return steps ? { steps } : {};
+}
+
 export function buildExamplePlan(
   spec: ExampleSpec,
   now: Date = new Date(),
@@ -148,6 +169,7 @@ export function buildExamplePlan(
           weekNumber,
           plannedDistanceKm: round1(s.km * factor),
           plannedPace: s.pace,
+          ...stepsFor(s, round1(s.km * factor)),
           completed: false,
         },
         todayIso,
@@ -174,6 +196,7 @@ export function buildExamplePlan(
           weekNumber,
           plannedDistanceKm: leg.km,
           plannedPace: leg.pace,
+          ...stepsFor(leg, leg.km),
           completed: false,
         };
         workoutIds.push(id);

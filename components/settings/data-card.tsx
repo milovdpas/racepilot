@@ -14,22 +14,26 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/store/use-toast-store";
 import { useTrainingStore } from "@/store/use-training-store";
 
-/** Export / import the whole store, plus the copyable "edit with AI" prompt. */
-export function DataCard({
-  status,
-  onStatus,
-}: {
-  /** Shared with PlansCard so "plan deleted" reports in the same place. */
-  status: { ok: boolean; msg: string } | null;
-  onStatus: (s: { ok: boolean; msg: string }) => void;
-}) {
+/**
+ * Export / import the whole store, plus the copyable "edit with AI" prompt.
+ *
+ * The status message is local again. It used to be lifted into the settings
+ * page and shared with PlansCard, so "plan deleted" reported here; once the
+ * page became an accordion that put the confirmation for an action in one
+ * section inside a different, probably collapsed one. Deleting a plan is a
+ * transient event and now says so in a toast, which leaves this message about
+ * importing, right next to the controls that produce it.
+ */
+export function DataCard() {
+  const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(
+    null,
+  );
   const { t } = useTranslation();
   const exportData = useTrainingStore((s) => s.exportData);
   const importData = useTrainingStore((s) => s.importData);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [importText, setImportText] = useState("");
-  const { copied, copy } = useCopyToClipboard();
   const { copied: promptCopied, copy: copyPrompt } = useCopyToClipboard();
 
   const aiPrompt = t("settings.aiPrompt");
@@ -46,12 +50,12 @@ export function DataCard({
   const runImport = (json: string) => {
     try {
       importData(json);
-      onStatus({ ok: true, msg: t("settings.importedOk") });
+      setStatus({ ok: true, msg: t("settings.importedOk") });
       toast.success(t("settings.importedOk"));
       setImportText("");
     } catch (e) {
       console.error("Import failed:", e);
-      onStatus({ ok: false, msg: t("settings.importFailed") });
+      setStatus({ ok: false, msg: t("settings.importFailed") });
     }
   };
 
@@ -66,59 +70,13 @@ export function DataCard({
         <Button variant="outline" size="sm" onClick={handleExport}>
           <Download className="size-4" /> {t("settings.exportJson")}
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const json = exportData();
-            if (json) void copy(json);
-          }}
-        >
-          {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-          {copied ? t("settings.copied") : t("settings.copyJson")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileRef.current?.click()}
-        >
-          <Upload className="size-4" /> {t("settings.importFile")}
-        </Button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/json"
-          className="hidden"
-          onChange={async (e) => {
-            const f = e.target.files?.[0];
-            if (f) runImport(await f.text());
-            e.target.value = "";
-          }}
-        />
       </div>
 
-      <div className="mt-3">
-        <Label className="text-xs text-muted-foreground">
-          {t("settings.pasteJson")}
-        </Label>
-        <Textarea
-          className="mt-1.5 h-24 resize-y font-mono text-xs"
-          placeholder='{"plans": …}'
-          value={importText}
-          onChange={(e) => setImportText(e.target.value)}
-        />
-        <Button
-          size="sm"
-          className="mt-2"
-          disabled={!importText.trim()}
-          onClick={() => runImport(importText)}
-        >
-          {t("settings.importPasted")}
-        </Button>
-      </div>
-
-      {/* Edit with AI helper */}
-      <div className="mt-4 rounded-lg border bg-muted/40 p-3">
+      {/* Between the two, because that is the order the job happens in:
+          export your plan, hand it to an AI, bring the answer back. It used
+          to sit below the import box, so the middle step of the workflow was
+          the last thing on the card. */}
+      <div className="mt-3 rounded-lg border bg-muted/40 p-3">
         <div className="flex items-center gap-2">
           <Sparkles className="size-4 text-primary" />
           <p className="text-xs font-semibold">{t("settings.aiTitle")}</p>
@@ -141,6 +99,51 @@ export function DataCard({
             <Copy className="size-4" />
           )}
           {promptCopied ? t("settings.copied") : t("settings.copyPrompt")}
+        </Button>
+      </div>
+
+
+      {/* Out above, in below. "Import file" used to sit in the export row, so a
+          button that overwrites your plans lived next to the two that only read
+          them. Paired with the paste box instead, since those are two ways to do
+          one thing rather than two separate steps. */}
+      <div className="mt-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Label className="text-xs text-muted-foreground">
+            {t("settings.pasteJson")}
+          </Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileRef.current?.click()}
+          >
+            <Upload className="size-4" /> {t("settings.importFile")}
+          </Button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (f) runImport(await f.text());
+              e.target.value = "";
+            }}
+          />
+        </div>
+        <Textarea
+          className="mt-1.5 h-24 resize-y font-mono text-xs"
+          placeholder='{"plans": …}'
+          value={importText}
+          onChange={(e) => setImportText(e.target.value)}
+        />
+        <Button
+          size="sm"
+          className="mt-2"
+          disabled={!importText.trim()}
+          onClick={() => runImport(importText)}
+        >
+          {t("settings.importPasted")}
         </Button>
       </div>
 

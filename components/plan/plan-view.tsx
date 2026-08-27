@@ -1,10 +1,12 @@
 "use client";
 
-import { ChevronDown, Flag, Plus } from "lucide-react";
+import { CalendarPlus, ChevronDown, Flag, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CompleteWorkoutDialog } from "@/components/common/complete-workout-dialog";
+import { SendToWatchDialog } from "@/components/export/send-to-watch-dialog";
+import { availableTargets, targetFor } from "@/lib/export/target";
 import { FlexibleDayPicker } from "@/components/common/flexible-day-picker";
 import { NoPlanState } from "@/components/common/no-plan-state";
 import { WorkoutRow } from "@/components/common/workout-row";
@@ -17,7 +19,10 @@ import { overallStats } from "@/lib/plan/stats";
 import { type WeekPhase, type Workout } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useActivePlan } from "@/hooks/use-active-plan";
+import { useExportFormat } from "@/hooks/use-export-format";
 import { useFormat } from "@/hooks/use-format";
+import { toast } from "@/store/use-toast-store";
+import { upcomingWorkouts } from "@/lib/plan/workout";
 import { useTrainingStore } from "@/store/use-training-store";
 
 const PHASE_BADGE: Record<WeekPhase, string> = {
@@ -47,12 +52,48 @@ export function PlanView() {
   const [editing, setEditing] = useState<Workout | null>(null);
   const [adding, setAdding] = useState(false);
   const [completing, setCompleting] = useState<Workout | null>(null);
+  const [sending, setSending] = useState<Workout | null>(null);
+  const exportFormat = useExportFormat(plan);
+  // Whether "send to watch" is worth offering at all. A Polar owner has no
+  // workout-scope target, and a button that opens an empty dialog is worse than
+  // no button. The factory decides, not this view.
+  const [canSend, setCanSend] = useState(false);
+  const preferences = useTrainingStore((s) => s.preferences);
+  useEffect(() => {
+    let live = true;
+    void availableTargets(preferences, "workout").then((targets) => {
+      if (live) setCanSend(targets.length > 0);
+    });
+    return () => {
+      live = false;
+    };
+  }, [preferences]);
 
   if (!plan) return <NoPlanState />;
 
   const finishedStats = overallStats(plan);
 
   // Completing opens the quick-log dialog (prefilled); un-checking just flips it.
+  /** Every session from today onwards: what the athlete still has to do. */
+  const upcoming = upcomingWorkouts(Object.values(plan.workouts), today);
+
+  /**
+   * The plan as a calendar file: every session from today onwards, not the
+   * visible week and not the ones already behind them.
+   */
+  const exportCalendar = async () => {
+    const target = targetFor("ics-file");
+    if (!target) return;
+    const result = await target.deliver({
+      plan,
+      workouts: upcoming,
+      format: exportFormat,
+      now: new Date(),
+    });
+    if (result.ok) toast.success(t("calendar.exported"));
+    else toast.error(t("export.failed"));
+  };
+
   const handleToggle = (id: string) => {
     const w = plan.workouts[id];
     if (!w) return;
@@ -93,7 +134,18 @@ export function PlanView() {
         </div>
       ) : null}
 
-      <div className="flex justify-end">
+      <div className="flex justify-between gap-2">
+        {/* The whole block, not a single session: that is what a calendar is
+            for, and it is why this sits here and on the calendar rather than
+            beside one workout. */}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={upcoming.length === 0}
+          onClick={() => void exportCalendar()}
+        >
+          <CalendarPlus className="size-4" /> {t("calendar.exportIcs")}
+        </Button>
         <Button size="sm" onClick={() => setAdding(true)}>
           <Plus className="size-4" /> {t("plan.addWorkout")}
         </Button>
@@ -188,6 +240,7 @@ export function PlanView() {
                             workout={w}
                             onToggle={handleToggle}
                             onEdit={setEditing}
+                            onSendToWatch={canSend ? setSending : undefined}
                             className="rounded-none border-0 bg-transparent"
                           />
                           <div
@@ -214,6 +267,7 @@ export function PlanView() {
                         workout={w}
                         onToggle={handleToggle}
                         onEdit={setEditing}
+                        onSendToWatch={canSend ? setSending : undefined}
                       />
                     );
                   })
@@ -234,6 +288,13 @@ export function PlanView() {
         onOpenChange={setAdding}
         defaultDate={today}
       />
+      <SendToWatchDialog
+        open={!!sending}
+        onOpenChange={(o) => !o && setSending(null)}
+        plan={plan}
+        workouts={sending ? [sending] : []}
+      />
+
       <CompleteWorkoutDialog
         workout={completing}
         open={!!completing}

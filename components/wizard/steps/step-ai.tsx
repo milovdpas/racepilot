@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Download, Sparkles, Upload } from "lucide-react";
+import { Check, Download, Sparkles, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,6 @@ export function StepAi({
   const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importText, setImportText] = useState("");
-  const { copied: requestCopied, copy: copyRequest } = useCopyToClipboard();
   const { copied: promptCopied, copy: copyPrompt } = useCopyToClipboard();
 
   return (
@@ -50,24 +49,13 @@ export function StepAi({
         <li>{t("wizard.aiStep4")}</li>
       </ol>
 
+      {/* Ordered as the job is done: get the prompt into the chat, then give
+          it the file. They are sequential, not alternatives, so no "or".
+
+          There used to be a "Copy request" beside the download, which put the
+          same JSON on the clipboard. Two buttons for one thing read as two
+          things to do, and people did both. */}
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            downloadJSON(filename, requestJson())
-          }
-        >
-          <Download className="size-4" /> {t("wizard.exportRequest")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => void copyRequest(requestJson())}
-        >
-          {requestCopied ? <Check className="size-4" /> : <Copy className="size-4" />}
-          {requestCopied ? t("wizard.copied") : t("wizard.copyRequest")}
-        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -80,28 +68,30 @@ export function StepAi({
           )}
           {promptCopied ? t("wizard.copied") : t("wizard.copyPrompt")}
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => downloadJSON(filename, requestJson())}
+        >
+          <Download className="size-4" /> {t("wizard.exportRequest")}
+        </Button>
       </div>
 
       <div>
-        <Label className="text-xs text-muted-foreground">
-          {t("wizard.importLabel")}
-        </Label>
-        <Textarea
-          className="mt-1.5 h-28 resize-y font-mono text-xs"
-          placeholder='{"plans": …}'
-          value={importText}
-          onChange={(e) => {
-            setImportText(e.target.value);
-            onClearError();
-          }}
-        />
-        <div className="mt-2 flex gap-2">
+        {/* One line, because these are two ways to do the same thing. As a
+            label above the box and a button below it they read as separate
+            steps, and "Attach" was the wrong verb inbound: attaching is what
+            you do to the AI, importing is what this app does. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Label className="text-xs text-muted-foreground">
+            {t("wizard.importLabel")}
+          </Label>
           <Button
             variant="outline"
             size="sm"
             onClick={() => fileRef.current?.click()}
           >
-            <Upload className="size-4" /> {t("wizard.attachFile")}
+            <Upload className="size-4" /> {t("wizard.importFile")}
           </Button>
           <input
             ref={fileRef}
@@ -114,6 +104,17 @@ export function StepAi({
               e.target.value = "";
             }}
           />
+        </div>
+        <Textarea
+          className="mt-1.5 h-28 resize-y font-mono text-xs"
+          placeholder='{"plans": …}'
+          value={importText}
+          onChange={(e) => {
+            setImportText(e.target.value);
+            onClearError();
+          }}
+        />
+        <div className="mt-2 flex gap-2">
           <Button
             size="sm"
             disabled={!importText.trim()}

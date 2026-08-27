@@ -6,9 +6,11 @@ import {
   isLogged,
   isMultiSport,
   planSports,
+  upcomingWorkouts,
   workoutSport,
 } from "@/lib/plan/workout";
 import type { Sport } from "@/lib/sport";
+import type { Workout } from "@/lib/types";
 import type { TrainingPlan } from "@/lib/types";
 
 describe("isLogged", () => {
@@ -138,5 +140,41 @@ describe("planSports", () => {
 
   it("falls back to the plan's sport when it has no workouts yet", () => {
     expect(planSports(build([], "bike"))).toEqual(["bike"]);
+  });
+});
+
+describe("upcomingWorkouts", () => {
+  const w = (id: string, date: string, completed = false) =>
+    ({ id, date, completed }) as Workout;
+
+  it("keeps today and everything after it", () => {
+    const all = [w("a", "2026-08-20"), w("b", "2026-08-24"), w("c", "2026-09-01")];
+    expect(upcomingWorkouts(all, "2026-08-24").map((x) => x.id)).toEqual(["b", "c"]);
+  });
+
+  it("filters by date, not by whether it was done", () => {
+    // Today's session belongs in today's calendar whether or not it is ticked
+    // off, and a completed workout dated next week is a data entry mistake
+    // rather than a reason to hide it.
+    const all = [w("done-today", "2026-08-24", true), w("done-next-week", "2026-08-31", true)];
+    expect(upcomingWorkouts(all, "2026-08-24").map((x) => x.id)).toEqual([
+      "done-today",
+      "done-next-week",
+    ]);
+  });
+
+  it("drops a whole finished block", () => {
+    const all = [w("a", "2026-01-01"), w("b", "2026-02-01")];
+    expect(upcomingWorkouts(all, "2026-08-24")).toEqual([]);
+  });
+
+  it("preserves the order it was given", () => {
+    const all = [w("c", "2026-09-01"), w("b", "2026-08-24")];
+    expect(upcomingWorkouts(all, "2026-08-24").map((x) => x.id)).toEqual(["c", "b"]);
+  });
+
+  it("compares ISO dates as strings, with no timezone in play", () => {
+    expect(upcomingWorkouts([w("a", "2026-12-31")], "2026-09-01")).toHaveLength(1);
+    expect(upcomingWorkouts([w("a", "2026-09-01")], "2026-12-31")).toHaveLength(0);
   });
 });

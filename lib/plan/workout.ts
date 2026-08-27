@@ -86,3 +86,24 @@ export function planSports(plan: TrainingPlan): Sport[] {
 export function isMultiSport(plan: TrainingPlan): boolean {
   return planSports(plan).length > 1;
 }
+
+/**
+ * The sessions still ahead of the athlete: today and later.
+ *
+ * By **date**, not by whether they were completed. A calendar full of runs you
+ * already did is a record, not a plan, and the point of exporting one is to see
+ * what is coming. Date is also the predictable rule: today's session belongs in
+ * today's calendar whether or not it has been ticked off, and a completed
+ * workout dated next week is a data entry mistake, not a reason to hide it.
+ *
+ * `today` is passed in rather than read, so callers stay testable and a plan
+ * exported at 23:59 does not disagree with one exported a minute later.
+ */
+export function upcomingWorkouts(
+  workouts: readonly Workout[],
+  today: string,
+): Workout[] {
+  // ISO dates compare correctly as strings, which is why the app stores them
+  // this way; no Date objects and no timezone to get wrong.
+  return workouts.filter((w) => w.date >= today);
+}

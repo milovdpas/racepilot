@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capabilitiesFor, showsSport } from "./athlete";
+import { capabilitiesFor, markForAthlete, markFromCookie, showsSport } from "./athlete";
 
 describe("capabilitiesFor", () => {
   it("shows everything when the user has never been asked", () => {
@@ -60,5 +60,61 @@ describe("capabilitiesFor", () => {
     expect(capabilitiesFor(["runner", "cyclist"])).not.toBe(
       capabilitiesFor(["cyclist", "runner"]),
     );
+  });
+});
+
+describe("markForAthlete", () => {
+  it("gives a single-sport athlete their own sport", () => {
+    expect(markForAthlete(["runner"])).toBe("run");
+    expect(markForAthlete(["cyclist"])).toBe("bike");
+    expect(markForAthlete(["swimmer"])).toBe("swim");
+  });
+
+  it("keeps every running type on the running mark", () => {
+    // Trail and ultra are the same sport as road running, so this is one sport
+    // however many of them are picked.
+    expect(markForAthlete(["runner", "trail", "ultra"])).toBe("run");
+    expect(markForAthlete(["ultra"])).toBe("run");
+  });
+
+  it("gives the multi mark to anyone doing more than one sport", () => {
+    // The bug this replaces: a triathlete's badge rendered three emoji
+    // squeezed into a 32px box.
+    expect(markForAthlete(["triathlete"])).toBe("multi");
+    expect(markForAthlete(["swimmer", "cyclist"])).toBe("multi");
+    expect(markForAthlete(["runner", "swimmer"])).toBe("multi");
+  });
+
+  it("reads the sports, not the order they were picked", () => {
+    // Whichever they tapped first is not the point: two sports is what is true
+    // about them, and the badge should not claim something narrower.
+    expect(markForAthlete(["swimmer", "cyclist"])).toBe(
+      markForAthlete(["cyclist", "swimmer"]),
+    );
+  });
+
+  it("falls back to running when the athlete has said nothing", () => {
+    // Not "multi". Someone who never answered gets ALL capabilities internally,
+    // so counting their sports would put the multi-sport mark on a person who
+    // has told us nothing at all.
+    expect(markForAthlete(undefined)).toBe("run");
+    expect(markForAthlete([])).toBe("run");
+  });
+});
+
+describe("markFromCookie", () => {
+  it("passes through the marks it knows", () => {
+    for (const m of ["run", "bike", "swim", "multi"] as const) {
+      expect(markFromCookie(m)).toBe(m);
+    }
+  });
+
+  it("falls back to running for anything else", () => {
+    // The cookie is written by the client and can be anything by the time it
+    // comes back. Absent is also the honest answer for a first visit.
+    expect(markFromCookie(undefined)).toBe("run");
+    expect(markFromCookie("")).toBe("run");
+    expect(markFromCookie("triathlete")).toBe("run");
+    expect(markFromCookie("<script>")).toBe("run");
   });
 });

@@ -107,7 +107,7 @@ export function OffDaysView() {
               </div>
               <button
                 type="button"
-                aria-label="Edit off day"
+                aria-label={t("common.edit")}
                 onClick={() => openEdit(o)}
                 className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
               >
@@ -115,7 +115,7 @@ export function OffDaysView() {
               </button>
               <button
                 type="button"
-                aria-label="Delete off day"
+                aria-label={t("common.delete")}
                 onClick={() => deleteOffDay(o.id)}
                 className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-destructive"
               >

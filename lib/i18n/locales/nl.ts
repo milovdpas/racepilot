@@ -2,6 +2,10 @@ import type { Dict } from "./en";
 
 export const nl: Dict = {
   common: {
+    dismiss: "Sluiten",
+    edit: "Bewerken",
+    remove: "Verwijderen",
+    toggleTheme: "Thema wisselen",
     cancel: "Annuleren",
     save: "Opslaan",
     delete: "Verwijderen",
@@ -13,6 +17,7 @@ export const nl: Dict = {
     increase: "Verhogen",
     now: "Nu",
     gotIt: "Duidelijk",
+    close: "Sluiten",
     example: "Voorbeeld",
   },
   nav: {
@@ -118,6 +123,8 @@ export const nl: Dict = {
     startTime: "Gestart om (optioneel)",
   },
   calendar: {
+    exportIcs: "Aan agenda toevoegen",
+    exported: "Agendabestand gedownload",
     title: "Kalender",
     subtitle: "Je trainingsmaand in één oogopslag.",
     today: "Vandaag",
@@ -186,6 +193,11 @@ export const nl: Dict = {
     actual: "Werkelijk",
   },
   settings: {
+    groupPlan: "Je plan",
+    groupData: "Plan bewerken of exporteren",
+    groupProfile: "Over jou",
+    groupFeatures: "Functies",
+    groupApp: "Weergave",
     title: "Instellingen",
     subtitle: "Voorkeuren, thema en je gegevens.",
     plans: "Plannen",
@@ -218,7 +230,7 @@ export const nl: Dict = {
     copyJson: "JSON kopiëren",
     copied: "Gekopieerd",
     importFile: "Bestand importeren",
-    pasteJson: "…of plak JSON",
+    pasteJson: "Plak plan-JSON hier, of",
     importPasted: "Geplakte JSON importeren",
     aiTitle: "Je plan aanpassen met AI",
     aiIntro:
@@ -235,6 +247,7 @@ Je MAG elke GEPLANDE (nog niet voltooide) toekomstige training vrij verplaatsen,
 Elke training heeft GEPLANDE doelen ("plannedDistanceKm", "plannedPace") en, zodra ik hem gedaan heb, VASTGELEGDE werkelijke waarden ("actualDistanceKm", "actualPace", "durationMin" in minuten, optioneel "startTime" als "HH:mm", optioneel "weather" = {tempC, condition, ...}, en optioneel "splits" = tempo per kilometer [{km, pace "mm:ss", elevM}]). Gebruik "splits" om te zien hoe de loop verdeeld was (gelijkmatig, positieve/negatieve split, inzakken aan het eind, heuvels via elevM). Vergelijk gepland met werkelijk om te beoordelen hoe de training echt verloopt (bijv. structureel langzamer/korter dan gepland, of zware sessies in de hitte) en pas de komende trainingen daarop aan.
 
 Je MOET je aan deze regels houden:
+- De JSON kan een "activities"-lijst bevatten: trainingen die ik ECHT heb gedaan, geimporteerd uit mijn Strava-gegevensexport, inclusief training buiten dit plan - { id, date, sport, distanceKm, movingSec, pace, elevGainM? }, nieuwste eerst. Lees die naast de voltooide trainingen om mijn huidige vorm te beoordelen; vaak is het beter bewijs, want het dekt training die dit plan nooit heeft gezien en het bestaat ook als ik hier nog niets heb vastgelegd. Geef de lijst ONGEWIJZIGD terug: het is een verslag van het verleden, geen onderdeel van het plan, en niets erin mag je aanpassen of verwijderen.
 - WIJZIG NOOIT de wedstrijddatum. Houd "raceDate" exact hetzelfde en houd de wedstrijddag-training op zijn datum. De wedstrijddatum staat vast.
 - WIJZIG NOOIT een voltooide training: elke training met "completed": true moet exact zo blijven, inclusief "id", "completed", "actualDistanceKm", "actualPace", "durationMin", "startTime", "weather" en "splits" (zodat ik mijn vastgelegde voortgang niet verlies).
 - Houd de JSON-structuur geldig (plans, weeks, workouts). Als je een training naar een andere week verplaatst, verplaats dan ook zijn id naar de "workoutIds" van die week, en houd de "date" van elke training binnen het start/eind-bereik van zijn week.
@@ -249,8 +262,8 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     planDeleted: "Plan verwijderd.",
     support: "Steun",
     supportDesc:
-      "Deze app is gratis en draait volledig in je browser. Vind je hem nuttig voor je training? Dan mag je iets in het potje doen.",
-    buyMeAWater: "Trakteer me op water",
+      "Deze app is gratis en draait volledig in je browser. Vind je hem nuttig voor je training? Dan zou ik het heel nice vinden als je iets doneert.",
+    buyMeAWater: "Trakteer me op een water",
   },
   sync: {
     title: "Cloudsynchronisatie",
@@ -390,6 +403,8 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     tourSubtitle: "Vier dingen die RacePilot goed doet.",
     profileTitle: "Waar train je voor?",
     profileSubtitle: "Zodat we alleen laten zien wat relevant is.",
+    watchTitle: "Train je met een horloge?",
+    watchSubtitle: "Zodat een geplande sessie op je pols terechtkomt.",
     featuresTitle: "Optionele extra's",
     featuresSubtitle: "Standaard allemaal uit. Zet aan wat je wilt.",
     finishTitle: "Klaar wanneer jij dat bent",
@@ -397,6 +412,8 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       "Maak je eigen plan, of kijk eerst rond met een voorbeeld.",
     profileHint:
       "Optioneel - sla het over en alles blijft zichtbaar. Je kunt dit aanpassen in instellingen.",
+    watchHint:
+      "Optioneel, en aan te passen in Instellingen. Het bepaalt alleen welke uitleg je krijgt.",
     exploreWith: "Rondkijken met het {{plan}}",
     privacy: {
       free: "Helemaal gratis",
@@ -443,10 +460,143 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     title: "Debug-info",
     desc:
       "Wat de app over dit apparaat heeft afgeleid, om te controleren of bijvoorbeeld landherkenning doet wat je verwacht. Hier wordt niets van verstuurd.",
+    replayPrompts: "Stel de eenmalige vragen opnieuw",
     copy: "Debug-info kopiëren",
     version: "Versie {{version}}",
     tapsToGo_one: "(nog {{count}})",
     tapsToGo_other: "(nog {{count}})",
+  },
+  steps: {
+    title: "Structuur",
+    optional: "optioneel",
+    count_one: "{{count}} blok",
+    count_other: "{{count}} blokken",
+    hint:
+      "Deel de sessie op in stappen, dan kan je horloge je erdoorheen leiden. De moeite waard bij intervallen en tempowerk; een rustige duurloop heeft dit niet nodig.",
+    step: "Stap",
+    times: "Herhalingen",
+    min: "min of m:ss",
+    minutesShort: "{{count}} min",
+    pacePlaceholder: "Doel {{unit}} (optioneel)",
+    addStep: "Stap toevoegen",
+    addRepeat: "Herhaling toevoegen",
+    addToRepeat: "Stap aan deze herhaling toevoegen",
+    moveUp: "Omhoog",
+    moveDown: "Omlaag",
+    remove: "Verwijderen",
+    total: "Stappen komen samen op {{total}} {{unit}}.",
+    mismatch: "De training zegt {{planned}}.",
+    useTotal: "Gebruik het staptotaal",
+    role: {
+      warmup: "Warming-up",
+      work: "Werk",
+      recovery: "Herstel",
+      cooldown: "Cooling-down",
+    },
+  },
+  export: {
+    sendToWatch: "Naar horloge sturen",
+    title: "Naar je horloge sturen",
+    desc_one: "Eén training, klaar om mee te nemen.",
+    desc_other: "{{count}} trainingen, klaar om mee te nemen.",
+    target: "Doel {{pace}}",
+    done: "Geëxporteerd",
+    failed: "Die export is niet gelukt. Probeer het opnieuw.",
+    "fit-file": "Trainingsbestand (.fit)",
+    "fit-fileBody":
+      "Een echte gestructureerde training: je horloge telt de stappen af en houdt je aan elk doel.",
+    "ics-file": "Agenda (.ics)",
+    "ics-fileBody":
+      "Zet je training in elke agenda, en zo ook op je pols. Een herinnering aan wat je gaat doen, geen training waar je horloge je doorheen leidt.",
+    followUp: {
+      garmin:
+        "Sluit je horloge aan op een computer, kopieer het bestand naar GARMIN/NEWFILES en koppel het los. Garmin Connect kan trainingen niet importeren, dus de kabel is de enige weg.",
+      coros: "Importeer het bestand in COROS Training Hub en synchroniseer je horloge.",
+      wahoo: "Importeer het bestand in de Wahoo-app en synchroniseer je apparaat.",
+      apple:
+        "Open het bestand in een app die trainingen naar Apple Watch importeert, zoals WatchFit.",
+      generic: "Kopieer het bestand naar je horloge zoals je apparaat dat verwacht.",
+      calendar:
+        "Open het bestand om het aan je agenda toe te voegen. De meeste horloges tonen het dan op je pols.",
+    },
+  },
+  upgradePlan: {
+    promptTitle: "Je horloge kan meer met dit plan",
+    promptBody:
+      "Een paar sessies hebben nog geen stappen, dus die komen als één blok op een gemiddeld tempo op je horloge. Dit lost dat in drie stappen op.",
+    title: "Structuur aan dit plan toevoegen",
+    body_one:
+      "{{count}} komende sessie heeft geen stappen, dus die exporteert als één blok op een gemiddeld tempo. Een AI kan de titels lezen en dat invullen.",
+    body_other:
+      "{{count}} komende sessies hebben geen stappen, dus die exporteren als één blok op een gemiddeld tempo. Een AI kan de titels lezen en dat invullen.",
+    export: "Plan exporteren",
+    import: "Resultaat importeren",
+    stepExport: "Exporteer je plan",
+    stepPrompt: "Plak het bij een AI met dit erbij",
+    stepImport: "Haal het resultaat terug",
+    orPaste: "Of plak de JSON die de AI je gaf:",
+    importPasted: "Geplakte JSON importeren",
+    andMore_one: "en nog {{count}}",
+    andMore_other: "en nog {{count}}",
+    only: "Voeg \"steps\" toe aan precies deze trainingen en verander verder niets in het bestand:",
+    copy: "Prompt kopiëren",
+    prompt: `Hier is mijn trainingsplan als JSON.
+
+Voeg een "steps"-array toe aan elke training waarvan de titel een gestructureerde sessie beschrijft: intervallen, tempoblokken, alles met een warming-up of cooling-down. Laat gewone duurlopen, lange duurlopen en herstelloopjes met rust; één afstand op één tempo heeft geen stappen nodig en ze daar toevoegen is alleen ruis.
+
+Elk item in "steps" heeft een van twee vormen:
+
+  { "kind": "step", "role": "warmup|work|recovery|cooldown",
+    "distanceKm": <getal> OF "durationSec": <getal>,     // precies één, nooit allebei
+    "pace": "mm:ss",            // optioneel, per kilometer, net als plannedPace
+    "paceRangeSec": <getal> }   // optioneel, +/- seconden per kilometer
+
+  { "kind": "repeat", "times": <getal>, "steps": [ ...steps... ] }
+
+Herhalingen nesten niet: een herhaling bevat alleen gewone stappen.
+
+Een training met de titel "6x800m @ 4:10" wordt bijvoorbeeld:
+
+  "steps": [
+    { "kind": "step", "role": "warmup", "distanceKm": 2, "pace": "6:00" },
+    { "kind": "repeat", "times": 6, "steps": [
+      { "role": "work", "distanceKm": 0.8, "pace": "4:10" },
+      { "role": "recovery", "distanceKm": 0.4, "pace": "7:00" }
+    ] },
+    { "kind": "step", "role": "cooldown", "distanceKm": 2 }
+  ]
+
+Regels:
+- Verander "plannedDistanceKm" NIET. Dat blijft het totaal van de sessie. Laat de stappen met een afstand daar ongeveer op uitkomen en pas zo nodig de warming-up en cooling-down aan.
+- Verander verder NIETS, voeg geen trainingen toe of verwijder ze, en hernummer niets. Het enige wat je toevoegt is "steps".
+- Elk tempo blijft "mm:ss" per kilometer, welke eenheden de titel ook gebruikt.
+- "plannedDistanceKm" en "plannedPace" zijn leidend; de titel kan verouderd zijn. Vraagt de titel meer dan het totaal toelaat, bijvoorbeeld "6x800m" in een sessie van 5 km, schaal de sessie dan zodat het past: minder herhalingen, of een korter blok, op het tempo dat bij de training staat. Ga nooit over het totaal heen om een titel te volgen.
+- Als een titel echt te weinig zegt om stappen van te maken, laat die training dan met rust in plaats van een sessie te verzinnen die ik niet gepland heb.
+- Geef het resultaat als een downloadbaar .json-BESTAND zodat ik het direct kan bijvoegen. Kun je geen bestand maken, zet dan de HELE JSON in één json-codeblok, inclusief de allereerste { en de allerlaatste } - splits het nooit en laat geen tekens weg.`,
+  },
+  watch: {
+    title: "Je horloge",
+    body: "Zodat de export je vertelt wat je met het bestand moet doen, in de woorden van je eigen apparaat.",
+    promptTitle: "Met welk horloge train je?",
+    promptBody:
+      "RacePilot kan van een geplande sessie een training maken waar je horloge je doorheen leidt. Vertel wat je draagt en je krijgt de juiste stappen.",
+    notSet: "Nog geen horloge gekozen.",
+    garmin: "Garmin",
+    garminDesc: "Forerunner, Fenix, Venu en de rest",
+    coros: "COROS",
+    corosDesc: "Pace, Apex, Vertix",
+    wahoo: "Wahoo",
+    wahooDesc: "ELEMNT, Rival",
+    apple: "Apple Watch",
+    appleDesc: "Heeft een hulp-app nodig om te importeren",
+    polar: "Polar",
+    polarDesc: "Alleen agenda, geen import van trainingen",
+    suunto: "Suunto",
+    suuntoDesc: "Alleen agenda, geen import van trainingen",
+    other: "Iets anders",
+    otherDesc: "Je krijgt de agenda",
+    none: "Geen horloge",
+    noneDesc: "Bied dit helemaal niet aan",
   },
   splitScanner: {
     title: "Screenshot-scanner",
@@ -488,6 +638,28 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     mockKm: "Km",
     mockPace: "Tempo",
     mockElev: "Hoogte",
+  },
+  activityImport: {
+    hint: "Kies de zip die Strava je mailt, of de activities.csv die erin zit. Alleen dat ene bestand wordt gelezen, op je eigen apparaat, en er wordt niets geupload.",
+    howToTitle: "Zo krijg je je export",
+    howToStep1: "Open je accountinstellingen:",
+    howToStep2:
+      'Zoek "Je account downloaden", kies Aan de slag en vraag je archief aan.',
+    howToStep3:
+      "Strava mailt je een zip, meestal binnen een paar minuten. Kom terug en voeg hem hier toe.",
+    howToWeb:
+      "Dit kan alleen op de Strava-website. De Strava-app kan je gegevens niet exporteren.",
+    zipNoCsv:
+      "Deze zip bevat geen activities.csv. Controleer of dit de export is die Strava je heeft gemaild, en niet een map met activiteiten.",
+    zipUnreadable:
+      "Deze zip kon niet worden geopend. Pak hem zelf uit en kies activities.csv die erin zit.",
+    added_one: "{{count}} activiteit geimporteerd.",
+    added_other: "{{count}} activiteiten geimporteerd.",
+    skipped_one: "{{count}} was geen hardloop-, fiets- of zwemtraining.",
+    skipped_other: "{{count}} waren geen hardloop-, fiets- of zwemtrainingen.",
+    nothingFound:
+      "Geen activiteiten gevonden. Kies activities.csv uit de export, niet een bestand uit de map activities.",
+    failed: "Dit bestand kon niet worden gelezen. Kies de Strava-export zip, of de activities.csv die erin zit.",
   },
   wizard: {
     title: "Een plan maken",
@@ -553,6 +725,9 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     planRuns: "{{runs}} trainingen · {{distance}} vastgelegd",
     showAllPlans: "Toon alle {{count}} plannen",
     showLess: "Toon minder",
+    historyInUse_one: "De AI gebruikt je geimporteerde trainingsgeschiedenis: {{count}} activiteit, {{from}} tot {{to}}.",
+    historyInUse_other: "De AI gebruikt je geimporteerde trainingsgeschiedenis: {{count}} activiteiten, {{from}} tot {{to}}.",
+    importActivities: "Toevoegen uit Strava-export",
     latestRuns: "Je recente trainingen",
     latestRunsHint:
       "Optioneel - geeft de AI een idee van je huidige conditie. Voeg een paar recente trainingen toe.",
@@ -575,16 +750,16 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     // Stap 4
     aiIntro:
       "Je planaanvraag is klaar. Geef het aan een AI-chatbot om het volledige schema te bouwen:",
-    aiStep1: "1. Exporteer de planaanvraag (of kopieer het) hieronder.",
-    aiStep2: "2. Kopieer de prompt en plak het in je AI-chatbot, met het geëxporteerde bestand erbij.",
+    aiStep1: "1. Kopieer de prompt en plak hem in je AI-chatbot.",
+    aiStep2: "2. Exporteer de planaanvraag en voeg dat bestand toe aan hetzelfde gesprek.",
     aiStep3: "3. De AI geeft een plan terug als JSON - mogelijk stelt het eerst een paar vragen.",
-    aiStep4: "4. Plak of voeg die JSON hieronder toe en druk op Plan voltooien.",
+    aiStep4: "4. Plak of importeer die JSON hieronder en druk op Plan voltooien.",
     exportRequest: "Aanvraag exporteren (JSON)",
     copyRequest: "Aanvraag kopiëren",
     copyPrompt: "Prompt kopiëren",
     copied: "Gekopieerd",
-    importLabel: "Plak de plan-JSON van de AI",
-    attachFile: "Bestand toevoegen",
+    importLabel: "Plak het plan van de AI hieronder, of",
+    importFile: "Bestand importeren",
     completePlan: "Plan voltooien",
     created: "Plan aangemaakt",
     completeError:
@@ -613,7 +788,8 @@ Als race.type "backyard" is, gaat het om een BACKYARD ULTRA en geldt de gebruike
 - "goalPace" moet een rustig, herhaalbaar rondetempo zijn dat elk uur genoeg rust overhoudt (een ronde in ongeveer 40-50 minuten is gebruikelijk), NIET een wedstrijdtempo. "goalLabel" moet iets als "24 yards" zijn.
 - Bouw af richting de wedstrijdweek, maar de piektrainingen zijn duur en herhaalde rondes in plaats van één lange afstand.
 - offDays[]: periodes waarin ik niet volledig kan trainen - { start, end, title, note }. De "note" zegt hoe beperkt (bijv. geen training / zeer beperkt / verminderd).
-- latestRuns[]: mijn recente trainingen - { sport, distanceKm, durationMin (TOTALE tijd, in minuten), pace (min/km voor elke sport, afgeleid uit afstand + totale tijd), date }. Gebruik deze om mijn conditie per sport te schatten; 40 km betekent iets heel anders op de fiets dan lopend. Als dit leeg is, vraag me dan naar mijn conditie.
+- latestRuns[]: mijn recente trainingen - { sport, distanceKm, durationMin (TOTALE tijd, in minuten), pace (min/km voor elke sport, afgeleid uit afstand + totale tijd), date }. Gebruik deze om mijn conditie per sport te schatten; 40 km betekent iets heel anders op de fiets dan lopend. Als dit EN trainingHistory allebei leeg zijn, vraag me dan naar mijn conditie.
+- trainingHistory (alleen als ik mijn activiteitenlog heb geimporteerd): het beeld van wat ik ECHT heb getraind - { from, to, sessions, weeks, sessionsPerWeek, avgWeeklyKm, peakWeeklyKm, longestKm, recentWeeklyKm (de weken sinds mijn historie begint, maximaal 8, oudste eerst, waarbij een 0 een week is waarin ik niet trainde), recentSessions (mijn laatste 10 volledig), bySport (sessions, totalKm, longestKm, typicalPace per sport) }. Dit is sterker bewijs dan latestRuns, want het is mijn hele recente blok in plaats van een paar trainingen die ik heb ingetypt. Gebruik het om het STARTvolume per week te bepalen en om te beoordelen hoe snel ik veilig kan opbouwen: begin het plan niet ver boven avgWeeklyKm en ga er vroeg niet overheen peakWeeklyKm. Nullen in recentWeeklyKm zijn echte gaten, dus behandel een recente reeks daarvan als rustperiode om vanaf op te bouwen, niet als taper.
 - previousPlans[]: mijn eerdere trainingsblokken, als ALLEEN-LEZEN historie. Elk blok heeft { name, raceName, raceDistanceKm, raceDate, startDate, goalPace, goalLabel, weeks, summary, weeklyMileage[], completedRuns[] }.
   - summary: { completionPct (hoeveel van dat plan ik echt heb gedaan), completedRuns, totalKm, plannedTotalKm, longestRunKm, averagePace, peakWeekKm }.
   - weeklyMileage[]: { week, plannedKm, actualKm } - gepland versus werkelijk per week, zodat je ziet hoe trouw ik was en hoe de omvang opliep.
@@ -645,6 +821,20 @@ Uitvoer-schema (geef precies deze vorm terug, niets anders):
           "id": "<workoutId>", "date": "YYYY-MM-DD", "type": "easy|tempo|interval|long|recovery",
           "title": "...", "weekNumber": 1, "plannedDistanceKm": <getal>, "plannedPace": "mm:ss",
           "completed": false
+          // OPTIONEEL "steps": de sessie opgedeeld, zodat mijn horloge me erdoorheen
+          // kan leiden. Voeg het toe zodra een sessie STRUCTUUR heeft - intervallen,
+          // tempoblokken, alles met een warming-up - en laat het weg bij een gewone
+          // duurloop, waar het alleen ruis zou zijn. Twee vormen:
+          //   { "kind": "step", "role": "warmup|work|recovery|cooldown",
+          //     "distanceKm": <getal> OF "durationSec": <getal>,     // precies één
+          //     "pace": "mm:ss",            // optioneel, per km, net als plannedPace
+          //     "paceRangeSec": <getal> }   // optioneel, +/- seconden per km
+          //   { "kind": "repeat", "times": <getal>, "steps": [ ...steps... ] }
+          // bijv. 6x800m: [ {"kind":"step","role":"warmup","distanceKm":2,"pace":"6:00"},
+          //   {"kind":"repeat","times":6,"steps":[
+          //     {"role":"work","distanceKm":0.8,"pace":"4:10"},
+          //     {"role":"recovery","distanceKm":0.4,"pace":"7:00"}]},
+          //   {"kind":"step","role":"cooldown","distanceKm":2,"pace":"6:00"} ]
           // Voor flexibele planning voeg ook toe: "flexible": true, "windowStart": "YYYY-MM-DD", "windowEnd": "YYYY-MM-DD"
           // Nieuwe plannen zetten "completed": false. Zodra ik een training vastleg vult de app de werkelijke waarden in:
           // "actualDistanceKm", "actualPace" ("mm:ss"), "durationMin" (getal), optioneel
@@ -666,6 +856,7 @@ Regels:
 - Gebruik mijn laatste lopen om conditie en tempo's te schatten. Zet elke training op "completed": false.
 - Als mijn doeltijd/-tempo niet is gegeven, leid dan een logische "goalPace"/"goalLabel" af uit mijn laatste lopen en de wedstrijdafstand (of vraag het me eerst).
 - Het id van elke training moet in de "workoutIds" van zijn week staan, en de "date" moet binnen die week vallen.
+- "plannedDistanceKm" blijft het totaal van de sessie. Als je "steps" toevoegt, laat de stappen met een afstand samen ongeveer op dat totaal uitkomen, en pas nooit "plannedDistanceKm" aan om bij de stappen te passen.
 - "previousPlans" is historie om van te leren, GEEN sjabloon. Geef in "plans" alleen het nieuwe plan terug - kopieer nooit een eerder plan, zijn weken of trainingen naar je uitvoer. Elk id dat je teruggeeft moet volledig nieuw en uniek zijn.
 - Geef het resultaat als een downloadbaar .json-BESTAND zodat ik het direct kan toevoegen. Als je geen bestand kunt maken, zet dan de VOLLEDIGE JSON in één \`\`\`json-codeblok, inclusief de allereerste { en de allerlaatste } - splits het nooit en laat geen tekens weg.
 - Stel eerst eventuele verduidelijkende vragen en geef daarna ALLEEN de JSON terug.`,

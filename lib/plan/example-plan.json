@@ -68,7 +68,7 @@
           "endDate": "2026-07-19",
           "phase": "reduced",
           "workoutIds": [],
-          "label": "Sick — wondroos (erysipelas)"
+          "label": "Sick: wondroos (erysipelas)"
         },
         {
           "weekNumber": 6,
@@ -396,6 +396,36 @@
               "pace": "5:02",
               "elevM": 0
             }
+          ],
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 2.6,
+              "pace": "5:40"
+            },
+            {
+              "kind": "repeat",
+              "times": 4,
+              "steps": [
+                {
+                  "role": "work",
+                  "distanceKm": 0.8,
+                  "pace": "4:10"
+                },
+                {
+                  "role": "recovery",
+                  "distanceKm": 0.4,
+                  "pace": "6:40"
+                }
+              ]
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 2.6,
+              "pace": "5:40"
+            }
           ]
         },
         "2026-06-28-long": {
@@ -616,7 +646,27 @@
             "icon": "01d",
             "source": "historical",
             "observedAt": "2026-07-01T00:00:00.000Z"
-          }
+          },
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            },
+            {
+              "kind": "step",
+              "role": "work",
+              "distanceKm": 6,
+              "pace": "4:30"
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            }
+          ]
         },
         "2026-07-02-recovery": {
           "id": "2026-07-02-recovery",
@@ -743,6 +793,36 @@
               "km": 6,
               "pace": "5:04",
               "elevM": 1
+            }
+          ],
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1.1,
+              "pace": "5:40"
+            },
+            {
+              "kind": "repeat",
+              "times": 4,
+              "steps": [
+                {
+                  "role": "work",
+                  "distanceKm": 0.8,
+                  "pace": "4:10"
+                },
+                {
+                  "role": "recovery",
+                  "distanceKm": 0.4,
+                  "pace": "6:40"
+                }
+              ]
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1.1,
+              "pace": "5:40"
             }
           ]
         },
@@ -908,7 +988,7 @@
           "id": "2026-08-03-easy",
           "date": "2026-08-03",
           "type": "easy",
-          "title": "Easy run — restart after surf trip",
+          "title": "Easy run: restart after surf trip",
           "weekNumber": 8,
           "plannedDistanceKm": 10,
           "plannedPace": "5:15",
@@ -1093,7 +1173,27 @@
           "weekNumber": 9,
           "plannedDistanceKm": 12,
           "plannedPace": "4:30",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            },
+            {
+              "kind": "step",
+              "role": "work",
+              "distanceKm": 9,
+              "pace": "4:30"
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            }
+          ]
         },
         "2026-08-13-recovery": {
           "id": "2026-08-13-recovery",
@@ -1136,7 +1236,37 @@
           "weekNumber": 10,
           "plannedDistanceKm": 9,
           "plannedPace": "4:10",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 0.9,
+              "pace": "5:40"
+            },
+            {
+              "kind": "repeat",
+              "times": 6,
+              "steps": [
+                {
+                  "role": "work",
+                  "distanceKm": 0.8,
+                  "pace": "4:10"
+                },
+                {
+                  "role": "recovery",
+                  "distanceKm": 0.4,
+                  "pace": "6:40"
+                }
+              ]
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 0.9,
+              "pace": "5:40"
+            }
+          ]
         },
         "2026-08-20-recovery": {
           "id": "2026-08-20-recovery",
@@ -1179,7 +1309,27 @@
           "weekNumber": 11,
           "plannedDistanceKm": 11,
           "plannedPace": "4:30",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            },
+            {
+              "kind": "step",
+              "role": "work",
+              "distanceKm": 8,
+              "pace": "4:30"
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            }
+          ]
         },
         "2026-08-27-recovery": {
           "id": "2026-08-27-recovery",
@@ -1222,7 +1372,37 @@
           "weekNumber": 12,
           "plannedDistanceKm": 10,
           "plannedPace": "4:10",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 0.8,
+              "pace": "5:40"
+            },
+            {
+              "kind": "repeat",
+              "times": 7,
+              "steps": [
+                {
+                  "role": "work",
+                  "distanceKm": 0.8,
+                  "pace": "4:10"
+                },
+                {
+                  "role": "recovery",
+                  "distanceKm": 0.4,
+                  "pace": "6:40"
+                }
+              ]
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 0.8,
+              "pace": "5:40"
+            }
+          ]
         },
         "2026-09-03-recovery": {
           "id": "2026-09-03-recovery",
@@ -1265,7 +1445,27 @@
           "weekNumber": 13,
           "plannedDistanceKm": 13,
           "plannedPace": "4:30",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            },
+            {
+              "kind": "step",
+              "role": "work",
+              "distanceKm": 10,
+              "pace": "4:30"
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1.5,
+              "pace": "6:00"
+            }
+          ]
         },
         "2026-09-10-recovery": {
           "id": "2026-09-10-recovery",
@@ -1304,17 +1504,47 @@
           "id": "2026-09-16-interval",
           "date": "2026-09-16",
           "type": "interval",
-          "title": "6×800m @ 4:10 (reduced — Vacation)",
+          "title": "4×600m @ 4:20 (reduced, Vacation)",
           "weekNumber": 14,
           "plannedDistanceKm": 5,
           "plannedPace": "4:20",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 0.7,
+              "pace": "5:50"
+            },
+            {
+              "kind": "repeat",
+              "times": 4,
+              "steps": [
+                {
+                  "role": "work",
+                  "distanceKm": 0.6,
+                  "pace": "4:20"
+                },
+                {
+                  "role": "recovery",
+                  "distanceKm": 0.3,
+                  "pace": "6:50"
+                }
+              ]
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 0.7,
+              "pace": "5:50"
+            }
+          ]
         },
         "2026-09-17-recovery": {
           "id": "2026-09-17-recovery",
           "date": "2026-09-17",
           "type": "recovery",
-          "title": "Recovery run (reduced — Vacation)",
+          "title": "Recovery run (reduced, Vacation)",
           "weekNumber": 14,
           "plannedDistanceKm": 4,
           "plannedPace": "5:40",
@@ -1324,7 +1554,7 @@
           "id": "2026-09-20-easy",
           "date": "2026-09-20",
           "type": "easy",
-          "title": "Long run (reduced — Vacation)",
+          "title": "Long run (reduced, Vacation)",
           "weekNumber": 14,
           "plannedDistanceKm": 14,
           "plannedPace": "5:25",
@@ -1337,7 +1567,7 @@
           "id": "2026-09-21-easy",
           "date": "2026-09-21",
           "type": "easy",
-          "title": "Easy run (reduced — Vacation)",
+          "title": "Easy run (reduced, Vacation)",
           "weekNumber": 15,
           "plannedDistanceKm": 7,
           "plannedPace": "5:15",
@@ -1347,11 +1577,31 @@
           "id": "2026-09-23-tempo",
           "date": "2026-09-23",
           "type": "tempo",
-          "title": "Tempo 10 km @ 4:30 (reduced — Vacation)",
+          "title": "Tempo 6 km @ 4:40 (reduced, Vacation)",
           "weekNumber": 15,
           "plannedDistanceKm": 8,
           "plannedPace": "4:40",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1,
+              "pace": "6:10"
+            },
+            {
+              "kind": "step",
+              "role": "work",
+              "distanceKm": 6,
+              "pace": "4:40"
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1,
+              "pace": "6:10"
+            }
+          ]
         },
         "2026-09-24-recovery": {
           "id": "2026-09-24-recovery",
@@ -1367,7 +1617,7 @@
           "id": "2026-09-27-long",
           "date": "2026-09-27",
           "type": "long",
-          "title": "Long run — peak 🏔️",
+          "title": "Long run: peak 🏔️",
           "weekNumber": 15,
           "plannedDistanceKm": 30,
           "plannedPace": "5:15",
@@ -1394,7 +1644,27 @@
           "weekNumber": 16,
           "plannedDistanceKm": 9,
           "plannedPace": "4:58",
-          "completed": false
+          "completed": false,
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1.5,
+              "pace": "6:28"
+            },
+            {
+              "kind": "step",
+              "role": "work",
+              "distanceKm": 6,
+              "pace": "4:58"
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1.5,
+              "pace": "6:28"
+            }
+          ]
         },
         "2026-10-01-recovery": {
           "id": "2026-10-01-recovery",
@@ -1453,7 +1723,7 @@
           "id": "2026-10-11-long",
           "date": "2026-10-11",
           "type": "long",
-          "title": "Marathon — race day 🏁",
+          "title": "Marathon: race day 🏁",
           "weekNumber": 17,
           "plannedDistanceKm": 42.2,
           "plannedPace": "4:58",
@@ -1613,7 +1883,7 @@
           "id": "2026-07-24-easy",
           "date": "2026-07-24",
           "type": "easy",
-          "title": "Return-to-run — first run after wondroos",
+          "title": "Return-to-run: first run after wondroos",
           "weekNumber": 6,
           "plannedDistanceKm": 10.09,
           "plannedPace": "4:46",
@@ -1740,13 +2010,43 @@
               "pace": "4:35",
               "elevM": 0
             }
+          ],
+          "steps": [
+            {
+              "kind": "step",
+              "role": "warmup",
+              "distanceKm": 1.1,
+              "pace": "5:40"
+            },
+            {
+              "kind": "repeat",
+              "times": 4,
+              "steps": [
+                {
+                  "role": "work",
+                  "distanceKm": 0.8,
+                  "pace": "4:10"
+                },
+                {
+                  "role": "recovery",
+                  "distanceKm": 0.4,
+                  "pace": "6:40"
+                }
+              ]
+            },
+            {
+              "kind": "step",
+              "role": "cooldown",
+              "distanceKm": 1.1,
+              "pace": "5:40"
+            }
           ]
         },
         "2026-08-14-recovery": {
           "id": "2026-08-14-recovery",
           "date": "2026-08-14",
           "type": "recovery",
-          "title": "Extra easy run (5th day) — skip if long run lands on Saturday",
+          "title": "Extra easy run (5th day). Skip if long run lands on Saturday",
           "weekNumber": 9,
           "plannedDistanceKm": 5,
           "plannedPace": "5:35",
@@ -1759,7 +2059,7 @@
           "id": "2026-08-21-recovery",
           "date": "2026-08-21",
           "type": "recovery",
-          "title": "Extra easy run (5th day) — skip if long run lands on Saturday",
+          "title": "Extra easy run (5th day). Skip if long run lands on Saturday",
           "weekNumber": 10,
           "plannedDistanceKm": 5,
           "plannedPace": "5:35",
@@ -1772,7 +2072,7 @@
           "id": "2026-08-28-recovery",
           "date": "2026-08-28",
           "type": "recovery",
-          "title": "Extra easy run (5th day) — skip if long run lands on Saturday",
+          "title": "Extra easy run (5th day). Skip if long run lands on Saturday",
           "weekNumber": 11,
           "plannedDistanceKm": 6,
           "plannedPace": "5:35",
@@ -1785,7 +2085,7 @@
           "id": "2026-09-04-recovery",
           "date": "2026-09-04",
           "type": "recovery",
-          "title": "Extra easy run (5th day) — skip if long run lands on Saturday",
+          "title": "Extra easy run (5th day). Skip if long run lands on Saturday",
           "weekNumber": 12,
           "plannedDistanceKm": 6,
           "plannedPace": "5:35",
@@ -1798,7 +2098,7 @@
           "id": "2026-09-11-recovery",
           "date": "2026-09-11",
           "type": "recovery",
-          "title": "Extra easy run (5th day) — skip if long run lands on Saturday",
+          "title": "Extra easy run (5th day). Skip if long run lands on Saturday",
           "weekNumber": 13,
           "plannedDistanceKm": 6,
           "plannedPace": "5:35",
@@ -1814,7 +2114,7 @@
           "start": "2026-06-24",
           "end": "2026-06-24",
           "title": "Bouldering",
-          "note": "Short run only — quality session moved to Thursday"
+          "note": "Short run only: quality session moved to Thursday"
         },
         {
           "id": "off-ghent",
@@ -1834,7 +2134,7 @@
           "id": "off-sick-wondroos",
           "start": "2026-07-12",
           "end": "2026-07-23",
-          "title": "Sick — wondroos (erysipelas)",
+          "title": "Sick: wondroos (erysipelas)",
           "note": "Antibiotics + full rest; no training"
         },
         {

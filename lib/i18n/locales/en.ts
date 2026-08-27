@@ -1,5 +1,9 @@
 export const en = {
   common: {
+    dismiss: "Dismiss",
+    edit: "Edit",
+    remove: "Remove",
+    toggleTheme: "Toggle theme",
     cancel: "Cancel",
     save: "Save",
     delete: "Delete",
@@ -11,6 +15,7 @@ export const en = {
     increase: "Increase",
     now: "Now",
     gotIt: "Got it",
+    close: "Close",
     example: "Example",
   },
   nav: {
@@ -118,6 +123,8 @@ export const en = {
     startTime: "Started at (optional)",
   },
   calendar: {
+    exportIcs: "Add to calendar",
+    exported: "Calendar file downloaded",
     title: "Calendar",
     subtitle: "Your training month at a glance.",
     today: "Today",
@@ -186,6 +193,11 @@ export const en = {
     actual: "Actual",
   },
   settings: {
+    groupPlan: "Your plan",
+    groupData: "Edit or export plan",
+    groupProfile: "About you",
+    groupFeatures: "Features",
+    groupApp: "Appearance",
     title: "Settings",
     subtitle: "Preferences, theme, and your data.",
     plans: "Plans",
@@ -217,7 +229,7 @@ export const en = {
     copyJson: "Copy JSON",
     copied: "Copied",
     importFile: "Import file",
-    pasteJson: "…or paste JSON",
+    pasteJson: "Paste plan JSON here, or",
     importPasted: "Import pasted JSON",
     aiTitle: "Edit your plan with AI",
     aiIntro:
@@ -234,6 +246,7 @@ You MAY freely reschedule, add, remove or modify any PLANNED (not-yet-completed)
 Each workout has PLANNED targets ("plannedDistanceKm", "plannedPace") and, once I've done it, LOGGED actuals ("actualDistanceKm", "actualPace", "durationMin" in minutes, optional "startTime" as "HH:mm", optional "weather" = {tempC, condition, ...}, and optional "splits" = per-kilometer pacing [{km, pace "mm:ss", elevM}]). Use "splits" to see how the run was paced (even splits, positive/negative split, a blow-up late on, hills via elevM). Compare planned vs actual to judge how the training is actually going (e.g. consistently slower/shorter than planned, or hard sessions done in heat) and adapt upcoming workouts accordingly.
 
 You MUST follow these rules:
+- The JSON may carry an "activities" list: sessions I ACTUALLY did, imported from my Strava data export, including training done outside this plan - { id, date, sport, distanceKm, movingSec, pace, elevGainM? }, newest first. Read it alongside the completed workouts to judge my current form; it is often the better evidence, because it covers training this plan never saw and it exists even when I have logged nothing here yet. Return the list UNCHANGED: it is a record of the past, not part of the plan, and nothing in it is yours to edit or remove.
 - NEVER change the race date. Keep "raceDate" exactly the same and keep the race-day workout on its date. The race date is fixed.
 - NEVER alter a completed workout: any workout with "completed": true must stay exactly as-is, including its "id", "completed", "actualDistanceKm", "actualPace", "durationMin", "startTime", "weather" and "splits" (don't lose my logged progress).
 - Keep the JSON structure valid (plans, weeks, workouts). If you move a workout to a different week, also move its id into that week's "workoutIds", and keep each workout's "date" inside its week's start/end range.
@@ -388,12 +401,16 @@ JSON (paste below, or attach the exported .json file):
     tourSubtitle: "Four things RacePilot does well.",
     profileTitle: "What do you train for?",
     profileSubtitle: "So we only show you what's relevant.",
+    watchTitle: "Do you train with a watch?",
+    watchSubtitle: "So a planned session can end up on your wrist.",
     featuresTitle: "Optional extras",
     featuresSubtitle: "All off by default. Turn on what you want.",
     finishTitle: "Ready when you are",
     finishSubtitle: "Build your own plan, or look around with an example first.",
     profileHint:
       "Optional - skip it and everything stays visible. You can change this in Settings.",
+    watchHint:
+      "Optional, and changeable in Settings. It only decides which instructions you are shown.",
     exploreWith: "Look around with the {{plan}}",
     privacy: {
       free: "Completely free",
@@ -431,10 +448,143 @@ JSON (paste below, or attach the exported .json file):
     title: "Debug info",
     desc:
       "What the app worked out about this device, for checking that things like country detection landed the way you expect. Nothing here is sent anywhere.",
+    replayPrompts: "Ask the one-time prompts again",
     copy: "Copy debug info",
     version: "Version {{version}}",
     tapsToGo_one: "({{count}} more)",
     tapsToGo_other: "({{count}} more)",
+  },
+  steps: {
+    title: "Structure",
+    optional: "optional",
+    count_one: "{{count}} block",
+    count_other: "{{count}} blocks",
+    hint:
+      "Break the session into steps and your watch can guide you through it. Worth doing for intervals and tempo work; a plain easy run needs nothing here.",
+    step: "Step",
+    times: "Repeats",
+    min: "min or m:ss",
+    minutesShort: "{{count}} min",
+    pacePlaceholder: "Target {{unit}} (optional)",
+    addStep: "Add step",
+    addRepeat: "Add repeat",
+    addToRepeat: "Add a step to this repeat",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    remove: "Remove",
+    total: "Steps add up to {{total}} {{unit}}.",
+    mismatch: "The workout says {{planned}}.",
+    useTotal: "Use the step total",
+    role: {
+      warmup: "Warm up",
+      work: "Work",
+      recovery: "Recovery",
+      cooldown: "Cool down",
+    },
+  },
+  export: {
+    sendToWatch: "Send to watch",
+    title: "Send to your watch",
+    desc_one: "One workout, ready to take with you.",
+    desc_other: "{{count}} workouts, ready to take with you.",
+    target: "Target {{pace}}",
+    done: "Exported",
+    failed: "That export did not work. Please try again.",
+    "fit-file": "Workout file (.fit)",
+    "fit-fileBody":
+      "A real structured workout: your watch counts the steps down and holds you to each target.",
+    "ics-file": "Calendar (.ics)",
+    "ics-fileBody":
+      "Adds your training to any calendar, and to your wrist through it. A reminder of what to do, not a workout the watch guides you through.",
+    followUp: {
+      garmin:
+        "Connect your watch to a computer, copy the file into GARMIN/NEWFILES, then unplug. Garmin Connect cannot import workouts, so the cable is the only way in.",
+      coros: "Import the file in COROS Training Hub, then sync your watch.",
+      wahoo: "Import the file in the Wahoo app, then sync your device.",
+      apple:
+        "Open the file in an app that imports workouts to Apple Watch, such as WatchFit.",
+      generic: "Copy the file to your watch the way your device expects.",
+      calendar:
+        "Open the file to add it to your calendar. Most watches then show it on your wrist.",
+    },
+  },
+  upgradePlan: {
+    promptTitle: "Your watch can do more with this plan",
+    promptBody:
+      "Some sessions have no step breakdown yet, so they would reach your watch as one block at an average pace. This fixes that in three steps.",
+    title: "Add structure to this plan",
+    body_one:
+      "{{count}} upcoming session has no step breakdown, so it exports as one block at an average pace. An AI can read the titles and fill that in.",
+    body_other:
+      "{{count}} upcoming sessions have no step breakdown, so they export as one block at an average pace. An AI can read the titles and fill that in.",
+    export: "Export the plan",
+    import: "Import the result",
+    stepExport: "Export your plan",
+    stepPrompt: "Paste it to an AI with this",
+    stepImport: "Bring the result back",
+    orPaste: "Or paste the JSON the AI gave you:",
+    importPasted: "Import pasted JSON",
+    andMore_one: "and {{count}} more",
+    andMore_other: "and {{count}} more",
+    only: "Add \"steps\" to exactly these workouts and change nothing else in the file:",
+    copy: "Copy the prompt",
+    prompt: `Here is my training plan as JSON.
+
+Add a "steps" array to every workout whose title describes a structured session: intervals, tempo blocks, anything with a warmup or a cooldown. Leave plain easy runs, long runs and recovery runs alone; a single distance at a single pace needs no steps and adding them there is only noise.
+
+Each entry in "steps" is one of two shapes:
+
+  { "kind": "step", "role": "warmup|work|recovery|cooldown",
+    "distanceKm": <number> OR "durationSec": <number>,   // exactly one, never both
+    "pace": "mm:ss",            // optional, per kilometer, same format as plannedPace
+    "paceRangeSec": <number> }  // optional, +/- seconds per kilometer
+
+  { "kind": "repeat", "times": <number>, "steps": [ ...steps... ] }
+
+Repeats do not nest: a repeat contains plain steps only.
+
+For example, a workout titled "6x800m @ 4:10" becomes:
+
+  "steps": [
+    { "kind": "step", "role": "warmup", "distanceKm": 2, "pace": "6:00" },
+    { "kind": "repeat", "times": 6, "steps": [
+      { "role": "work", "distanceKm": 0.8, "pace": "4:10" },
+      { "role": "recovery", "distanceKm": 0.4, "pace": "7:00" }
+    ] },
+    { "kind": "step", "role": "cooldown", "distanceKm": 2 }
+  ]
+
+Rules:
+- Do NOT change "plannedDistanceKm". It stays the total for the session. Make the distance-based steps add up to roughly that total instead, adjusting the warmup and cooldown if you need to.
+- Do NOT change any other field, add or remove workouts, or renumber anything. The only thing you are adding is "steps".
+- Every pace stays in "mm:ss" per kilometer, whatever units the title uses.
+- "plannedDistanceKm" and "plannedPace" are the truth; the title can be out of date. If the title asks for more than the total allows, for example "6x800m" in a 5 km session, scale the session to fit: fewer reps, or a shorter block, at the pace the workout actually says. Do not exceed the total to satisfy a title.
+- If a title genuinely does not say enough to build steps from, leave that workout untouched rather than inventing a session I did not plan.
+- Give me the result as a downloadable .json FILE so I can attach it directly. If you can't create a file, put the ENTIRE JSON in a single json code block, including the very first { and the very last } - never split it or leave characters out.`,
+  },
+  watch: {
+    title: "Your watch",
+    body: "So the export tells you what to do with the file, in the words your own device uses.",
+    promptTitle: "Which watch do you train with?",
+    promptBody:
+      "RacePilot can turn a planned session into a workout your watch guides you through. Tell it what you wear and it will give you the right steps.",
+    notSet: "No watch selected yet.",
+    garmin: "Garmin",
+    garminDesc: "Forerunner, Fenix, Venu and the rest",
+    coros: "COROS",
+    corosDesc: "Pace, Apex, Vertix",
+    wahoo: "Wahoo",
+    wahooDesc: "ELEMNT, Rival",
+    apple: "Apple Watch",
+    appleDesc: "Needs a helper app to import",
+    polar: "Polar",
+    polarDesc: "Calendar only, no workout import",
+    suunto: "Suunto",
+    suuntoDesc: "Calendar only, no workout import",
+    other: "Something else",
+    otherDesc: "You will get the calendar",
+    none: "No watch",
+    noneDesc: "Do not offer this at all",
   },
   splitScanner: {
     title: "Screenshot scanner",
@@ -476,6 +626,28 @@ JSON (paste below, or attach the exported .json file):
     mockKm: "Km",
     mockPace: "Pace",
     mockElev: "Elev",
+  },
+  activityImport: {
+    hint: "Take the zip Strava emails you, or the activities.csv inside it. Only that one file is read, on your device, and nothing is ever uploaded.",
+    howToTitle: "How to get your export",
+    howToStep1: "Open your account settings:",
+    howToStep2:
+      'Find "Download your account", choose Get Started, then request your archive.',
+    howToStep3:
+      "Strava emails you a zip, usually within a few minutes. Come back here and add it.",
+    howToWeb:
+      "This only works on the Strava website. The Strava mobile app cannot export your data.",
+    zipNoCsv:
+      "That zip has no activities.csv in it. Make sure it is the export Strava emailed you, not a folder of activities.",
+    zipUnreadable:
+      "That zip could not be opened. Unzip it yourself and pick activities.csv from inside instead.",
+    added_one: "Imported {{count}} activity.",
+    added_other: "Imported {{count}} activities.",
+    skipped_one: "{{count}} was not a run, ride or swim.",
+    skipped_other: "{{count}} were not runs, rides or swims.",
+    nothingFound:
+      "No activities found. Pick activities.csv from the export, not one of the files in the activities folder.",
+    failed: "That file could not be read. It should be the Strava export zip, or the activities.csv from inside it.",
   },
   wizard: {
     title: "Create a plan",
@@ -540,6 +712,9 @@ JSON (paste below, or attach the exported .json file):
     planRuns: "{{runs}} sessions · {{distance}} logged",
     showAllPlans: "Show all {{count}} plans",
     showLess: "Show less",
+    historyInUse_one: "The AI will use your imported training history: {{count}} activity, {{from}} to {{to}}.",
+    historyInUse_other: "The AI will use your imported training history: {{count}} activities, {{from}} to {{to}}.",
+    importActivities: "Add from Strava export",
     latestRuns: "Your recent sessions",
     latestRunsHint:
       "Optional - gives the AI a sense of your current fitness. Add a few recent sessions.",
@@ -562,16 +737,16 @@ JSON (paste below, or attach the exported .json file):
     // Step 4
     aiIntro:
       "Your plan request is ready. Hand it to an AI chatbot to build the full schedule:",
-    aiStep1: "1. Export the plan request (or copy it) below.",
-    aiStep2: "2. Copy the prompt and paste it into your AI chatbot, attaching the exported file.",
+    aiStep1: "1. Copy the prompt and paste it into your AI chatbot.",
+    aiStep2: "2. Export the plan request and attach that file to the same chat.",
     aiStep3: "3. The AI returns a plan as JSON - it may ask a few questions first.",
-    aiStep4: "4. Paste or attach that JSON below and press Complete plan.",
+    aiStep4: "4. Paste or import that JSON below and press Complete plan.",
     exportRequest: "Export request (JSON)",
     copyRequest: "Copy request",
     copyPrompt: "Copy prompt",
     copied: "Copied",
-    importLabel: "Paste the AI's plan JSON",
-    attachFile: "Attach file",
+    importLabel: "Paste the AI's plan below, or",
+    importFile: "Import file",
     completePlan: "Complete plan",
     created: "Plan created",
     completeError:
@@ -600,7 +775,8 @@ If race.type is "backyard", this is a BACKYARD ULTRA and the usual fixed-distanc
 - "goalPace" should be an easy, repeatable loop pace that still banks useful rest each hour (finishing a loop in roughly 40-50 minutes is typical), NOT a race pace. "goalLabel" should read like "24 yards".
 - Taper into race week, but the peak sessions are duration and repeated loops rather than one long distance.
 - offDays[]: periods I can't fully train - { start, end, title, note }. The "note" says how limited it is (e.g. no training / very limited / reduced).
-- latestRuns[]: my recent sessions - { sport, distanceKm, durationMin (TOTAL time, in minutes), pace (min/km for every sport, derived from distance + total time), date }. Use these to estimate my current fitness in EACH sport; 40 km means something very different on a bike than on foot. If this is empty, ask me about my fitness.
+- latestRuns[]: my recent sessions - { sport, distanceKm, durationMin (TOTAL time, in minutes), pace (min/km for every sport, derived from distance + total time), date }. Use these to estimate my current fitness in EACH sport; 40 km means something very different on a bike than on foot. If this AND trainingHistory are both empty, ask me about my fitness.
+- trainingHistory (only when I have imported my activity log): the shape of what I have ACTUALLY been training - { from, to, sessions, weeks, sessionsPerWeek, avgWeeklyKm, peakWeeklyKm, longestKm, recentWeeklyKm (the weeks since my history begins, at most 8, oldest first, where a 0 is a week I did not train), recentSessions (my last 10 in full), bySport (sessions, totalKm, longestKm, typicalPace per sport) }. This is stronger evidence than latestRuns, because it is my whole recent block rather than a few sessions I typed in. Use it to set the STARTING weekly volume and to judge how fast I can safely ramp: do not open the plan far above avgWeeklyKm, and do not exceed peakWeeklyKm early. Zeros in recentWeeklyKm are real gaps, so treat a recent run of them as time off to build back from rather than as a taper.
 - previousPlans[]: my earlier training blocks, as READ-ONLY history. Each has { name, raceName, raceDistanceKm, raceDate, startDate, goalPace, goalLabel, weeks, summary, weeklyMileage[], completedRuns[] }.
   - summary: { completionPct (how much of that plan I actually did), completedRuns, totalKm, plannedTotalKm, longestRunKm, averagePace, peakWeekKm }.
   - weeklyMileage[]: { week, plannedKm, actualKm } - planned vs actual per week, so you can see adherence and how volume ramped.
@@ -632,6 +808,20 @@ Output schema (return exactly this shape, nothing else):
           "id": "<workoutId>", "date": "YYYY-MM-DD", "type": "easy|tempo|interval|long|recovery",
           "title": "...", "weekNumber": 1, "plannedDistanceKm": <number>, "plannedPace": "mm:ss",
           "completed": false
+          // OPTIONAL "steps": the session broken down, so my watch can guide me
+          // through it. Add it whenever the session HAS structure - intervals,
+          // tempo blocks, anything with a warmup - and leave it out for a plain
+          // easy or long run, where it would only be noise. Two shapes:
+          //   { "kind": "step", "role": "warmup|work|recovery|cooldown",
+          //     "distanceKm": <number> OR "durationSec": <number>,   // exactly one
+          //     "pace": "mm:ss",            // optional, per km, same as plannedPace
+          //     "paceRangeSec": <number> }  // optional, +/- seconds per km
+          //   { "kind": "repeat", "times": <number>, "steps": [ ...steps... ] }
+          // e.g. 6x800m: [ {"kind":"step","role":"warmup","distanceKm":2,"pace":"6:00"},
+          //   {"kind":"repeat","times":6,"steps":[
+          //     {"role":"work","distanceKm":0.8,"pace":"4:10"},
+          //     {"role":"recovery","distanceKm":0.4,"pace":"7:00"}]},
+          //   {"kind":"step","role":"cooldown","distanceKm":2,"pace":"6:00"} ]
           // For flexible scheduling also add: "flexible": true, "windowStart": "YYYY-MM-DD", "windowEnd": "YYYY-MM-DD"
           // New plans set "completed": false. Once I log a run the app fills in actuals:
           // "actualDistanceKm", "actualPace" ("mm:ss"), "durationMin" (number), optional
@@ -653,6 +843,7 @@ Rules:
 - Use my latest runs to estimate fitness and paces. Set every workout "completed": false.
 - If my goal time/pace isn't provided, infer a sensible "goalPace"/"goalLabel" from my latest runs and the race distance (or ask me first).
 - Each workout's id must appear in its week's "workoutIds", and its "date" must fall within that week.
+- "plannedDistanceKm" stays the total for the session. When you add "steps", make the distance-based steps add up to roughly that total, and never change "plannedDistanceKm" to match the steps instead.
 - "previousPlans" is history to learn from, NOT a template. Return ONLY the new plan in "plans" - never copy a previous plan, its weeks or its workouts into your output. Every id you emit must be brand new and unique.
 - Give me the result as a downloadable .json FILE so I can attach it directly. If you can't create a file, put the ENTIRE JSON in a single \`\`\`json code block, including the very first { and the very last } - never split it or leave characters out.
 - Ask me any clarifying questions first, then return ONLY the JSON.`,

@@ -27,6 +27,32 @@ export interface WorkoutSplit {
   elevM?: number; // elevation delta in meters (may be negative)
 }
 
+/**
+ * One session the athlete actually did, imported from a data export rather than
+ * planned here. Evidence of current fitness, which is what the plan AI needs
+ * and what `latestRuns` used to ask people to type by hand.
+ *
+ * Deliberately a *summary*. The source files carry GPS traces starting at the
+ * athlete's front door; nothing with a coordinate in it reaches this type, and
+ * `lib/activity/strava-csv.ts` reads only the columns named here. Keeping the
+ * shape this narrow is what makes that guarantee checkable.
+ */
+export interface ActivitySummary {
+  /** The exporter's own id. The dedupe key, so a re-import replaces cleanly. */
+  id: string;
+  date: string; // ISO yyyy-mm-dd, local to the athlete
+  sport: Sport;
+  /** The athlete's own title, e.g. "Hoogte meterkes". May be empty. */
+  name: string;
+  distanceKm: number;
+  /** Moving time, which is what pace is computed from. */
+  movingSec: number;
+  pace: string; // "mm:ss" per km, same canonical unit as everywhere else
+  elevGainM?: number;
+  /** Absent in plenty of exports, so nothing may depend on it. */
+  avgHr?: number;
+}
+
 export type WeekPhase =
   | "base"
   | "build"
@@ -34,6 +60,53 @@ export type WeekPhase =
   | "taper"
   | "race"
   | "reduced";
+
+/**
+ * What a step is *for*. Separate from `WorkoutType`, which describes the
+ * session as a whole: a single interval session contains warmup, work and
+ * recovery steps, and each needs its own intensity on the watch.
+ */
+export type StepRole = "warmup" | "work" | "recovery" | "cooldown";
+
+/**
+ * One step of a structured workout.
+ *
+ * A step ends on **either** a distance or a time, never both — that is how
+ * every watch models it, and allowing both would leave "which one wins?"
+ * undefined. `isValidSteps()` in `lib/plan/workout-steps.ts` enforces it.
+ */
+export interface WorkoutStep {
+  role: StepRole;
+  /** Ends after this distance. Mutually exclusive with `durationSec`. */
+  distanceKm?: number;
+  /** Ends after this long. Mutually exclusive with `distanceKm`. */
+  durationSec?: number;
+  /**
+   * Target pace, "mm:ss" per km — the same canonical unit as `plannedPace`
+   * and every other pace in the app, for every sport. Absent means "no target",
+   * which is a real answer for a warmup.
+   */
+  pace?: string;
+  /**
+   * Half-width of the target band, in seconds per km. Absent means a single
+   * target rather than a zero-width range: a watch given `low === high` alerts
+   * constantly, so the two cases must stay distinguishable.
+   */
+  paceRangeSec?: number;
+  note?: string;
+}
+
+/**
+ * A structured workout, as a flat list with **one** level of nesting for
+ * repeats: `6 × (800m hard + 400m jog)`.
+ *
+ * One level and no more, deliberately. It is exactly what FIT expresses with
+ * `repeat_steps`, it covers every session a human actually writes down, and
+ * deeper nesting would need an editor far beyond what the gain justifies.
+ */
+export type WorkoutBlock =
+  | ({ kind: "step" } & WorkoutStep)
+  | { kind: "repeat"; times: number; steps: WorkoutStep[] };
 
 export interface Workout {
   id: string;
@@ -52,6 +125,17 @@ export interface Workout {
   weekNumber: number;
   plannedDistanceKm: number;
   plannedPace?: string; // "mm:ss" per km
+  /**
+   * The session broken into steps, for watches and for anyone who wants to
+   * read the structure rather than decode `title`.
+   *
+   * Absent means a flat workout, which is every plan authored before this and
+   * most easy runs after it. **`plannedDistanceKm` stays the authoritative
+   * total** even when steps are present: every consumer in the app already
+   * reads it, and a time-based step has no distance to derive from. Steps are
+   * additive detail, never a second source of truth — see `stepsDistanceKm()`.
+   */
+  steps?: WorkoutBlock[];
   actualDistanceKm?: number;
   actualPace?: string; // entered, or derived from distance + duration
   durationMin?: number;
@@ -111,6 +195,34 @@ export const ATHLETE_TYPES: AthleteType[] = [
   "swimmer",
 ];
 
+/**
+ * Which watch the athlete owns. Drives the *instructions* an export shows, and
+ * which targets are offered — never the file itself, which is the same bytes
+ * for every brand that can read it.
+ *
+ * "other" is a watch we have no instructions for; "none" is asked and declined.
+ */
+export type WatchBrand =
+  | "garmin"
+  | "coros"
+  | "wahoo"
+  | "apple"
+  | "polar"
+  | "suunto"
+  | "other"
+  | "none";
+
+export const WATCH_BRANDS: WatchBrand[] = [
+  "garmin",
+  "coros",
+  "wahoo",
+  "apple",
+  "polar",
+  "suunto",
+  "other",
+  "none",
+];
+
 export interface Preferences {
   theme: "light" | "dark" | "system";
   locale?: "en" | "nl";
@@ -141,6 +253,24 @@ export interface Preferences {
   units?: UnitSystem;
   /** Whether the one-time "add to home screen" prompt has been shown. */
   installPromptSeen?: boolean;
+  /**
+   * The athlete's watch, so export instructions match their device.
+   *
+   * Tri-state, the same mechanism `athleteTypes` uses and for the same reason:
+   * `undefined` means never asked, so existing users still get the one-time
+   * prompt, and `"none"` means asked and declined, so they are never asked
+   * again. A companion "seen" boolean cannot express that difference.
+   */
+  watch?: WatchBrand;
+  /**
+   * Whether the one-time "your plan has sessions with no steps" prompt has run.
+   *
+   * A plain boolean, unlike `watch`: there is no "declined" worth
+   * distinguishing here, because the same offer stays permanently available in
+   * the watch settings card. This flag only stops the *popup* returning on
+   * every load.
+   */
+  stepsUpgradePromptSeen?: boolean;
   /** Weather feature opted in (needs geolocation + a configured server key). */
   weatherEnabled?: boolean;
   /** Show per-day weather in the calendar. */
@@ -151,6 +281,15 @@ export interface Preferences {
   splitScannerOnboardingSeen?: boolean;
   /** Plan ids whose "race done, plan your next race?" prompt has been shown. */
   nextPlanPromptSeen?: string[];
+  /**
+   * Which Settings sections are expanded.
+   *
+   * Absent means never touched, which opens the plan section; `[]` is a real
+   * answer meaning everything is closed, so the two have to stay
+   * distinguishable. Values are the ids in `settings-view.tsx`; keep them
+   * stable, since they are persisted.
+   */
+  settingsSections?: string[];
   /**
    * Last calendar view the user picked. Absent means they haven't chosen yet,
    * which falls back to a per-device default (agenda on mobile, month on

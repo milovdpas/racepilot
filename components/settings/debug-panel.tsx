@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ONE_TIME_PROMPT_KEYS } from "@/components/common/whats-new-gate";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useUnits } from "@/hooks/use-units";
 import {
@@ -154,6 +155,17 @@ function useDiagnostics(): DiagSection[] {
       title: "Preferences",
       rows: [
         { label: "Athlete types", value: shown(store.preferences.athleteTypes) },
+        {
+          label: "Watch",
+          value: shown(store.preferences.watch),
+          // The value decides which export targets are offered and which
+          // instructions they carry, and "not set" is a third state rather
+          // than a missing one: it is what makes the one-time prompt appear.
+          hint:
+            store.preferences.watch === undefined
+              ? "never asked, so the one-time prompt is still pending"
+              : "answered, so the prompt will not appear again",
+        },
         { label: "Locale", value: shown(i18n.language) },
         { label: "Theme", value: shown(store.preferences.theme) },
         { label: "Weather", value: shown(store.preferences.weatherEnabled) },
@@ -222,6 +234,7 @@ function DebugDialog({
 }) {
   const { t } = useTranslation();
   const sections = useDiagnostics();
+  const setPreferences = useTrainingStore((s) => s.setPreferences);
   const { copied, copy } = useCopyToClipboard();
 
   return (
@@ -263,14 +276,38 @@ function DebugDialog({
           ))}
         </div>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => void copy(diagnosticsText(sections))}
-        >
-          {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-          {copied ? t("common.copied") : t("debug.copy")}
-        </Button>
+        <div className="grid gap-2">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => void copy(diagnosticsText(sections))}
+          >
+            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+            {copied ? t("settings.copied") : t("debug.copy")}
+          </Button>
+
+          {/* Replaying a one-time prompt otherwise means editing localStorage
+              by hand, and these are questions asked of the *installed* app on a
+              phone, where there is no console to do that in. Clearing the flags
+              is exactly what the panel is for: checking a behaviour you cannot
+              otherwise reach. */}
+          <Button
+            variant="ghost"
+            className="w-full text-muted-foreground"
+            onClick={() => {
+              // From the gate's own list, so a prompt added there is reset
+              // here without anyone remembering to edit this file.
+              setPreferences(
+                Object.fromEntries(
+                  ONE_TIME_PROMPT_KEYS.map((key) => [key, undefined]),
+                ),
+              );
+              onOpenChange(false);
+            }}
+          >
+            <RotateCcw className="size-4" /> {t("debug.replayPrompts")}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

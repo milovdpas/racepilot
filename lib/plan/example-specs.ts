@@ -16,7 +16,7 @@ const OLYMPIC_LEGS = presetByKey("olympic")!.legs;
 
 const TRAIL: ExampleSpec = {
   id: "example-trail",
-  name: "Trail 50K — example",
+  name: "Trail 50K example",
   raceName: "Trail 50K",
   raceDistanceKm: 50,
   goalPace: "6:30",
@@ -26,7 +26,7 @@ const TRAIL: ExampleSpec = {
   raceSessions: [{ type: "long", title: "Trail 50K", km: 50, pace: "6:30" }],
   sessions: [
     { day: 1, type: "easy", title: "Easy trails", km: 8, pace: "5:40" },
-    { day: 3, type: "tempo", title: "Tempo on rolling terrain", km: 10, pace: "4:55" },
+    { day: 3, type: "tempo", title: "Tempo on rolling terrain", km: 10, pace: "4:55", shape: { reps: 1, repKm: 6 } },
     { day: 5, type: "easy", title: "Hill repeats", km: 12, pace: "6:00" },
     { day: 6, type: "long", title: "Long trail run", km: 22, pace: "6:10" },
   ],
@@ -41,7 +41,7 @@ const TRAIL: ExampleSpec = {
 
 const ULTRA: ExampleSpec = {
   id: "example-ultra",
-  name: "100 km ultra — example",
+  name: "100 km ultra example",
   raceName: "100 km ultra",
   raceDistanceKm: 100,
   goalPace: "6:45",
@@ -51,7 +51,7 @@ const ULTRA: ExampleSpec = {
   raceSessions: [{ type: "long", title: "100 km ultra", km: 100, pace: "6:45" }],
   sessions: [
     { day: 0, type: "recovery", title: "Recovery jog", km: 6, pace: "6:10" },
-    { day: 2, type: "interval", title: "5×1 km at threshold", km: 10, pace: "4:45" },
+    { day: 2, type: "interval", title: "5×1 km at threshold", km: 10, pace: "4:45", shape: { reps: 5, repKm: 1, recoveryKm: 0.4 } },
     { day: 3, type: "easy", title: "Easy run", km: 10, pace: "5:35" },
     // Back-to-back long days are the point of ultra training: the Sunday run
     // starts on Saturday's legs.
@@ -69,7 +69,7 @@ const ULTRA: ExampleSpec = {
 
 const BACKYARD: ExampleSpec = {
   id: "example-backyard",
-  name: "Backyard ultra — example",
+  name: "Backyard ultra example",
   raceName: "Backyard ultra",
   raceDistanceKm: backyardDistanceKm(BACKYARD_LOOP_KM, BACKYARD_YARDS),
   goalPace: "7:00",
@@ -82,14 +82,14 @@ const BACKYARD: ExampleSpec = {
   raceSessions: [
     {
       type: "long",
-      title: `Backyard ultra — ${BACKYARD_YARDS} yards`,
+      title: `Backyard ultra: ${BACKYARD_YARDS} yards`,
       km: backyardDistanceKm(BACKYARD_LOOP_KM, BACKYARD_YARDS),
       pace: "7:00",
     },
   ],
   sessions: [
     { day: 1, type: "easy", title: "Easy run", km: 8, pace: "5:50" },
-    { day: 3, type: "tempo", title: "Tempo run", km: 10, pace: "5:05" },
+    { day: 3, type: "tempo", title: "Tempo run", km: 10, pace: "5:05", shape: { reps: 1, repKm: 6 } },
     // Practising the actual format: the same loop, on the hour, over and over.
     { day: 5, type: "long", title: "Loop practice (3 yards)", km: 20, pace: "6:00" },
     { day: 6, type: "easy", title: "Easy run on tired legs", km: 12, pace: "6:10" },
@@ -106,7 +106,7 @@ const BACKYARD: ExampleSpec = {
 
 const CYCLING: ExampleSpec = {
   id: "example-cycling",
-  name: "Gran fondo 120 km — example",
+  name: "Gran fondo 120 km example",
   sport: "bike",
   raceName: "Gran fondo 120 km",
   raceDistanceKm: 120,
@@ -124,8 +124,8 @@ const CYCLING: ExampleSpec = {
   }],
   sessions: [
     { day: 1, type: "recovery", title: "Recovery spin", km: 25, pace: "2:24" },
-    { day: 2, type: "interval", title: "4×8 min at threshold", km: 40, pace: "1:55" },
-    { day: 4, type: "tempo", title: "Sweet-spot tempo", km: 45, pace: "1:52" },
+    { day: 2, type: "interval", title: "4×8 min at threshold", km: 40, pace: "1:55", shape: { reps: 4, repSec: 480, recoverySec: 240 } },
+    { day: 4, type: "tempo", title: "Sweet-spot tempo", km: 45, pace: "1:52", shape: { reps: 1, repKm: 30 } },
     { day: 6, type: "long", title: "Long endurance ride", km: 80, pace: "2:10" },
   ],
   trainingPrefs: {
@@ -139,7 +139,7 @@ const CYCLING: ExampleSpec = {
 
 const SWIMMING: ExampleSpec = {
   id: "example-swimming",
-  name: "5 km open water — example",
+  name: "5 km open water example",
   sport: "swim",
   raceName: "5 km open water",
   raceDistanceKm: 5,
@@ -156,8 +156,8 @@ const SWIMMING: ExampleSpec = {
   }],
   sessions: [
     { day: 1, type: "easy", title: "Technique and drills", km: 2, pace: "20:00" },
-    { day: 3, type: "interval", title: "10×100 m at race pace", km: 2.5, pace: "16:40" },
-    { day: 5, type: "tempo", title: "Threshold set", km: 3, pace: "17:30" },
+    { day: 3, type: "interval", title: "10×100 m at race pace", km: 2.5, pace: "16:40", shape: { reps: 10, repKm: 0.1, recoverySec: 20 } },
+    { day: 5, type: "tempo", title: "Threshold set", km: 3, pace: "17:30", shape: { reps: 1, repKm: 1.8 } },
     { day: 6, type: "long", title: "Continuous swim", km: 4, pace: "18:20" },
   ],
   trainingPrefs: {
@@ -183,7 +183,7 @@ const SWIMMING: ExampleSpec = {
  */
 const TRIATHLON: ExampleSpec = {
   id: "example-triathlon",
-  name: "Olympic triathlon — example",
+  name: "Olympic triathlon example",
   raceName: "Olympic triathlon",
   raceType: "multisport",
   legs: OLYMPIC_LEGS,
@@ -196,19 +196,19 @@ const TRIATHLON: ExampleSpec = {
   weeks: 12,
   pastWeeks: 5,
   raceSessions: [
-    { sport: "swim", type: "long", title: "Swim leg — 1.5 km", km: 1.5, pace: "17:30" },
-    { sport: "bike", type: "long", title: "Bike leg — 40 km", km: 40, pace: "1:44" },
-    { sport: "run", type: "long", title: "Run leg — 10 km", km: 10, pace: "4:40" },
+    { sport: "swim", type: "long", title: "Swim leg: 1.5 km", km: 1.5, pace: "17:30" },
+    { sport: "bike", type: "long", title: "Bike leg: 40 km", km: 40, pace: "1:44" },
+    { sport: "run", type: "long", title: "Run leg: 10 km", km: 10, pace: "4:40" },
   ],
   sessions: [
     { day: 0, sport: "swim", type: "easy", title: "Technique and drills", km: 2, pace: "20:00" },
-    { day: 1, sport: "bike", type: "interval", title: "5×5 min at threshold", km: 35, pace: "1:52" },
-    { day: 2, sport: "run", type: "tempo", title: "Tempo run", km: 8, pace: "4:30" },
+    { day: 1, sport: "bike", type: "interval", title: "5×5 min at threshold", km: 35, pace: "1:52", shape: { reps: 5, repSec: 300, recoverySec: 180 } },
+    { day: 2, sport: "run", type: "tempo", title: "Tempo run", km: 8, pace: "4:30", shape: { reps: 1, repKm: 5 } },
     { day: 3, sport: "swim", type: "long", title: "Endurance swim", km: 3, pace: "18:20" },
     { day: 5, sport: "bike", type: "long", title: "Long ride", km: 70, pace: "2:00" },
     // A brick: off the bike and straight into the run, same day, in order.
-    { day: 6, sport: "bike", type: "tempo", title: "Brick — bike", km: 40, pace: "1:50" },
-    { day: 6, sport: "run", type: "easy", title: "Brick — run off the bike", km: 5, pace: "4:50" },
+    { day: 6, sport: "bike", type: "tempo", title: "Brick: bike", km: 40, pace: "1:50", shape: { reps: 1, repKm: 28 } },
+    { day: 6, sport: "run", type: "easy", title: "Brick: run off the bike", km: 5, pace: "4:50" },
   ],
   trainingPrefs: {
     daysPerWeek: 6,
