@@ -6,7 +6,7 @@
 # pattern: the container's CMD is the process, no PM2, no systemd.
 
 # ---- build ----------------------------------------------------------------
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
@@ -36,7 +36,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ---- run ------------------------------------------------------------------
-FROM node:22-alpine AS production
+FROM node:24-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production

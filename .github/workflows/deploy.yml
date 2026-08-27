@@ -13,9 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Must match the Dockerfile and what package.json declares. When these
+      # drift, `npm ci` fails on a lock file written by the other one's npm:
+      # npm 11 omits hoisted deps of optional platform packages that npm 10
+      # requires, so a lock generated on a dev machine broke the build here.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
