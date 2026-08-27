@@ -121,6 +121,7 @@ function useWhatsNewSteps(): Step[] {
           body={t("athlete.promptBody")}
           skipLabel={t("onboarding.notNow")}
           confirmLabel={t("common.save")}
+          confirmDisabled={picked.length === 0}
           className="overflow-y-auto"
           // Skipping still records an answer — the empty array — so the app
           // stops asking and simply keeps showing everything.
@@ -150,6 +151,10 @@ function useWhatsNewSteps(): Step[] {
           body={t("watch.promptBody")}
           skipLabel={t("onboarding.notNow")}
           confirmLabel={t("common.save")}
+          // Nothing picked means there is nothing to save, and the fallback
+          // below would quietly record "no watch" for someone who believed
+          // they had chosen one. "Not now" is the way past this prompt.
+          confirmDisabled={watchPick === undefined}
           className="max-h-[90dvh] overflow-y-auto"
           // Skipping records "none", which is an answer and stops the asking.
           // Leaving it unset would bring the prompt back on the next load.
