@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildFitMessages,
+  clampBytes,
   encodeFit,
   speedFromPace,
 } from "@/lib/export/fit";
@@ -209,5 +210,67 @@ describe("encodeFit: the file a watch actually reads", () => {
     const m = await roundTrip(workout({ steps: undefined }));
     expect(m.workoutStepMesgs).toHaveLength(1);
     expect(m.workoutStepMesgs[0].durationDistance).toBe(10_000);
+  });
+});
+
+describe("clampBytes", () => {
+  const size = (s: string) => new TextEncoder().encode(s).length;
+
+  it("leaves anything that already fits alone", () => {
+    expect(clampBytes("Keep it easy on the hills")).toBe(
+      "Keep it easy on the hills",
+    );
+    // Exactly at the limit is still a fit, not a trim.
+    expect(clampBytes("a".repeat(254))).toHaveLength(254);
+  });
+
+  it("counts bytes and not characters", () => {
+    // 64 emoji is 128 characters and 256 bytes. A character-based cap would
+    // wave this through and the encoder would then reject the whole file.
+    const notes = "🏃".repeat(64);
+    expect(notes.length).toBeLessThan(254);
+    expect(size(clampBytes(notes))).toBeLessThanOrEqual(254);
+  });
+
+  it("never cuts a character in half", () => {
+    // The trim lands mid-emoji unless the continuation bytes are walked back.
+    const trimmed = clampBytes("🏃".repeat(100));
+    expect(trimmed).not.toContain("�");
+    expect(trimmed.endsWith("…")).toBe(true);
+  });
+});
+
+describe("step notes at the encoder's limit", () => {
+  it("encodes a note far longer than a FIT string can hold", async () => {
+    // The bug this pins: an uncapped note threw inside the SDK, which failed
+    // the *entire* export with a generic message. One long note must not cost
+    // the athlete their workout file.
+    const m = await roundTrip(
+      workout({
+        steps: [
+          {
+            kind: "step",
+            role: "work",
+            distanceKm: 10,
+            note: "Hold the effort steady. ".repeat(40),
+          },
+        ],
+      }),
+    );
+    expect(m.workoutStepMesgs).toHaveLength(1);
+    const notes = m.workoutStepMesgs[0].notes as string;
+    expect(notes).toMatch(/^Hold the effort steady\./);
+    expect(notes.endsWith("…")).toBe(true);
+  });
+
+  it("encodes a multi-byte note over the limit", async () => {
+    const m = await roundTrip(
+      workout({
+        steps: [
+          { kind: "step", role: "work", distanceKm: 5, note: "🏃".repeat(80) },
+        ],
+      }),
+    );
+    expect(m.workoutStepMesgs[0].notes).not.toContain("�");
   });
 });

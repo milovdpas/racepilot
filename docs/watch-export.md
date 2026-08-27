@@ -18,6 +18,32 @@ and the decisions with their reasons**. Update it *within* each slice, not after
 | 5 | Settings accordion | **done** |
 | — | Garmin Training API target | blocked, enquiry sent |
 
+### Encoder limits worth not rediscovering
+
+Four constraints the encoders and the Strategy now hold to. Each was a real
+failure, each is pinned by a test, and none of them is obvious from the format
+documentation.
+
+- **A FIT string field holds 255 UTF-8 bytes including its terminating null**,
+  so 254 usable, and it is *bytes* rather than characters: 64 emoji is 128
+  characters and 256 bytes. Over the limit the SDK throws, and it throws for
+  the whole file, so one athlete's long step note would fail their entire
+  export with a generic message. `clampBytes` in `fit.ts` trims on a UTF-8
+  boundary; `wktName`'s existing 40-character cap is already inside it.
+- **An ICS event may cross midnight.** `DTEND` rolls into the next day rather
+  than clamping to 23:59. Clamping understated a six-hour long run from 21:00
+  by three hours, and from a 23:59 start produced `DTEND == DTSTART`, which
+  RFC 5545 forbids outright.
+- **Encode every FIT file before triggering any download.** An `await` between
+  two `downloadFile` calls detaches the second from the click that caused it
+  and the browser drops it in silence, so a multi-workout export reported
+  success and delivered one file.
+- **The dynamic `import()` belongs inside the target's `try`.** A chunk that
+  will not load (an offline reload after a deploy) otherwise rejects out of
+  `deliver`, past a `DeliveryResult` contract that says failures come back as
+  values. `SendToWatchDialog` has its own `finally` as a second line of
+  defence, because the symptom was a permanently spinning dialog.
+
 ### Slice 4, landed
 
 - `components/common/watch-picker.tsx`, single-select, reused verbatim by the

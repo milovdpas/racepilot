@@ -48,6 +48,16 @@ const SPEED_SCALE = 1000;
  */
 const DEFAULT_BAND = 0.02;
 
+/**
+ * How long a FIT string field may be.
+ *
+ * A string field is length-prefixed by a single byte and carries a terminating
+ * null, so 255 bytes total and 254 usable. **Bytes, not characters**: 64 emoji
+ * is 128 characters and 256 bytes, and the encoder rejects it. Established by
+ * probing the SDK and pinned in fit.test.ts.
+ */
+const MAX_STRING_BYTES = 254;
+
 const FIT_SPORT: Record<Sport, string> = {
   run: "running",
   bike: "cycling",
@@ -64,6 +74,25 @@ const FIT_INTENSITY: Record<StepRole, string> = {
 export interface FitMessage {
   mesgNum: number;
   fields: Record<string, unknown>;
+}
+
+/**
+ * Trim a string to `maxBytes` UTF-8 bytes, never splitting a character.
+ *
+ * The encoder throws on an over-long field, and it throws for the *whole file*:
+ * one athlete's long note on one step would fail the entire export with a
+ * generic "export failed", which is a far worse outcome than a note that ends
+ * in an ellipsis. Same continuation-byte walk as `foldLine` in ics.ts, and for
+ * the same reason: cutting mid-sequence corrupts the character.
+ */
+export function clampBytes(value: string, maxBytes = MAX_STRING_BYTES): string {
+  const bytes = new TextEncoder().encode(value);
+  if (bytes.length <= maxBytes) return value;
+
+  // The ellipsis is 3 bytes of the budget, so the text has to stop before it.
+  let end = maxBytes - 3;
+  while (end > 0 && (bytes[end] & 0xc0) === 0x80) end--;
+  return `${new TextDecoder().decode(bytes.slice(0, end))}…`;
 }
 
 /** Seconds per km -> metres per second. The one conversion a watch needs. */
@@ -121,7 +150,7 @@ function stepMessage(step: WorkoutStep, messageIndex: number): FitMessage {
     fields.targetType = "open";
   }
 
-  if (step.note) fields.notes = step.note;
+  if (step.note) fields.notes = clampBytes(step.note);
   return { mesgNum: MESG_WORKOUT_STEP, fields };
 }
 
@@ -212,7 +241,8 @@ export function buildFitMessages(
 /**
  * The name the watch shows. Trimmed to 40 characters: devices vary in how much
  * they display, and a name long enough to be truncated on the wrist is worse
- * than one written to fit.
+ * than one written to fit. No `clampBytes` needed: 40 characters cannot exceed
+ * 160 bytes, well inside `MAX_STRING_BYTES`.
  */
 function workoutName(workout: Workout): string {
   const name = workout.title.trim() || "Workout";

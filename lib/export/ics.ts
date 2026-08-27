@@ -89,11 +89,23 @@ function localStamp(iso: string, hhmm: string): string {
   return `${dateValue(iso)}T${hhmm.replace(":", "")}00`;
 }
 
-/** Add `minutes` to "HH:mm", clamped to the same day. */
-function addMinutes(hhmm: string, minutes: number): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  const total = Math.min(h * 60 + m + Math.round(minutes), 23 * 60 + 59);
-  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+/**
+ * The floating end stamp for a timed event, `minutes` after it starts.
+ *
+ * Rolls into the next day rather than clamping to 23:59. An event that ends
+ * after midnight is ordinary — a 23:00 start on a 90 minute run, or a six-hour
+ * ultra long run from 21:00 — and clamping both understated the session and,
+ * from 23:59, emitted DTEND == DTSTART, which RFC 5545 forbids.
+ *
+ * The arithmetic runs in UTC only to borrow the calendar. What comes out is
+ * still floating, with no zone and no Z, exactly like `localStamp`.
+ */
+function endStamp(iso: string, hhmm: string, minutes: number): string {
+  const ms = Date.parse(`${iso}T${hhmm}:00Z`);
+  // At least a minute, so an event can never end when it began.
+  const end = new Date(ms + Math.max(1, Math.round(minutes)) * 60_000);
+  const [date, time] = end.toISOString().split("T");
+  return localStamp(date, time.slice(0, 5));
 }
 
 export interface IcsWorkout {
@@ -137,7 +149,7 @@ export function buildIcs(
     if (workout.startTime) {
       lines.push(
         `DTSTART:${localStamp(workout.date, workout.startTime)}`,
-        `DTEND:${localStamp(workout.date, addMinutes(workout.startTime, durationMin && durationMin > 0 ? durationMin : 60))}`,
+        `DTEND:${endStamp(workout.date, workout.startTime, durationMin && durationMin > 0 ? durationMin : 60)}`,
       );
     } else {
       // No start time means no claim about when: an all-day entry says "today"

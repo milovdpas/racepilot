@@ -72,9 +72,11 @@ describe("buildIcs", () => {
     expect(out).toContain("DTEND:20260812T070000");
   });
 
-  it("clamps an end time to the same day", () => {
-    // A six-hour ultra long run starting at 21:00 must not emit 03:00, which
-    // would land the event before its own start.
+  it("rolls an end time past midnight into the next day", () => {
+    // A six-hour ultra long run from 21:00 ends at 03:00 the next morning.
+    // Clamping it to 23:59 the same day understated the session by three
+    // hours, which is worse than an event that crosses midnight - calendars
+    // handle those perfectly well.
     const out = lines(
       buildIcs(
         [event({ workout: workout({ startTime: "21:00" }), durationMin: 360 })],
@@ -82,7 +84,36 @@ describe("buildIcs", () => {
         NOW,
       ),
     );
-    expect(out).toContain("DTEND:20260812T235900");
+    expect(out).toContain("DTSTART:20260812T210000");
+    expect(out).toContain("DTEND:20260813T030000");
+  });
+
+  it("never emits an end that equals its own start", () => {
+    // The old clamp did exactly that from 23:59, and RFC 5545 forbids it: a
+    // VEVENT with DTEND == DTSTART is not a duration of zero, it is invalid.
+    const out = lines(
+      buildIcs(
+        [event({ workout: workout({ startTime: "23:59" }), durationMin: 90 })],
+        PLAN,
+        NOW,
+      ),
+    );
+    expect(out).toContain("DTSTART:20260812T235900");
+    expect(out).toContain("DTEND:20260813T012900");
+  });
+
+  it("keeps a crossing end floating, with no zone and no Z", () => {
+    // The rollover borrows UTC for the calendar arithmetic only. Leaking a Z
+    // would move every late session the moment the athlete changed timezone.
+    const out = lines(
+      buildIcs(
+        [event({ workout: workout({ startTime: "23:00" }), durationMin: 90 })],
+        PLAN,
+        NOW,
+      ),
+    );
+    expect(out).toContain("DTEND:20260813T003000");
+    expect(out.some((l) => /^DTEND:.*Z$/.test(l))).toBe(false);
   });
 
   it("gives each event a stable, plan-scoped UID", () => {

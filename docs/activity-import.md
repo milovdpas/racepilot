@@ -117,6 +117,14 @@ than half-handled, and the UI answers with "unzip it yourself and pick
 activities.csv". An archive needing Zip64 has over 65535 entries or is over
 4 GB, which no realistic Strava export is.
 
+A **damaged** archive has to arrive the same way. Every read is bounds-checked
+against what the archive actually holds (the entry name against the central
+directory, the local header and the entry data against the blob) and a corrupt
+deflate stream is caught, so all of them surface as
+`UnreadableZipError("malformed")`. Unchecked, they escaped as a raw `RangeError`
+or `TypeError`, and the import field can only turn those into the generic
+"import failed" instead of the guidance the error class exists to trigger.
+
 ## The privacy property
 
 `activities.csv` has **no coordinate column of any kind**: not lat, lon, address

@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   availableTargets,
   type ExportScope,
   targetFor,
 } from "@/lib/export/target";
-import type { Preferences, WatchBrand } from "@/lib/types";
+import type { Preferences, TrainingPlan, WatchBrand, Workout } from "@/lib/types";
 
 const prefs = (watch?: WatchBrand): Preferences => ({ theme: "system", watch });
 const ids = async (watch?: WatchBrand) =>
@@ -92,5 +92,110 @@ describe("scope", () => {
 
   it("returns everything when no scope is asked for", async () => {
     expect(await ids2("garmin", undefined)).toEqual(["fit-file", "ics-file"]);
+  });
+});
+
+/**
+ * Delivery, with the encoder and the download both stubbed.
+ *
+ * `vi.doMock` rather than `vi.mock` because these want *different* stubs of the
+ * same module, and the hoisted form allows one per file. `resetModules` plus a
+ * dynamic import is what makes each one take.
+ */
+describe("fit-file delivery", () => {
+  afterEach(() => {
+    vi.resetModules();
+    vi.doUnmock("@/lib/plan/storage");
+    vi.doUnmock("@/lib/export/fit");
+  });
+
+  const request = (count: number) => ({
+    plan: { id: "p", name: "Plan", workouts: {} } as unknown as TrainingPlan,
+    workouts: Array.from({ length: count }, (_, i) => ({
+      id: `w${i}`,
+      title: `Session ${i}`,
+      date: "2026-08-12",
+    })) as Workout[],
+    format: {
+      summary: () => "",
+      describe: () => "",
+      durationMin: () => undefined,
+    },
+    now: new Date("2026-08-09T12:00:00Z"),
+  });
+
+  async function loadTarget(log: string[], encode?: () => Promise<unknown>) {
+    vi.resetModules();
+    vi.doMock("@/lib/plan/storage", () => ({
+      downloadFile: (name: string) => log.push(`download:${name}`),
+    }));
+    vi.doMock("@/lib/export/fit", () => ({
+      buildFitMessages: () => [],
+      encodeFit: async () => {
+        log.push("encode");
+        return encode ? await encode() : new Uint8Array([1]);
+      },
+    }));
+    const mod = await import("@/lib/export/target");
+    const target = mod.targetFor("fit-file");
+    if (!target) throw new Error("fit-file target missing");
+    return target;
+  }
+
+  it("hands every file over in one burst, after all the encoding", async () => {
+    // Not encode-download-encode-download: an await between two downloads
+    // detaches the second from the click that caused it, and the browser drops
+    // it while this still reports success.
+    const log: string[] = [];
+    const target = await loadTarget(log);
+    const result = await target.deliver(request(3));
+
+    expect(result.ok).toBe(true);
+    expect(log).toEqual([
+      "encode",
+      "encode",
+      "encode",
+      "download:session-0-2026-08-12.fit",
+      "download:session-1-2026-08-12.fit",
+      "download:session-2-2026-08-12.fit",
+    ]);
+  });
+
+  it("reports a failed encode rather than throwing", async () => {
+    const log: string[] = [];
+    const target = await loadTarget(log, () => {
+      throw new Error("note too long");
+    });
+    await expect(target.deliver(request(1))).resolves.toEqual({
+      ok: false,
+      error: "exportFailed",
+    });
+  });
+
+  it("reports a chunk that will not load rather than throwing", async () => {
+    // The SDK is imported dynamically, so an offline reload after a deploy
+    // rejects the import. Outside the try that reached SendToWatchDialog.run,
+    // which has no catch: the dialog spun forever and said nothing.
+    vi.resetModules();
+    vi.doMock("@/lib/plan/storage", () => ({ downloadFile: () => {} }));
+    vi.doMock("@/lib/export/fit", () => {
+      throw new Error("Failed to fetch dynamically imported module");
+    });
+    const { targetFor: freshTargetFor } = await import("@/lib/export/target");
+    await expect(
+      freshTargetFor("fit-file")?.deliver(request(1)),
+    ).resolves.toEqual({ ok: false, error: "exportFailed" });
+  });
+
+  it("reports a chunk that will not load for the calendar too", async () => {
+    vi.resetModules();
+    vi.doMock("@/lib/plan/storage", () => ({ downloadFile: () => {} }));
+    vi.doMock("@/lib/export/ics", () => {
+      throw new Error("Failed to fetch dynamically imported module");
+    });
+    const { targetFor: freshTargetFor } = await import("@/lib/export/target");
+    await expect(
+      freshTargetFor("ics-file")?.deliver(request(1)),
+    ).resolves.toEqual({ ok: false, error: "exportFailed" });
   });
 });

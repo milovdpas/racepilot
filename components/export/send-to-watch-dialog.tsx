@@ -85,18 +85,24 @@ export function SendToWatchDialog({
   const run = async (target: ExportTarget) => {
     if (!plan) return;
     setBusy(target.id);
-    const result = await target.deliver({
-      plan,
-      workouts,
-      format,
-      now: new Date(),
-    });
-    setBusy(null);
-    if (!result.ok) {
+    try {
+      const result = await target.deliver({
+        plan,
+        workouts,
+        format,
+        now: new Date(),
+      });
+      if (result.ok) toast.success(t("export.done"));
+      else toast.error(t("export.failed"));
+    } catch (e) {
+      // A target is contracted to return { ok: false } rather than throw, but
+      // a throw must not leave the dialog spinning with every button disabled
+      // and nothing said. The finally is the part that matters.
+      console.error("Export failed:", e);
       toast.error(t("export.failed"));
-      return;
+    } finally {
+      setBusy(null);
     }
-    toast.success(t("export.done"));
   };
 
   return (

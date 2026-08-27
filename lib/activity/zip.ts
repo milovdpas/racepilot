@@ -90,6 +90,14 @@ function readCentralDirectory(view: DataView): Entry[] {
     const extraLen = view.getUint16(at + 30, true);
     const commentLen = view.getUint16(at + 32, true);
 
+    // A truncated archive reaches here with a name that runs off the end of
+    // the directory. Unchecked, the decode throws a raw RangeError, which the
+    // import field can only show as the generic "failed" copy - the whole
+    // point of UnreadableZipError is that "malformed" gets the athlete the
+    // "unzip it yourself" instructions instead.
+    if (at + 46 + nameLen > view.byteLength) {
+      throw new UnreadableZipError("malformed");
+    }
     const name = decoder.decode(
       new Uint8Array(view.buffer, view.byteOffset + at + 46, nameLen),
     );
@@ -115,7 +123,14 @@ async function inflate(data: Blob, method: number): Promise<string> {
   // "deflate-raw" and not "deflate": a zip member is a bare deflate stream with
   // no zlib header, and the wrong one fails on the first byte.
   const stream = data.stream().pipeThrough(new DecompressionStream("deflate-raw"));
-  return new Response(stream).text();
+  try {
+    return await new Response(stream).text();
+  } catch {
+    // A corrupt deflate stream rejects with a raw TypeError. Same reasoning as
+    // the bounds checks: the caller can only act on UnreadableZipError, and
+    // "the archive is damaged" is exactly what happened.
+    throw new UnreadableZipError("malformed");
+  }
 }
 
 /**
@@ -138,8 +153,11 @@ export async function readZipEntry(
   // The local header repeats the name and extra fields at its own lengths,
   // which are allowed to differ from the central directory's - so the data
   // offset has to be computed from this header, not that one.
+  // A local offset past the end of the archive gives a short slice, and reading
+  // the signature out of one throws a raw RangeError rather than saying what is
+  // wrong - so the length is checked before the signature.
   const header = await bytes(blob, entry.localOffset, entry.localOffset + 30);
-  if (header.getUint32(0, true) !== LOCAL_SIGNATURE) {
+  if (header.byteLength < 30 || header.getUint32(0, true) !== LOCAL_SIGNATURE) {
     throw new UnreadableZipError("malformed");
   }
   const dataStart =
@@ -148,7 +166,13 @@ export async function readZipEntry(
     header.getUint16(26, true) +
     header.getUint16(28, true);
 
+  // `slice` clamps rather than complaining, so a short result means the entry
+  // was cut off - which would otherwise surface as a decompression failure
+  // several layers down, or as a silently truncated CSV for a stored entry.
   const data = blob.slice(dataStart, dataStart + entry.compressedSize);
+  if (data.size < entry.compressedSize) {
+    throw new UnreadableZipError("malformed");
+  }
   return { name: entry.name, text: await inflate(data, entry.method) };
 }
 

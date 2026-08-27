@@ -96,17 +96,27 @@ const fitFileTarget: ExportTarget = {
   followUp: "usb",
   status: async () => ({ state: "ready" }),
   async deliver({ workouts, plan, now }) {
-    // Imported here rather than at the top: this pulls the FIT SDK, and a page
-    // that merely lists the available targets must not download 1.4 MB.
-    const { buildFitMessages, encodeFit } = await import("@/lib/export/fit");
     try {
-      for (const workout of workouts) {
-        const bytes = await encodeFit(buildFitMessages(workout, plan, now));
-        downloadFile(
-          `${slug(workout.title)}-${workout.date}.fit`,
-          bytes,
-          "application/vnd.ant.fit",
-        );
+      // Imported here rather than at the top: this pulls the FIT SDK, and a
+      // page that merely lists the available targets must not download 1.4 MB.
+      // Inside the try because a chunk that fails to load - an offline reload
+      // after a deploy is the usual way - has to come back as a DeliveryResult
+      // like any other failure, not as a rejected promise the caller never
+      // expected.
+      const { buildFitMessages, encodeFit } = await import("@/lib/export/fit");
+
+      // Encode everything first, then hand the files over in one synchronous
+      // burst. An await between two downloadFile calls detaches the second
+      // from the click that caused it, and the browser drops it silently -
+      // while this still reported success.
+      const files = await Promise.all(
+        workouts.map(async (workout) => ({
+          name: `${slug(workout.title)}-${workout.date}.fit`,
+          bytes: await encodeFit(buildFitMessages(workout, plan, now)),
+        })),
+      );
+      for (const { name, bytes } of files) {
+        downloadFile(name, bytes, "application/vnd.ant.fit");
       }
       return { ok: true };
     } catch (e) {
@@ -130,8 +140,11 @@ const icsFileTarget: ExportTarget = {
   followUp: "calendar",
   status: async () => ({ state: "ready" }),
   async deliver({ workouts, plan, format, now }) {
-    const { buildIcs } = await import("@/lib/export/ics");
     try {
+      // Inside the try for the same reason as the FIT target above: a failed
+      // chunk load is a delivery failure, not an exception to escape into a
+      // caller that has no catch.
+      const { buildIcs } = await import("@/lib/export/ics");
       const ics = buildIcs(
         workouts.map((workout) => ({
           workout,
