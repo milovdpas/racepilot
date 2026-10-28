@@ -311,6 +311,8 @@ JSON (paste below, or attach the exported .json file):
       "Google Calendar is connected too (read-only), for picking off days. Disconnect removes both.",
     calendarOnly:
       "Google Calendar is connected as {{email}} (read-only), for picking off days.",
+    devSync:
+      "Development build: syncs to its own Drive file, so nothing here reaches your real plans.",
   },
   onboarding: {
     planTitle: "Welcome! 👋",

@@ -16,6 +16,12 @@ export interface SessionData {
    * features work. Absent on sessions from before Calendar existed.
    */
   scopes?: string[];
+  /**
+   * The features connected *in this browser*. Not the same as `scopes`:
+   * Google folds every earlier grant into a new token, so see `enabledFeatures`
+   * for why a granted scope alone must not switch a feature on.
+   */
+  features?: Array<"drive" | "calendar">;
 }
 
 export const sessionOptions: SessionOptions = {

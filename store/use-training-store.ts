@@ -374,19 +374,33 @@ export const useTrainingStore = create<TrainingState>()(
 
       importData: (json) => {
         const { plans, activePlanId, preferences, activities } = parseImport(json);
-        // Carry over finished sessions by id: an AI-modified import is often
-        // built from a stale export, so merge logged workouts from the current
-        // plans rather than letting the import overwrite them.
-        const prev = get().plans;
-        const mergedPlans: Record<string, TrainingPlan> = {};
+        // Adds and updates; never deletes. It used to replace every plan with
+        // the file's, so importing a file holding one new plan silently wiped
+        // a whole season of logged runs.
+        //
+        // A plan whose id is already here is an update: the AI round trip in
+        // Settings returns the export with its ids intact. Its finished
+        // sessions are carried over, since that export is often stale. Any
+        // other plan is new, even when some workout ids coincide: AI-written
+        // ids such as "w1-mon" repeat across unrelated plans, so matching on
+        // them (as findMatchingPlanId does) could overwrite a stranger.
+        // Colliding workout ids are re-keyed so they stay unique.
+        const next = { ...get().plans };
         for (const [id, p] of Object.entries(plans)) {
-          const sourceId = findMatchingPlanId(prev, p);
-          const source = sourceId ? prev[sourceId] : null;
-          mergedPlans[id] = source ? mergeLoggedWorkouts(p, source) : p;
+          const source = next[id];
+          if (source) {
+            next[id] = mergeLoggedWorkouts(p, source);
+            continue;
+          }
+          const taken = new Set(
+            Object.values(next).flatMap((pl) => Object.keys(pl.workouts)),
+          );
+          next[id] = rekeyCollidingWorkouts(p, taken);
         }
         set((s) => ({
-          plans: mergedPlans,
-          activePlanId,
+          plans: next,
+          activePlanId:
+            activePlanId && next[activePlanId] ? activePlanId : s.activePlanId,
           // Merged, not replaced. An import is usually an AI round trip built
           // from a stale export, and the same reasoning that carries logged
           // workouts across applies here: history the athlete has imported

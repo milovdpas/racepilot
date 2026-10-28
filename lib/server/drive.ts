@@ -1,7 +1,24 @@
 import "server-only";
 import type { DriveFileMeta } from "@/lib/drive/types";
 
-const FILE_NAME = "marathon-tracker.json";
+export const PRODUCTION_FILE_NAME = "marathon-tracker.json";
+
+/**
+ * The one file sync keeps in Drive's app-data folder. `next dev` gets its own:
+ * localhost and the live site use the same OAuth client, so signed in with the
+ * same account they share the folder, and newest-wins between the two would
+ * let a development browser's data replace the athlete's real plans (it did).
+ * Separate files keep sync testable locally without that reach.
+ * `DRIVE_FILE_NAME` overrides either default.
+ */
+export function driveFileName(): string {
+  return (
+    process.env.DRIVE_FILE_NAME ||
+    (process.env.NODE_ENV === "development"
+      ? "marathon-tracker.dev.json"
+      : PRODUCTION_FILE_NAME)
+  );
+}
 
 /** Thrown on a Drive 401 → caller returns HTTP 401 so the client re-auths. */
 export class DriveUnauthorizedError extends Error {
@@ -26,7 +43,7 @@ async function driveFetch(
 }
 
 export async function findFile(token: string): Promise<DriveFileMeta | null> {
-  const q = encodeURIComponent(`name='${FILE_NAME}'`);
+  const q = encodeURIComponent(`name='${driveFileName()}'`);
   const res = await driveFetch(
     token,
     `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&fields=files(id,modifiedTime)`,
@@ -53,7 +70,7 @@ export async function createFile(
   json: string,
 ): Promise<DriveFileMeta> {
   const boundary = "marathon_tracker_boundary";
-  const metadata = { name: FILE_NAME, parents: ["appDataFolder"] };
+  const metadata = { name: driveFileName(), parents: ["appDataFolder"] };
   const body =
     `--${boundary}\r\n` +
     "Content-Type: application/json; charset=UTF-8\r\n\r\n" +

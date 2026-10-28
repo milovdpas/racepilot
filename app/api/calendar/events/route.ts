@@ -3,9 +3,8 @@ import { isValidRange } from "@/lib/google-calendar/events";
 import { googleErrorResponse } from "@/lib/server/api";
 import { listEvents } from "@/lib/server/google-calendar";
 import {
-  CALENDAR_SCOPE,
   getValidAccessToken,
-  hasScope,
+  isEnabled,
   isOauthConfigured,
 } from "@/lib/server/google-oauth";
 import { getSession } from "@/lib/server/session";
@@ -40,7 +39,7 @@ export async function GET(request: Request) {
 
   try {
     const session = await getSession();
-    if (!hasScope(session, CALENDAR_SCOPE)) {
+    if (!isEnabled(session, "calendar")) {
       return NextResponse.json({ error: "not_granted" }, { status: 403 });
     }
     const token = await getValidAccessToken(session);

@@ -85,6 +85,8 @@ export interface SessionInfo {
   /** Read-only Google Calendar is granted (for picking off days). */
   calendar: boolean;
   user: SyncUser | null;
+  /** A development build, syncing to its own file instead of the real one. */
+  devSync?: boolean;
 }
 
 const NO_SESSION: SessionInfo = {

@@ -5,10 +5,13 @@ import {
   DRIVE_SCOPE,
   RefreshError,
   buildAuthUrl,
+  enabledFeatures,
   getValidAccessToken,
   hasScope,
+  isEnabled,
   isOauthConfigured,
   parseFeature,
+  withFeature,
 } from "./google-oauth";
 import type { SessionData } from "./session";
 
@@ -119,6 +122,65 @@ describe("hasScope", () => {
 
   it("grants nothing without a refresh token", () => {
     expect(hasScope({ scopes: [DRIVE_SCOPE] }, DRIVE_SCOPE)).toBe(false);
+  });
+});
+
+describe("enabledFeatures / isEnabled", () => {
+  it("treats a session from before per-feature consent as Drive sync", () => {
+    const legacy = { refreshToken: "r" };
+    expect(enabledFeatures(legacy)).toEqual(["drive"]);
+    expect(isEnabled(legacy, "drive")).toBe(true);
+    expect(isEnabled(legacy, "calendar")).toBe(false);
+  });
+
+  it("does not switch Drive sync on when only the calendar was connected here", () => {
+    // Google folds the Drive grant from the user's phone into this token, so
+    // the scope is there; sync must still stay off in this browser, or
+    // newest-wins lets this browser's data replace the phone's.
+    const calendarHere = {
+      refreshToken: "r",
+      scopes: ["openid", DRIVE_SCOPE, CALENDAR_SCOPE],
+      features: ["calendar" as const],
+    };
+    expect(isEnabled(calendarHere, "drive")).toBe(false);
+    expect(isEnabled(calendarHere, "calendar")).toBe(true);
+  });
+
+  it("needs the scope as well: an unticked permission stays off", () => {
+    const unticked = {
+      refreshToken: "r",
+      scopes: ["openid"],
+      features: ["calendar" as const],
+    };
+    expect(isEnabled(unticked, "calendar")).toBe(false);
+  });
+
+  it("enables nothing without a refresh token", () => {
+    expect(enabledFeatures({ features: ["drive"] })).toEqual([]);
+  });
+});
+
+describe("withFeature", () => {
+  const user = { email: "a@b.c", name: "A", picture: "" };
+
+  it("starts a fresh browser with just the feature connected", () => {
+    expect(withFeature({}, "calendar", "a@b.c")).toEqual(["calendar"]);
+  });
+
+  it("adds to what this browser already connected, once", () => {
+    const legacyDrive = { refreshToken: "r", user };
+    expect(withFeature(legacyDrive, "calendar", "a@b.c")).toEqual([
+      "drive",
+      "calendar",
+    ]);
+    expect(
+      withFeature({ ...legacyDrive, features: ["drive"] }, "drive", "a@b.c"),
+    ).toEqual(["drive"]);
+  });
+
+  it("starts over when another account signs in", () => {
+    const calendarOnly = { refreshToken: "r", user, features: ["calendar" as const] };
+    expect(withFeature(calendarOnly, "drive", "other@b.c")).toEqual(["drive"]);
   });
 });
 

@@ -109,9 +109,11 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
       addPlanFromImport(json, {
         trainingPrefs: draft.prefs,
         startDate: draft.startDate,
-        // The AI saw previous plans and may echo their ids; force a new plan so
-        // it can never overwrite the history it was given as context.
-        asNewPlan: draft.contextPlanIds.length > 0,
+        // Always a new plan: this wizard creates, it never updates. Matching
+        // on shared workout ids would otherwise read an echo of a context
+        // plan, or two AI plans that both number their workouts "w1-mon", as
+        // "update that plan" and overwrite its history.
+        asNewPlan: true,
       });
       toast.success(t("wizard.created"));
       router.push("/app");

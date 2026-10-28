@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  CALENDAR_SCOPE,
-  DRIVE_SCOPE,
-  hasScope,
-  isOauthConfigured,
-} from "@/lib/server/google-oauth";
+import { driveFileName, PRODUCTION_FILE_NAME } from "@/lib/server/drive";
+import { isEnabled, isOauthConfigured } from "@/lib/server/google-oauth";
 import { getSession } from "@/lib/server/session";
 
 export const runtime = "nodejs";
@@ -23,11 +19,13 @@ export async function GET() {
   return NextResponse.json(
     {
       configured: true,
-      // `connected` means Drive sync: a session that only granted the
-      // calendar must not start syncing.
-      connected: hasScope(session, DRIVE_SCOPE),
-      calendar: hasScope(session, CALENDAR_SCOPE),
+      // `connected` means Drive sync, and only where it was connected: a
+      // browser that only connected the calendar must not start syncing.
+      connected: isEnabled(session, "drive"),
+      calendar: isEnabled(session, "calendar"),
       user: session.user ?? null,
+      // Sync reaches a separate file here (see driveFileName), so say so.
+      devSync: driveFileName() !== PRODUCTION_FILE_NAME,
     },
     { headers: { "Cache-Control": "no-store" } },
   );

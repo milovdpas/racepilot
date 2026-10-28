@@ -89,6 +89,41 @@ export function hasScope(session: SessionData, scope: string): boolean {
   return session.scopes.includes(scope);
 }
 
+/**
+ * The features this browser connected. Google folds every earlier grant into a
+ * new token, so a calendar consent here also carries the Drive access the user
+ * granted on their phone. Going by scopes alone would switch Drive sync on in
+ * a browser that never asked for it, and newest-wins would then let this
+ * browser's data replace the phone's. A session from before this list existed
+ * came from the Drive login.
+ */
+export function enabledFeatures(session: SessionData): OauthFeature[] {
+  if (!session.refreshToken) return [];
+  return session.features ?? ["drive"];
+}
+
+/** Connected in this browser, and still granted by Google. */
+export function isEnabled(session: SessionData, feature: OauthFeature): boolean {
+  return (
+    enabledFeatures(session).includes(feature) &&
+    hasScope(session, FEATURE_SCOPES[feature])
+  );
+}
+
+/**
+ * The feature list once `feature` is connected as `email`. Signing in as
+ * another account starts over: what was connected belonged to the old one.
+ */
+export function withFeature(
+  session: SessionData,
+  feature: OauthFeature,
+  email: string,
+): OauthFeature[] {
+  const sameAccount = !session.user?.email || session.user.email === email;
+  const prior = sameAccount ? enabledFeatures(session) : [];
+  return prior.includes(feature) ? prior : [...prior, feature];
+}
+
 interface TokenResponse {
   access_token?: string;
   refresh_token?: string;

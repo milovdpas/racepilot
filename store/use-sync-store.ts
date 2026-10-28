@@ -36,6 +36,8 @@ interface SyncState {
    * `connected`: either can be granted without the other.
    */
   calendar: boolean;
+  /** This build syncs to a separate development file, not the real one. */
+  devSync: boolean;
   /** Session/refresh gone — a one-tap reconnect is needed. */
   needsReauth: boolean;
   user: SyncUser | null;
@@ -194,6 +196,7 @@ export const useSyncStore = create<SyncState>()(
       ready: false,
       connected: false,
       calendar: false,
+      devSync: false,
       needsReauth: false,
       user: null,
       fileId: null,
@@ -215,6 +218,7 @@ export const useSyncStore = create<SyncState>()(
           configured: session.configured,
           connected: session.connected,
           calendar: session.calendar ?? false,
+          devSync: session.devSync ?? false,
           user: session.user ?? get().user,
           ready: true,
           // Old GIS users were "connected" locally but have no server session.

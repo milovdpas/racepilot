@@ -312,6 +312,8 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
       "Google Agenda is ook verbonden (alleen lezen), om vrije dagen te kiezen. Verbinding verbreken verwijdert beide.",
     calendarOnly:
       "Google Agenda is verbonden als {{email}} (alleen lezen), om vrije dagen te kiezen.",
+    devSync:
+      "Ontwikkelversie: synchroniseert naar een eigen Drive-bestand, dus niets hiervan bereikt je echte plannen.",
   },
   onboarding: {
     planTitle: "Welkom! 👋",

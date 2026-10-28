@@ -8,6 +8,7 @@ import {
   hasScope,
   isOauthConfigured,
   parseFeature,
+  withFeature,
 } from "@/lib/server/google-oauth";
 import { getSession } from "@/lib/server/session";
 
@@ -71,6 +72,9 @@ export async function GET(request: Request) {
       return fail("account");
     }
 
+    // Read before the session changes below: it depends on the old account.
+    const features = withFeature(session, feature, user.email);
+
     if (tokens.refresh_token) session.refreshToken = tokens.refresh_token;
 
     // No refresh token returned and none stored — re-run consent to obtain one.
@@ -83,6 +87,7 @@ export async function GET(request: Request) {
     session.accessToken = tokens.access_token;
     session.accessTokenExpiry = Date.now() + (tokens.expires_in ?? 3600) * 1000;
     if (tokens.scope) session.scopes = tokens.scope.split(" ");
+    session.features = features;
     session.user = user;
     await session.save();
 

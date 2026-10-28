@@ -23,6 +23,7 @@ export function CloudSyncCard() {
   const ready = useSyncStore((s) => s.ready);
   const connected = useSyncStore((s) => s.connected);
   const calendar = useSyncStore((s) => s.calendar);
+  const devSync = useSyncStore((s) => s.devSync);
   const needsReauth = useSyncStore((s) => s.needsReauth);
   const user = useSyncStore((s) => s.user);
   const lastSyncedAt = useSyncStore((s) => s.lastSyncedAt);
@@ -177,6 +178,10 @@ export function CloudSyncCard() {
           </div>
         </div>
       )}
+
+      {!loading && devSync ? (
+        <p className="mt-3 text-xs font-medium text-tempo">{t("sync.devSync")}</p>
+      ) : null}
 
       {!loading && error && !needsReauth ? (
         <p className="mt-3 flex items-start gap-1.5 text-xs text-destructive">
