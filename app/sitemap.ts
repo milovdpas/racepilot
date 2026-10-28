@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 
 /**
- * Only the two indexable pages. Everything under /app is `noindex`, and listing
+ * Only the indexable pages. Everything under /app is `noindex`, and listing
  * a noindexed URL in a sitemap is a contradiction Search Console reports as an
  * error rather than ignoring.
  *
@@ -21,9 +21,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/privacy`,
-      lastModified: new Date("2026-08-08"),
+      lastModified: new Date("2026-10-28"),
       changeFrequency: "yearly",
       priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/terms_of_service`,
+      lastModified: new Date("2026-10-28"),
+      changeFrequency: "yearly",
+      priority: 0.3,
     },
   ];
 }

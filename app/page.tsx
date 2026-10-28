@@ -196,6 +196,9 @@ export default function LandingPage() {
           <Link href="/privacy" className="hover:text-foreground">
             Privacy
           </Link>
+          <Link href="/terms_of_service" className="hover:text-foreground">
+            Terms of service
+          </Link>
           <a
             href="https://github.com/milovdpas/racepilot"
             className="hover:text-foreground"

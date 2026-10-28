@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useTrainingStore } from "@/store/use-training-store";
 
 /** Pages that must never bounce a first-time visitor away. */
-const PUBLIC_PREFIXES = ["/welcome", "/privacy"];
+const PUBLIC_PREFIXES = ["/welcome", "/privacy", "/terms_of_service"];
 
 /**
  * Sends a brand-new visitor to the full-page welcome flow.
