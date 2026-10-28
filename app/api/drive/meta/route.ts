@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { driveErrorResponse } from "@/lib/server/api";
+import { googleErrorResponse } from "@/lib/server/api";
 import { findFile } from "@/lib/server/drive";
 import { getValidAccessToken, isOauthConfigured } from "@/lib/server/google-oauth";
 import { getSession } from "@/lib/server/session";
@@ -17,6 +17,6 @@ export async function GET() {
     const meta = await findFile(token);
     return NextResponse.json(meta, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
-    return driveErrorResponse(e);
+    return googleErrorResponse(e);
   }
 }

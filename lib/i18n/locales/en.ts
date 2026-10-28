@@ -163,6 +163,32 @@ export const en = {
     note: "Note (training possibility)",
     notePlaceholder: "e.g. Likely no training / very limited running",
   },
+  calendarImport: {
+    connect: "Connect Google Calendar",
+    connectHint:
+      "Read-only. Pick trips and holidays from your calendar instead of typing the dates.",
+    pick: "Pick from Google Calendar",
+    title: "Pick off days",
+    description:
+      "Your Google Calendar events for {{range}}. Read-only: only the events you select are saved, as off days.",
+    showTimed: "Show timed events",
+    loading: "Reading your calendar…",
+    empty: "No all-day or multi-day events in this period.",
+    emptyAll: "No events in this period.",
+    untitled: "Busy",
+    added: "Added",
+    addSelected_zero: "Add off days",
+    addSelected_one: "Add {{count}} off day",
+    addSelected_other: "Add {{count}} off days",
+    error: "Couldn't read your calendar.",
+    retry: "Try again",
+    reauth: "Your Google sign-in has expired. Reconnect to read your calendar.",
+    reconnect: "Reconnect",
+    connectFailed:
+      "Google Calendar wasn't connected. To use it, allow calendar access on Google's screen.",
+    wrongAccount:
+      "That's a different Google account from the one already connected. Use the same account, or disconnect it in Settings first.",
+  },
   stats: {
     title: "Statistics",
     subtitle: "Your training, by the numbers.",
@@ -281,6 +307,10 @@ JSON (paste below, or attach the exported .json file):
     connectBody:
       "Connect your Google account to back up your progress to Drive and sync it across devices. Without it, data stays local to this browser.",
     connect: "Connect Google Drive",
+    calendarToo:
+      "Google Calendar is connected too (read-only), for picking off days. Disconnect removes both.",
+    calendarOnly:
+      "Google Calendar is connected as {{email}} (read-only), for picking off days.",
   },
   onboarding: {
     planTitle: "Welcome! 👋",
@@ -677,7 +707,6 @@ Rules:
     // Step 2
     offDaysIntro:
       "Add vacations, trips or busy periods that will limit your training. The AI will plan around them.",
-    calendarSoon: "Connect Google Calendar (coming soon)",
     // Step 3
     sportQ: "Which sport is this plan for?",
     raceTypeQ: "What kind of race is it?",

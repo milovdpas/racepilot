@@ -92,8 +92,10 @@ export default function PrivacyPage() {
             Permission requested: <code>calendar.events.owned.readonly</code>,
             which is read-only. The app reads your calendar only when you open
             the off-day picker, and then only the title, start and end of
-            events on your primary calendar within the dates of the plan
-            you&apos;re working on. It does not read descriptions, locations,
+            upcoming events on your primary calendar, from today until race
+            day of the plan you&apos;re working on, or over the next twelve
+            months for a plan whose race has passed. It does not read
+            descriptions, locations,
             guests or any other calendar, and it never creates, changes or
             deletes anything in your calendar.
           </p>

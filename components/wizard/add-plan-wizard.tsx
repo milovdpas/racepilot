@@ -2,13 +2,18 @@
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { StepAi } from "@/components/wizard/steps/step-ai";
 import { StepOffDays } from "@/components/wizard/steps/step-off-days";
 import { StepRace } from "@/components/wizard/steps/step-race";
 import { StepTraining } from "@/components/wizard/steps/step-training";
+import {
+  clearStashedDraft,
+  readStashedDraft,
+  stashDraft,
+} from "@/components/wizard/draft-stash";
 import { WizardStepper } from "@/components/wizard/wizard-stepper";
 import { BACKYARD_LOOP_KM } from "@/lib/plan/backyard";
 import { toISO, todayISO } from "@/lib/date";
@@ -46,9 +51,16 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
     [plans],
   );
 
-  const [step, setStep] = useState(1);
+  // Back from the Google Calendar consent (or the browser's Back button on
+  // it): pick up the draft where it was left. Read once, cleared after mount,
+  // so a later visit to the wizard starts fresh.
+  const [resumed] = useState(readStashedDraft);
+  useEffect(() => clearStashedDraft(), []);
+
+  const [step, setStep] = useState(resumed?.step ?? 1);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(() => {
+    if (resumed) return resumed.draft;
     // Arriving from a finished plan: attach it and carry its training
     // preferences over, since those rarely change race to race.
     const from = fromPlanId ? plans[fromPlanId] : undefined;
@@ -116,7 +128,13 @@ export function AddPlanWizard({ fromPlanId }: { fromPlanId?: string }) {
       <WizardStepper steps={STEPS} current={step} />
 
       {step === 1 ? <StepRace draft={draft} set={set} /> : null}
-      {step === 2 ? <StepOffDays draft={draft} set={set} /> : null}
+      {step === 2 ? (
+        <StepOffDays
+          draft={draft}
+          set={set}
+          onBeforeConnect={() => stashDraft(draft, step)}
+        />
+      ) : null}
       {step === 3 ? (
         <StepTraining
           draft={draft}

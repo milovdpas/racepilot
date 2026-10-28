@@ -163,6 +163,32 @@ export const nl: Dict = {
     note: "Notitie (trainingsmogelijkheid)",
     notePlaceholder: "bijv. Waarschijnlijk geen training / zeer beperkt hardlopen",
   },
+  calendarImport: {
+    connect: "Verbind Google Agenda",
+    connectHint:
+      "Alleen lezen. Kies reizen en vakanties uit je agenda in plaats van de datums in te typen.",
+    pick: "Kies uit Google Agenda",
+    title: "Vrije dagen kiezen",
+    description:
+      "Je Google Agenda-afspraken voor {{range}}. Alleen lezen: alleen de afspraken die je kiest worden opgeslagen, als vrije dagen.",
+    showTimed: "Afspraken met tijd tonen",
+    loading: "Je agenda wordt gelezen…",
+    empty: "Geen hele-dag- of meerdaagse afspraken in deze periode.",
+    emptyAll: "Geen afspraken in deze periode.",
+    untitled: "Bezet",
+    added: "Toegevoegd",
+    addSelected_zero: "Vrije dagen toevoegen",
+    addSelected_one: "{{count}} vrije dag toevoegen",
+    addSelected_other: "{{count}} vrije dagen toevoegen",
+    error: "Je agenda kon niet worden gelezen.",
+    retry: "Opnieuw proberen",
+    reauth: "Je Google-aanmelding is verlopen. Verbind opnieuw om je agenda te lezen.",
+    reconnect: "Opnieuw verbinden",
+    connectFailed:
+      "Google Agenda is niet verbonden. Geef op het scherm van Google toegang tot je agenda om het te gebruiken.",
+    wrongAccount:
+      "Dat is een ander Google-account dan het account dat al verbonden is. Gebruik hetzelfde account, of verbreek eerst de verbinding in Instellingen.",
+  },
   stats: {
     title: "Statistieken",
     subtitle: "Je training, in cijfers.",
@@ -282,6 +308,10 @@ JSON (plak hieronder, of voeg het geëxporteerde .json-bestand toe):
     connectBody:
       "Verbind je Google-account om je voortgang naar Drive te back-uppen en te synchroniseren tussen apparaten. Zonder dit blijven gegevens lokaal in deze browser.",
     connect: "Verbind Google Drive",
+    calendarToo:
+      "Google Agenda is ook verbonden (alleen lezen), om vrije dagen te kiezen. Verbinding verbreken verwijdert beide.",
+    calendarOnly:
+      "Google Agenda is verbonden als {{email}} (alleen lezen), om vrije dagen te kiezen.",
   },
   onboarding: {
     planTitle: "Welkom! 👋",
@@ -689,7 +719,6 @@ Regels:
     // Stap 2
     offDaysIntro:
       "Voeg vakanties, reizen of drukke periodes toe die je training beperken. De AI plant eromheen.",
-    calendarSoon: "Verbind Google Agenda (binnenkort)",
     // Stap 3
     sportQ: "Voor welke sport is dit plan?",
     raceTypeQ: "Wat voor wedstrijd is het?",

@@ -9,6 +9,13 @@ export interface SessionData {
   accessToken?: string;
   accessTokenExpiry?: number; // epoch ms
   user?: SyncUser;
+  /**
+   * What the grant actually covers, from the token response's `scope`. Drive
+   * and Calendar are consented to separately, and Google's granular consent
+   * lets a user untick either, so a refresh token alone no longer says which
+   * features work. Absent on sessions from before Calendar existed.
+   */
+  scopes?: string[];
 }
 
 export const sessionOptions: SessionOptions = {

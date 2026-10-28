@@ -80,23 +80,41 @@ export async function updateFile(
 
 export interface SessionInfo {
   configured: boolean;
+  /** Drive sync is granted. */
   connected: boolean;
+  /** Read-only Google Calendar is granted (for picking off days). */
+  calendar: boolean;
   user: SyncUser | null;
 }
+
+const NO_SESSION: SessionInfo = {
+  configured: false,
+  connected: false,
+  calendar: false,
+  user: null,
+};
 
 export async function fetchSession(): Promise<SessionInfo> {
   try {
     const res = await fetch("/api/auth/session", { cache: "no-store" });
-    if (!res.ok) return { configured: false, connected: false, user: null };
+    if (!res.ok) return NO_SESSION;
     return res.json();
   } catch {
-    return { configured: false, connected: false, user: null };
+    return NO_SESSION;
   }
 }
 
-/** Full-page redirect target that starts the Google consent flow. */
-export function loginUrl(returnTo: string): string {
-  return `/api/auth/google/login?returnTo=${encodeURIComponent(returnTo)}`;
+/**
+ * Full-page redirect target that starts the Google consent flow. Each feature
+ * asks for its own permission, so connecting one never asks for the other.
+ */
+export function loginUrl(
+  returnTo: string,
+  feature: "drive" | "calendar" = "drive",
+): string {
+  const params = new URLSearchParams({ returnTo });
+  if (feature !== "drive") params.set("feature", feature);
+  return `/api/auth/google/login?${params.toString()}`;
 }
 
 export async function logout(): Promise<void> {

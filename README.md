@@ -167,8 +167,8 @@ Without the env below, the app still works fully (local only) and the Settings �
 To enable it, create an OAuth client in the [Google Cloud Console](https://console.cloud.google.com/):
 
 1. **Create a project** (or pick one).
-2. **APIs & Services → Library →** enable **Google Drive API**.
-3. **APIs & Services → OAuth consent screen:** choose **External**, add the scope `https://www.googleapis.com/auth/drive.appdata`, and **Publish the app (set it to "In production")**. ⚠️ Don't leave it in *Testing* — Google expires refresh tokens after **7 days** in Testing mode, which defeats staying signed in. `drive.appdata` is *sensitive* but not *restricted*, so publishing needs no formal verification; users just click past a one-time "unverified app" warning.
+2. **APIs & Services → Library →** enable **Google Drive API**, and **Google Calendar API** if you want the off-day picker.
+3. **APIs & Services → OAuth consent screen:** choose **External**, add the scope `https://www.googleapis.com/auth/drive.appdata` (plus `https://www.googleapis.com/auth/calendar.events.owned.readonly` for the off-day picker), and **Publish the app (set it to "In production")**. ⚠️ Don't leave it in *Testing* — Google expires refresh tokens after **7 days** in Testing mode, which defeats staying signed in. `drive.appdata` is *sensitive* but not *restricted*, so publishing needs no formal verification; users just click past a one-time "unverified app" warning.
 4. **APIs & Services → Credentials → Create credentials → OAuth client ID → Web application.** Under **Authorized redirect URIs** add:
    - `http://localhost:3000/api/auth/google/callback`
    - `https://<your-stable-domain>/api/auth/google/callback` (use a stable Vercel alias or custom domain — **not** a per-deployment hash URL).
@@ -184,6 +184,8 @@ To enable it, create an OAuth client in the [Google Cloud Console](https://conso
    For Vercel, add the same four variables under **Project → Settings → Environment Variables** (set `GOOGLE_REDIRECT_URI` to your production callback URL) and redeploy.
 
 Then open **Settings → Cloud sync → Connect Google Drive** — you'll be redirected to Google and back.
+
+The same OAuth client powers the optional **Google Calendar off-day picker** (new-plan wizard → Off days, and the Off days page). It asks for its own read-only permission, `calendar.events.owned.readonly`, only when you click **Connect Google Calendar**, so Drive users are never asked for their calendar and the calendar works without Drive sync. Calendar is a *sensitive* scope: until Google verifies the app, users click past the same "unverified app" warning (and an unverified app is capped at 100 users).
 
 - The **client secret** is confidential: it lives only in server env, never `NEXT_PUBLIC_`, never committed.
 - The browser never sees an access/refresh token — it only calls same-origin `/api/*` routes; the server refreshes tokens transparently, so sessions survive page refreshes and the 1-hour token lifetime.

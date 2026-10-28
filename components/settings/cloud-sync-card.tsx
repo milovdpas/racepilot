@@ -22,6 +22,7 @@ export function CloudSyncCard() {
   const configured = useSyncStore((s) => s.configured);
   const ready = useSyncStore((s) => s.ready);
   const connected = useSyncStore((s) => s.connected);
+  const calendar = useSyncStore((s) => s.calendar);
   const needsReauth = useSyncStore((s) => s.needsReauth);
   const user = useSyncStore((s) => s.user);
   const lastSyncedAt = useSyncStore((s) => s.lastSyncedAt);
@@ -120,6 +121,9 @@ export function CloudSyncCard() {
                       })
                     : t("sync.backingUp")}
           </p>
+          {calendar ? (
+            <p className="text-xs text-muted-foreground">{t("sync.calendarToo")}</p>
+          ) : null}
 
           <div className="flex gap-2">
             {needsReauth ? (
@@ -149,14 +153,28 @@ export function CloudSyncCard() {
       ) : (
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground">{t("sync.connectBody")}</p>
-          <Button size="sm" disabled={busy} onClick={() => void connect()}>
-            {status === "connecting" ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Cloud className="size-4" />
-            )}
-            {t("sync.connect")}
-          </Button>
+          {/* Calendar granted without Drive: the account is connected for
+              the off-day picker only, and this is where to remove it. */}
+          {calendar ? (
+            <p className="text-xs text-muted-foreground">
+              {t("sync.calendarOnly", { email: user?.email ?? "" })}
+            </p>
+          ) : null}
+          <div className="flex gap-2">
+            <Button size="sm" disabled={busy} onClick={() => void connect()}>
+              {status === "connecting" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Cloud className="size-4" />
+              )}
+              {t("sync.connect")}
+            </Button>
+            {calendar ? (
+              <Button variant="ghost" size="sm" onClick={disconnect}>
+                <LogOut className="size-4" /> {t("sync.disconnect")}
+              </Button>
+            ) : null}
+          </div>
         </div>
       )}
 

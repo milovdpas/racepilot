@@ -3,6 +3,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CalendarImport } from "@/components/off-days/calendar-import";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,16 @@ import type { SetDraft } from "@/components/wizard/steps/types";
 const BLANK = { title: "", start: "", end: "", note: "" };
 
 /** Vacations and trips that limit training, collected as plan context. */
-export function StepOffDays({ draft, set }: { draft: Draft; set: SetDraft }) {
+export function StepOffDays({
+  draft,
+  set,
+  onBeforeConnect,
+}: {
+  draft: Draft;
+  set: SetDraft;
+  /** Keeps the draft across the redirect to Google's consent screen. */
+  onBeforeConnect: () => void;
+}) {
   const { t } = useTranslation();
   const [off, setOff] = useState(BLANK);
 
@@ -39,6 +49,19 @@ export function StepOffDays({ draft, set }: { draft: Draft; set: SetDraft }) {
   return (
     <Card className="gap-0 space-y-3 p-4">
       <p className="text-xs text-muted-foreground">{t("wizard.offDaysIntro")}</p>
+
+      <CalendarImport
+        from={draft.startDate}
+        to={draft.raceDate}
+        existing={draft.offDays}
+        onBeforeConnect={onBeforeConnect}
+        onAdd={(picked) =>
+          set("offDays", [
+            ...draft.offDays,
+            ...picked.map((o) => ({ ...o, id: newId() })),
+          ])
+        }
+      />
 
       {draft.offDays.length > 0 ? (
         <div className="space-y-2">
@@ -105,10 +128,6 @@ export function StepOffDays({ draft, set }: { draft: Draft; set: SetDraft }) {
           <Plus className="size-4" /> {t("common.add")}
         </Button>
       </div>
-
-      <Button variant="ghost" size="sm" disabled className="self-start">
-        {t("wizard.calendarSoon")}
-      </Button>
     </Card>
   );
 }

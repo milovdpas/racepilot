@@ -41,15 +41,29 @@ export function safeReturnTo(
   }
 }
 
+/** `path` with one query parameter set, keeping its other params and hash. */
+export function withSearchParam(path: string, key: string, value: string): string {
+  const url = new URL(path, "http://x");
+  url.searchParams.set(key, value);
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+const UNAUTHORIZED = new Set([
+  "RefreshError",
+  "DriveUnauthorizedError",
+  "CalendarUnauthorizedError",
+]);
+
 /**
- * Map a Drive/OAuth error to an HTTP response. Auth failures (refresh expired or
- * Drive 401) become 401 so the client shows "Reconnect"; everything else 500.
+ * Map a Google API/OAuth error to an HTTP response. Auth failures (refresh
+ * expired, or a 401 from Drive or Calendar) become 401 so the client shows
+ * "Reconnect"; everything else 500.
  */
-export function driveErrorResponse(e: unknown): NextResponse {
+export function googleErrorResponse(e: unknown): NextResponse {
   const name = e instanceof Error ? e.name : "";
-  if (name === "RefreshError" || name === "DriveUnauthorizedError") {
+  if (UNAUTHORIZED.has(name)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  console.error("Drive request failed:", e);
+  console.error("Google request failed:", e);
   return NextResponse.json({ error: "server_error" }, { status: 500 });
 }

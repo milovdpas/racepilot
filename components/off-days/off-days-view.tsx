@@ -1,10 +1,12 @@
 "use client";
 
+import { addDays } from "date-fns";
 import { Pencil, Plus, Trash2, Umbrella } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Field } from "@/components/common/field";
 import { NoPlanState } from "@/components/common/no-plan-state";
+import { CalendarImport } from "@/components/off-days/calendar-import";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { formatRange } from "@/lib/date";
+import { formatRange, toISO, todayISO } from "@/lib/date";
 import type { OffDay } from "@/lib/types";
 import { useActivePlan } from "@/hooks/use-active-plan";
 import { useTrainingStore } from "@/store/use-training-store";
@@ -59,6 +61,14 @@ export function OffDaysView() {
     setOpen(true);
   };
 
+  // The picker never lists past events (it starts at today itself). A plan
+  // whose race is behind it has nothing left to run up to, so it looks a
+  // year ahead instead of hiding.
+  const today = todayISO();
+  const pickFrom = plan.startDate ?? plan.weeks[0]?.startDate ?? today;
+  const pickTo =
+    plan.raceDate >= today ? plan.raceDate : toISO(addDays(new Date(), 365));
+
   const canSave = form.title.trim() && form.start && form.end && form.start <= form.end;
 
   const handleSave = () => {
@@ -82,6 +92,13 @@ export function OffDaysView() {
           <Plus className="size-4" /> {t("common.add")}
         </Button>
       </div>
+
+      <CalendarImport
+        from={pickFrom}
+        to={pickTo}
+        existing={plan.offDays ?? []}
+        onAdd={(picked) => picked.forEach((o) => addOffDay(o))}
+      />
 
       {offDays.length === 0 ? (
         <Card className="items-center gap-2 p-8 text-center">

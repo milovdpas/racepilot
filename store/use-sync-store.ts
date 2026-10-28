@@ -29,8 +29,13 @@ interface SyncState {
   configured: boolean;
   /** True once the initial session check has completed. */
   ready: boolean;
-  /** A linked Google account with a live server session. */
+  /** A linked Google account with Drive sync granted. */
   connected: boolean;
+  /**
+   * Read-only Google Calendar is granted, for picking off days. Independent of
+   * `connected`: either can be granted without the other.
+   */
+  calendar: boolean;
   /** Session/refresh gone — a one-tap reconnect is needed. */
   needsReauth: boolean;
   user: SyncUser | null;
@@ -45,11 +50,18 @@ interface SyncState {
    * to /welcome would replay the tour someone has just finished.
    */
   connect: (returnTo?: string) => void;
+  /** Same redirect, asking for the calendar permission instead of Drive. */
+  connectCalendar: (returnTo?: string) => void;
+  /** Revokes the whole Google grant: Drive sync and Calendar together. */
   disconnect: () => Promise<void>;
   syncNow: () => Promise<void>;
 }
 
 const nowISO = () => new Date().toISOString();
+const currentPath = () =>
+  typeof window !== "undefined"
+    ? window.location.pathname + window.location.search
+    : "/";
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const REAUTH_MSG = "Your Google session expired — tap Reconnect.";
 
@@ -181,6 +193,7 @@ export const useSyncStore = create<SyncState>()(
       configured: false,
       ready: false,
       connected: false,
+      calendar: false,
       needsReauth: false,
       user: null,
       fileId: null,
@@ -201,6 +214,7 @@ export const useSyncStore = create<SyncState>()(
         set({
           configured: session.configured,
           connected: session.connected,
+          calendar: session.calendar ?? false,
           user: session.user ?? get().user,
           ready: true,
           // Old GIS users were "connected" locally but have no server session.
@@ -211,18 +225,18 @@ export const useSyncStore = create<SyncState>()(
       },
 
       connect: (returnTo) => {
-        const target =
-          returnTo ??
-          (typeof window !== "undefined"
-            ? window.location.pathname + window.location.search
-            : "/");
-        window.location.href = loginUrl(target);
+        window.location.href = loginUrl(returnTo ?? currentPath());
+      },
+
+      connectCalendar: (returnTo) => {
+        window.location.href = loginUrl(returnTo ?? currentPath(), "calendar");
       },
 
       disconnect: async () => {
         if (autoPushTimer) clearTimeout(autoPushTimer);
         set({
           connected: false,
+          calendar: false,
           needsReauth: false,
           user: null,
           fileId: null,

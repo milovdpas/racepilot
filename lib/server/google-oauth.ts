@@ -3,8 +3,33 @@ import type { IronSession } from "iron-session";
 import type { SessionData } from "./session";
 import type { SyncUser } from "@/lib/drive/types";
 
-const SCOPES =
-  "openid email profile https://www.googleapis.com/auth/drive.appdata";
+export const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
+/**
+ * Read-only, and only calendars the user owns: the narrowest scope that can
+ * list events on `primary`. `calendar.readonly` would also expose every shared
+ * calendar and the user's settings, none of which picking off days needs.
+ */
+export const CALENDAR_SCOPE =
+  "https://www.googleapis.com/auth/calendar.events.owned.readonly";
+
+/**
+ * Each feature asks for its own scope when the user turns it on (incremental
+ * authorization), so connecting Drive never asks for the calendar and the
+ * calendar works without Drive. `include_granted_scopes` folds earlier grants
+ * into the new token, so a second consent extends the first rather than
+ * replacing it.
+ */
+export type OauthFeature = "drive" | "calendar";
+
+const FEATURE_SCOPES: Record<OauthFeature, string> = {
+  drive: DRIVE_SCOPE,
+  calendar: CALENDAR_SCOPE,
+};
+
+export function parseFeature(value: unknown): OauthFeature {
+  return value === "calendar" ? "calendar" : "drive";
+}
+
 const AUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const REVOKE_ENDPOINT = "https://oauth2.googleapis.com/revoke";
@@ -34,24 +59,42 @@ export function getRedirectUri(): string {
   );
 }
 
-export function buildAuthUrl(state: string): string {
+export function buildAuthUrl(
+  state: string,
+  feature: OauthFeature = "drive",
+  loginHint?: string,
+): string {
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
     redirect_uri: getRedirectUri(),
     response_type: "code",
-    scope: SCOPES,
+    scope: `openid email profile ${FEATURE_SCOPES[feature]}`,
     access_type: "offline", // ask for a refresh token
     prompt: "consent", // force consent so a refresh token is actually returned
     include_granted_scopes: "true",
     state,
   });
+  if (loginHint) params.set("login_hint", loginHint);
   return `${AUTH_ENDPOINT}?${params.toString()}`;
+}
+
+/**
+ * Whether the session's grant covers `scope`. A session saved before scopes
+ * were recorded came from the Drive-only consent, so it has Drive and nothing
+ * else; the next token refresh replaces the guess with Google's answer.
+ */
+export function hasScope(session: SessionData, scope: string): boolean {
+  if (!session.refreshToken) return false;
+  if (!session.scopes) return scope === DRIVE_SCOPE;
+  return session.scopes.includes(scope);
 }
 
 interface TokenResponse {
   access_token?: string;
   refresh_token?: string;
   expires_in?: number;
+  /** Space-separated; every scope the grant covers, earlier ones included. */
+  scope?: string;
   id_token?: string;
   error?: string;
   error_description?: string;
@@ -113,6 +156,7 @@ export async function getValidAccessToken(
   session.accessTokenExpiry = Date.now() + (data.expires_in ?? 3600) * 1000;
   // Google usually omits refresh_token on refresh; only overwrite if rotated.
   if (data.refresh_token) session.refreshToken = data.refresh_token;
+  if (data.scope) session.scopes = data.scope.split(" ");
   await session.save();
   return session.accessToken;
 }

@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IronSession } from "iron-session";
 import {
+  CALENDAR_SCOPE,
+  DRIVE_SCOPE,
   RefreshError,
   buildAuthUrl,
   getValidAccessToken,
+  hasScope,
   isOauthConfigured,
+  parseFeature,
 } from "./google-oauth";
 import type { SessionData } from "./session";
 
@@ -61,6 +65,60 @@ describe("buildAuthUrl", () => {
     expect(url.searchParams.get("redirect_uri")).toBe(
       "https://app.example/api/auth/google/callback",
     );
+  });
+
+  it("asks only for the feature being turned on", () => {
+    // Incremental consent: connecting Drive must not ask for the calendar,
+    // and the calendar must not ask for Drive.
+    const drive = new URL(buildAuthUrl("s")).searchParams.get("scope")!;
+    const cal = new URL(buildAuthUrl("s", "calendar")).searchParams.get("scope")!;
+    expect(drive).toContain(DRIVE_SCOPE);
+    expect(drive).not.toContain("calendar");
+    expect(cal).toContain(CALENDAR_SCOPE);
+    expect(cal).not.toContain("drive");
+    // Earlier grants are folded in, so the calendar extends Drive sync.
+    expect(new URL(buildAuthUrl("s", "calendar")).searchParams.get("include_granted_scopes")).toBe("true");
+  });
+
+  it("asks for read-only access to owned calendars, nothing wider", () => {
+    expect(CALENDAR_SCOPE).toBe(
+      "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+    );
+  });
+
+  it("passes a login hint only when given one", () => {
+    expect(new URL(buildAuthUrl("s")).searchParams.has("login_hint")).toBe(false);
+    expect(
+      new URL(buildAuthUrl("s", "calendar", "a@b.c")).searchParams.get("login_hint"),
+    ).toBe("a@b.c");
+  });
+});
+
+describe("parseFeature", () => {
+  it("defaults anything unknown to Drive", () => {
+    expect(parseFeature("calendar")).toBe("calendar");
+    expect(parseFeature("drive")).toBe("drive");
+    expect(parseFeature(null)).toBe("drive");
+    expect(parseFeature("gmail")).toBe("drive");
+  });
+});
+
+describe("hasScope", () => {
+  it("reads a session from before scopes were recorded as Drive-only", () => {
+    // Every pre-Calendar session came from the Drive consent.
+    const legacy = { refreshToken: "r" };
+    expect(hasScope(legacy, DRIVE_SCOPE)).toBe(true);
+    expect(hasScope(legacy, CALENDAR_SCOPE)).toBe(false);
+  });
+
+  it("trusts the recorded scopes once they exist", () => {
+    const calendarOnly = { refreshToken: "r", scopes: ["openid", CALENDAR_SCOPE] };
+    expect(hasScope(calendarOnly, DRIVE_SCOPE)).toBe(false);
+    expect(hasScope(calendarOnly, CALENDAR_SCOPE)).toBe(true);
+  });
+
+  it("grants nothing without a refresh token", () => {
+    expect(hasScope({ scopes: [DRIVE_SCOPE] }, DRIVE_SCOPE)).toBe(false);
   });
 });
 
@@ -122,6 +180,20 @@ describe("getValidAccessToken", () => {
 
     await getValidAccessToken(session);
     expect(session.refreshToken).toBe("original");
+  });
+
+  it("records the scopes Google reports on refresh", async () => {
+    // How a pre-Calendar session learns what it really covers.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        okJson({ access_token: "fresh", scope: `openid ${DRIVE_SCOPE}` }),
+      ),
+    );
+    const session = makeSession({ refreshToken: "r1" });
+
+    await getValidAccessToken(session);
+    expect(session.scopes).toEqual(["openid", DRIVE_SCOPE]);
   });
 
   it("adopts a rotated refresh token when one is returned", async () => {

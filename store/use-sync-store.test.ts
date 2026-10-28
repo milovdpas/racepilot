@@ -88,6 +88,7 @@ beforeEach(() => {
     configured: true,
     ready: true,
     connected: true,
+    calendar: false,
     needsReauth: false,
     user: null,
     fileId: null,
@@ -258,6 +259,13 @@ describe("disconnect", () => {
     expect(s.status).toBe("disconnected");
   });
 
+  it("drops the calendar too, since revoking removes the whole grant", async () => {
+    useSyncStore.setState({ connected: false, calendar: true });
+
+    await useSyncStore.getState().disconnect();
+    expect(useSyncStore.getState().calendar).toBe(false);
+  });
+
   it("cancels a pending auto-push", async () => {
     vi.useFakeTimers();
     await useSyncStore.getState().init();
@@ -293,6 +301,25 @@ describe("init", () => {
 
     await useSyncStore.getState().init();
     expect(useSyncStore.getState().needsReauth).toBe(false);
+  });
+
+  it("does not sync a session that only granted the calendar", async () => {
+    // Calendar-only users have a refresh token but no Drive scope; treating
+    // that as "connected" would hit Drive with a token that can't use it.
+    useSyncStore.setState({ connected: false });
+    drive.fetchSession.mockResolvedValue({
+      configured: true,
+      connected: false,
+      calendar: true,
+    });
+
+    await useSyncStore.getState().init();
+
+    const s = useSyncStore.getState();
+    expect(s.calendar).toBe(true);
+    expect(s.connected).toBe(false);
+    expect(s.needsReauth).toBe(false);
+    expect(drive.findFile).not.toHaveBeenCalled();
   });
 
   it("reconciles immediately when the server session is live", async () => {

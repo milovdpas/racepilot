@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { driveErrorResponse } from "@/lib/server/api";
+import { googleErrorResponse } from "@/lib/server/api";
 import { createFile, downloadFile, updateFile } from "@/lib/server/drive";
 import { getValidAccessToken, isOauthConfigured } from "@/lib/server/google-oauth";
 import { getSession } from "@/lib/server/session";
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
   } catch (e) {
-    return driveErrorResponse(e);
+    return googleErrorResponse(e);
   }
 }
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const meta = await createFile(token, json);
     return NextResponse.json(meta, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
-    return driveErrorResponse(e);
+    return googleErrorResponse(e);
   }
 }
 
@@ -53,6 +53,6 @@ export async function PATCH(request: Request) {
     const meta = await updateFile(token, id, json);
     return NextResponse.json(meta, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
-    return driveErrorResponse(e);
+    return googleErrorResponse(e);
   }
 }

@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { driveErrorResponse, redirectTo, safeReturnTo } from "./api";
+import {
+  googleErrorResponse,
+  redirectTo,
+  safeReturnTo,
+  withSearchParam,
+} from "./api";
 
 const ORIGIN = "https://app.example";
 /** What the redirect will actually resolve to — the thing that matters. */
@@ -47,7 +52,7 @@ describe("safeReturnTo", () => {
   });
 });
 
-describe("driveErrorResponse", () => {
+describe("googleErrorResponse", () => {
   const named = (name: string) => {
     const e = new Error("boom");
     e.name = name;
@@ -55,8 +60,12 @@ describe("driveErrorResponse", () => {
   };
 
   it("maps auth failures to 401 so the client offers Reconnect", async () => {
-    for (const name of ["RefreshError", "DriveUnauthorizedError"]) {
-      const res = driveErrorResponse(named(name));
+    for (const name of [
+      "RefreshError",
+      "DriveUnauthorizedError",
+      "CalendarUnauthorizedError",
+    ]) {
+      const res = googleErrorResponse(named(name));
       expect(res.status).toBe(401);
       await expect(res.json()).resolves.toEqual({ error: "unauthorized" });
     }
@@ -64,7 +73,7 @@ describe("driveErrorResponse", () => {
 
   it("maps anything else to 500 and logs it", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const res = driveErrorResponse(new Error("disk on fire"));
+    const res = googleErrorResponse(new Error("disk on fire"));
     expect(res.status).toBe(500);
     await expect(res.json()).resolves.toEqual({ error: "server_error" });
     expect(spy).toHaveBeenCalled();
@@ -73,7 +82,7 @@ describe("driveErrorResponse", () => {
 
   it("handles a non-Error throw without crashing", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const res = driveErrorResponse("just a string");
+    const res = googleErrorResponse("just a string");
     expect(res.status).toBe(500);
     spy.mockRestore();
   });
@@ -99,5 +108,21 @@ describe("redirectTo", () => {
     expect(
       redirectTo("/api/auth/google/login?returnTo=%2Fapp").headers.get("Location"),
     ).toBe("/api/auth/google/login?returnTo=%2Fapp");
+  });
+});
+
+describe("withSearchParam", () => {
+  it("adds a flag to a bare path", () => {
+    expect(withSearchParam("/app/off-days", "calendar", "error")).toBe(
+      "/app/off-days?calendar=error",
+    );
+  });
+
+  it("keeps the existing query and hash, and replaces a stale flag", () => {
+    // The wizard's return path can carry `?from=<planId>`; losing it would
+    // drop the plan the user was continuing from.
+    expect(
+      withSearchParam("/app/plan/new?from=p1&calendar=old#x", "calendar", "account"),
+    ).toBe("/app/plan/new?from=p1&calendar=account#x");
   });
 });
