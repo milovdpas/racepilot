@@ -210,9 +210,9 @@ export default function PrivacyPage() {
           which involves nothing running in your browser.
         </p>
         <p>
-          The site is hosted on Vercel, which keeps standard server logs (IP
-          address, request time) for operational reasons, as every web host
-          does.
+          The site runs on a rented server, whose web server keeps standard
+          access logs (IP address, request time, the page requested) for
+          operational reasons, as every web server does.
         </p>
       </Section>
 
