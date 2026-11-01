@@ -30,7 +30,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy"
-      updated="28 October 2026"
+      updated="1 November 2026"
       intro={
         <>
           The short version: there is no account, no database and no tracking.{" "}
@@ -64,14 +64,16 @@ export default function PrivacyPage() {
         <p>
           Two features use your Google account: Google Drive sync and picking
           off days from Google Calendar. Each asks Google for its own permission
-          when you turn it on, so using one never grants the other.
+          when you turn it on, and the app only uses a feature in a browser
+          where you turned that feature on.
         </p>
         <p>
           When you connect, Google shares your name, email address and profile
           picture with the app, so Settings can show which account is
-          connected. The connection is kept in an encrypted, HTTP-only cookie in
-          your browser rather than in a database. That cookie holds the access
-          token Google issues and your name, email address and picture. The
+          connected. The connection is kept in an encrypted cookie in your
+          browser rather than in a database. That cookie holds the tokens Google
+          issues (an access token and a refresh token) and your name, email
+          address and picture. The
           name, email address and picture are also kept in your browser&apos;s
           storage so Settings can show them straight away.
         </p>
@@ -105,15 +107,69 @@ export default function PrivacyPage() {
             off days in your plan: in your browser, and in your Drive file if
             sync is on. The rest are discarded when you close the picker.
           </p>
+          <p>
+            Because picked off days are part of your plan, their titles and
+            dates are included when you export your plan, or when you hand the
+            plan wizard&apos;s request to an AI service yourself. {SITE_NAME}{" "}
+            never sends them to an AI service or anyone else on its own, and
+            you can rename or delete an off day before you do.
+          </p>
+        </SubSection>
+
+        <SubSection title="How your Google data is protected">
+          <ul className="list-disc space-y-1.5 pl-5">
+            <li>
+              <strong>Encrypted in transit.</strong> Everything between your
+              browser, this site and Google travels over HTTPS.
+            </li>
+            <li>
+              <strong>Tokens stay out of reach.</strong> Google&apos;s tokens
+              are kept only in a cookie that is encrypted and signed with a
+              secret key that exists only on the server. The cookie is marked
+              HttpOnly, so no script on the page can read it, and Secure, so it
+              is only ever sent over HTTPS. Your browser stores it but cannot
+              read the tokens inside: they are decrypted and used only on the
+              server, and never handed to the page.
+            </li>
+            <li>
+              <strong>Nothing is stored on the server.</strong> There is no
+              database. Calendar events and the contents of your Drive file
+              are relayed during the request that needs them and are not
+              written to disk or to logs. Error logs record what failed, never
+              your data.
+            </li>
+            <li>
+              <strong>The least access that works.</strong> Drive access covers
+              only the app&apos;s own hidden file, and Calendar access is
+              read-only and limited to calendars you own. From each event the
+              app requests only its title, start and end.
+            </li>
+            <li>
+              <strong>Secrets stay on the server.</strong> The keys the app
+              uses with Google are kept in the server&apos;s configuration,
+              never in the source code or the browser. Only the developer can
+              access the server.
+            </li>
+            <li>
+              <strong>In your browser.</strong> What the app saves, including
+              off days picked from your calendar, is kept in your browser&apos;s
+              storage for this site, which other websites cannot read.
+            </li>
+          </ul>
         </SubSection>
 
         <SubSection title="How Google data is used">
           <p>
             Google user data is used only to provide the two features above,
             which you can see working in the app. It is not sold, not used for
-            advertising, not shared with anyone else, and not used to train AI
-            models. Nobody reads it unless you send it to us yourself, for
-            example in a bug report.
+            advertising, and not shared with anyone else. Nobody reads it
+            unless you send it to us yourself, for example in a bug report.
+          </p>
+          <p>
+            {SITE_NAME} does not use data obtained through Google Workspace
+            APIs, including Google Calendar and Google Drive, to develop,
+            improve or train generalized artificial intelligence or machine
+            learning models.
           </p>
           <p>
             {SITE_NAME}&apos;s use and transfer to any other app of information
