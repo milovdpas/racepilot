@@ -30,6 +30,7 @@ export function AgendaView({
   weather,
   onToggle,
   onEdit,
+  onOpen,
   className,
 }: {
   workouts: Workout[];
@@ -37,6 +38,7 @@ export function AgendaView({
   weather: Record<string, WeatherSnapshot>;
   onToggle: (id: string) => void;
   onEdit: (workout: Workout) => void;
+  onOpen?: (workout: Workout) => void;
   className?: string;
 }) {
   const { t, i18n } = useTranslation();
@@ -142,6 +144,7 @@ export function AgendaView({
                     showDate={false}
                     onToggle={onToggle}
                     onEdit={onEdit}
+                    onOpen={onOpen}
                   />
                 ))}
               </div>

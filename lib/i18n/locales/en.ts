@@ -78,6 +78,15 @@ export const en = {
     custom: "custom",
     flexible: "Flexible",
   },
+  workoutDetail: {
+    planned: "Planned",
+    logged: "Logged",
+    done: "Done",
+    splits: "Splits",
+    startedAt: "started {{time}}",
+    markComplete: "Mark complete",
+    markIncomplete: "Mark as not done",
+  },
   completeWorkout: {
     title: "Log this session",
     desc: "We pre-filled your planned target - adjust it to what you actually did.",

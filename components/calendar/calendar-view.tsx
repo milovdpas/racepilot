@@ -15,6 +15,10 @@ import {
 } from "@/components/calendar/use-calendar-nav";
 import { useCalendarWeather } from "@/components/calendar/use-calendar-weather";
 import { NoPlanState } from "@/components/common/no-plan-state";
+import {
+  useWorkoutDetail,
+  WorkoutDetailSheet,
+} from "@/components/common/workout-detail-sheet";
 import { useExportFormat } from "@/hooks/use-export-format";
 import { targetFor } from "@/lib/export/target";
 import { toast } from "@/store/use-toast-store";
@@ -42,6 +46,7 @@ export function CalendarView() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [editing, setEditing] = useState<Workout | null>(null);
   const [addDate, setAddDate] = useState<string | null>(null);
+  const detail = useWorkoutDetail();
 
 
   const workouts = useMemo(
@@ -117,6 +122,7 @@ export function CalendarView() {
             weather={weather}
             onToggle={toggleComplete}
             onEdit={setEditing}
+            onOpen={detail.show}
           />
         </Card>
       ) : view === "day" ? (
@@ -128,6 +134,7 @@ export function CalendarView() {
             offDay={offDayForDate(offDays, anchorIso)}
             onToggle={toggleComplete}
             onEdit={setEditing}
+            onOpen={detail.show}
             onAdd={setAddDate}
             onReschedule={reschedule}
           />
@@ -161,10 +168,22 @@ export function CalendarView() {
           setSelectedDate(null);
           setEditing(w);
         }}
+        // Swaps sheets rather than stacking them, like Edit: two modals from
+        // separate roots fight over focus and outside clicks.
+        onOpen={(w) => {
+          setSelectedDate(null);
+          detail.show(w);
+        }}
         onAdd={(d) => {
           setSelectedDate(null);
           setAddDate(d);
         }}
+      />
+
+      <WorkoutDetailSheet
+        {...detail.sheet}
+        onToggle={toggleComplete}
+        onEdit={setEditing}
       />
 
       <WorkoutFormDialog

@@ -9,6 +9,10 @@ import { CompleteWorkoutDialog } from "@/components/common/complete-workout-dial
 import { NoPlanState } from "@/components/common/no-plan-state";
 import { ProgressRing } from "@/components/common/progress-ring";
 import { StatCard } from "@/components/common/stat-card";
+import {
+  useWorkoutDetail,
+  WorkoutDetailSheet,
+} from "@/components/common/workout-detail-sheet";
 import { WorkoutRow } from "@/components/common/workout-row";
 import { Card } from "@/components/ui/card";
 import { fromISO, startOfToday } from "@/lib/date";
@@ -29,6 +33,7 @@ export function DashboardView() {
   const toggleComplete = useTrainingStore((s) => s.toggleComplete);
   const stats = useStats(plan);
   const [completing, setCompleting] = useState<Workout | null>(null);
+  const detail = useWorkoutDetail();
 
   // Completing a run opens the quick-log dialog (prefilled with the planned
   // target); un-checking a done run just flips it back.
@@ -173,7 +178,12 @@ export function DashboardView() {
             </Card>
           ) : (
             stats.upcoming.map((w) => (
-              <WorkoutRow key={w.id} workout={w} onToggle={handleToggle} />
+              <WorkoutRow
+                key={w.id}
+                workout={w}
+                onToggle={handleToggle}
+                onOpen={detail.show}
+              />
             ))
           )}
         </div>
@@ -185,12 +195,18 @@ export function DashboardView() {
           <h3 className="mb-2 text-sm font-semibold">{t("dashboard.recent")}</h3>
           <div className="space-y-2">
             {stats.recent.map((w) => (
-              <WorkoutRow key={w.id} workout={w} onToggle={handleToggle} />
+              <WorkoutRow
+                key={w.id}
+                workout={w}
+                onToggle={handleToggle}
+                onOpen={detail.show}
+              />
             ))}
           </div>
         </section>
       ) : null}
 
+      <WorkoutDetailSheet {...detail.sheet} onToggle={handleToggle} />
       <CompleteWorkoutDialog
         workout={completing}
         open={!!completing}

@@ -22,6 +22,7 @@ export interface DayDetailProps {
   offDay?: OffDay;
   onToggle: (id: string) => void;
   onEdit: (w: Workout) => void;
+  onOpen?: (w: Workout) => void;
   onAdd: (date: string) => void;
   onReschedule: (id: string, date: string) => void;
 }
@@ -48,6 +49,7 @@ export function DayDetail({
   offDay,
   onToggle,
   onEdit,
+  onOpen,
   onAdd,
   onReschedule,
   className,
@@ -125,6 +127,7 @@ export function DayDetail({
               workout={w}
               onToggle={onToggle}
               onEdit={onEdit}
+              onOpen={onOpen}
               showDate={false}
             />
             {w.splits && w.splits.length > 0 ? (

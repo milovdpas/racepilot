@@ -9,6 +9,10 @@ import { SendToWatchDialog } from "@/components/export/send-to-watch-dialog";
 import { availableTargets, targetFor } from "@/lib/export/target";
 import { FlexibleDayPicker } from "@/components/common/flexible-day-picker";
 import { NoPlanState } from "@/components/common/no-plan-state";
+import {
+  useWorkoutDetail,
+  WorkoutDetailSheet,
+} from "@/components/common/workout-detail-sheet";
 import { WorkoutRow } from "@/components/common/workout-row";
 import { WorkoutFormDialog } from "@/components/plan/workout-form-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +57,7 @@ export function PlanView() {
   const [adding, setAdding] = useState(false);
   const [completing, setCompleting] = useState<Workout | null>(null);
   const [sending, setSending] = useState<Workout | null>(null);
+  const detail = useWorkoutDetail();
   const exportFormat = useExportFormat(plan);
   // Whether "send to watch" is worth offering at all. A Polar owner has no
   // workout-scope target, and a button that opens an empty dialog is worse than
@@ -241,6 +246,7 @@ export function PlanView() {
                             onToggle={handleToggle}
                             onEdit={setEditing}
                             onSendToWatch={canSend ? setSending : undefined}
+                            onOpen={detail.show}
                             className="rounded-none border-0 bg-transparent"
                           />
                           <div
@@ -268,6 +274,7 @@ export function PlanView() {
                         onToggle={handleToggle}
                         onEdit={setEditing}
                         onSendToWatch={canSend ? setSending : undefined}
+                        onOpen={detail.show}
                       />
                     );
                   })
@@ -278,6 +285,12 @@ export function PlanView() {
         );
       })}
 
+      <WorkoutDetailSheet
+        {...detail.sheet}
+        onToggle={handleToggle}
+        onEdit={setEditing}
+        onSendToWatch={canSend ? setSending : undefined}
+      />
       <WorkoutFormDialog
         open={!!editing}
         onOpenChange={(o) => !o && setEditing(null)}

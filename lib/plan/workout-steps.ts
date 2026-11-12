@@ -81,7 +81,7 @@ export function isValidSteps(blocks: readonly WorkoutBlock[]): boolean {
 }
 
 /** How the app writes a single step: "800 m @ 4:10", "10 min easy". */
-function describeStep(step: WorkoutStep, fmt: StepFormat): string {
+export function describeStep(step: WorkoutStep, fmt: StepFormat): string {
   const amount =
     step.distanceKm != null
       ? fmt.distance(step.distanceKm)

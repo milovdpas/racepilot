@@ -15,6 +15,7 @@ export function WorkoutRow({
   onToggle,
   onEdit,
   onSendToWatch,
+  onOpen,
   showDate = true,
   className,
 }: {
@@ -23,6 +24,8 @@ export function WorkoutRow({
   onEdit?: (workout: Workout) => void;
   /** Offered only where a usable export target exists; see `availableTargets`. */
   onSendToWatch?: (workout: Workout) => void;
+  /** Tapping the row's text opens the detail sheet; see `useWorkoutDetail`. */
+  onOpen?: (workout: Workout) => void;
   showDate?: boolean;
   className?: string;
 }) {
@@ -36,6 +39,59 @@ export function WorkoutRow({
   const { completed } = workout;
   const hasActual =
     workout.actualDistanceKm != null || workout.actualPace != null;
+
+  // Spans throughout, so the same markup is valid inside the open button.
+  const body = (
+    <>
+      {/* One line of pills. The flexible pill is the only one that can
+          shrink, and it truncates rather than wrapping the row. */}
+      <span className="flex min-w-0 items-center gap-2">
+        <WorkoutTypeBadge
+          type={workout.type}
+          sport={showSport ? sport : undefined}
+        />
+        {workout.flexible && workout.windowStart && workout.windowEnd ? (
+          /* Just the window: spelling out "Flexible" as well pushed the pill
+             past the available width and truncated it to "Flexibl…". The
+             icon carries the meaning and the legend maps it. */
+          <span
+            title={`${t("workoutRow.flexible")} · ${formatRange(workout.windowStart, workout.windowEnd)}`}
+            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-tempo/15 px-2 py-0.5 text-[10px] font-medium text-tempo"
+          >
+            <CalendarRange className="size-3 shrink-0" />
+            {formatRange(workout.windowStart, workout.windowEnd)}
+          </span>
+        ) : null}
+        {workout.isCustom ? (
+          <span className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {t("workoutRow.custom")}
+          </span>
+        ) : null}
+      </span>
+      {/* One line, truncated. AI titles can carry a whole coaching note: the
+          tooltip shows it on hover, the detail sheet on a tap. */}
+      <span
+        title={workout.title}
+        className={cn(
+          "mt-1 block truncate text-sm font-medium",
+          completed && "text-muted-foreground line-through",
+        )}
+      >
+        {workout.title}
+      </span>
+      <span className="block text-xs text-muted-foreground">
+        {showDate ? <>{formatDayLabel(workout.date)} · </> : null}
+        {hasActual && completed
+          ? `${fmt.distance(
+              workout.actualDistanceKm ?? workout.plannedDistanceKm,
+            )} · ${fmt.pace(workout.actualPace ?? workout.plannedPace, sport)}`
+          : `${fmt.distance(workout.plannedDistanceKm)} · ${fmt.pace(
+              workout.plannedPace,
+              sport,
+            )}`}
+      </span>
+    </>
+  );
 
   return (
     <div
@@ -61,52 +117,18 @@ export function WorkoutRow({
         </button>
       ) : null}
 
-      <div className="min-w-0 flex-1">
-        {/* One line of pills. The flexible pill is the only one that can
-            shrink, and it truncates rather than wrapping the row. */}
-        <div className="flex min-w-0 items-center gap-2">
-          <WorkoutTypeBadge
-            type={workout.type}
-            sport={showSport ? sport : undefined}
-          />
-          {workout.flexible && workout.windowStart && workout.windowEnd ? (
-            /* Just the window: spelling out "Flexible" as well pushed the pill
-               past the available width and truncated it to "Flexibl…". The
-               icon carries the meaning and the legend maps it. */
-            <span
-              title={`${t("workoutRow.flexible")} · ${formatRange(workout.windowStart, workout.windowEnd)}`}
-              className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-tempo/15 px-2 py-0.5 text-[10px] font-medium text-tempo"
-            >
-              <CalendarRange className="size-3 shrink-0" />
-              {formatRange(workout.windowStart, workout.windowEnd)}
-            </span>
-          ) : null}
-          {workout.isCustom ? (
-            <span className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {t("workoutRow.custom")}
-            </span>
-          ) : null}
-        </div>
-        <p
-          className={cn(
-            "mt-1 truncate text-sm font-medium",
-            completed && "text-muted-foreground line-through",
-          )}
+      {onOpen ? (
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => onOpen(workout)}
+          className="min-w-0 flex-1 cursor-pointer rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
-          {workout.title}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {showDate ? <>{formatDayLabel(workout.date)} · </> : null}
-          {hasActual && completed
-            ? `${fmt.distance(
-                workout.actualDistanceKm ?? workout.plannedDistanceKm,
-              )} · ${fmt.pace(workout.actualPace ?? workout.plannedPace, sport)}`
-            : `${fmt.distance(workout.plannedDistanceKm)} · ${fmt.pace(
-                workout.plannedPace,
-                sport,
-              )}`}
-        </p>
-      </div>
+          {body}
+        </button>
+      ) : (
+        <div className="min-w-0 flex-1">{body}</div>
+      )}
 
       {onSendToWatch ? (
         <button

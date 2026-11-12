@@ -78,6 +78,15 @@ export const nl: Dict = {
     custom: "eigen",
     flexible: "Flexibel",
   },
+  workoutDetail: {
+    planned: "Gepland",
+    logged: "Vastgelegd",
+    done: "Voltooid",
+    splits: "Splits",
+    startedAt: "gestart om {{time}}",
+    markComplete: "Markeer als voltooid",
+    markIncomplete: "Markeer als niet gedaan",
+  },
   completeWorkout: {
     title: "Training vastleggen",
     desc: "We hebben je geplande doel ingevuld - pas het aan naar wat je werkelijk deed.",
